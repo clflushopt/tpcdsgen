@@ -1,4 +1,4 @@
-use crate::distribution::{Distribution, WeightsBuilder, DistributionUtils};
+use crate::distribution::{Distribution, DistributionUtils, WeightsBuilder};
 use crate::random::RandomNumberStream;
 use crate::{error::Result, TpcdsError};
 
@@ -14,13 +14,17 @@ impl StringValuesDistribution {
     pub fn new(values_lists: Vec<Vec<String>>, weights_lists: Vec<Vec<i32>>) -> Result<Self> {
         // Validate that values and weights lists have same structure
         if values_lists.len() != weights_lists.len() {
-            return Err(TpcdsError::new("Values and weights lists must have same number of lists"));
+            return Err(TpcdsError::new(
+                "Values and weights lists must have same number of lists",
+            ));
         }
 
         for (i, (values, weights)) in values_lists.iter().zip(weights_lists.iter()).enumerate() {
             if values.len() != weights.len() {
                 return Err(TpcdsError::new(&format!(
-                    "Values list {} and weights list {} must have same length", i, i)));
+                    "Values list {} and weights list {} must have same length",
+                    i, i
+                )));
             }
         }
 
@@ -63,7 +67,9 @@ impl StringValuesDistribution {
 
         for (value, weights) in data {
             if weights.len() != num_weight_columns {
-                return Err(TpcdsError::new("All data entries must have same number of weights"));
+                return Err(TpcdsError::new(
+                    "All data entries must have same number of weights",
+                ));
             }
 
             values.push(value.to_string());
@@ -96,19 +102,32 @@ impl StringValuesDistribution {
 
 impl Distribution<String> for StringValuesDistribution {
     /// Pick random value based on weights (core method matching Java)
-    fn pick_random_value(&self, value_list: usize, weight_list: usize, stream: &mut dyn RandomNumberStream) -> Result<String> {
+    fn pick_random_value(
+        &self,
+        value_list: usize,
+        weight_list: usize,
+        stream: &mut dyn RandomNumberStream,
+    ) -> Result<String> {
         if value_list >= self.values_lists.len() {
-            return Err(TpcdsError::new(&format!("Value list index {} out of bounds", value_list)));
+            return Err(TpcdsError::new(&format!(
+                "Value list index {} out of bounds",
+                value_list
+            )));
         }
         if weight_list >= self.weights_lists.len() {
-            return Err(TpcdsError::new(&format!("Weight list index {} out of bounds", weight_list)));
+            return Err(TpcdsError::new(&format!(
+                "Weight list index {} out of bounds",
+                weight_list
+            )));
         }
 
         let values = &self.values_lists[value_list];
         let weights = &self.weights_lists[weight_list];
 
         if values.len() != weights.len() {
-            return Err(TpcdsError::new("Values and weights lists have different lengths"));
+            return Err(TpcdsError::new(
+                "Values and weights lists have different lengths",
+            ));
         }
 
         if values.is_empty() {
@@ -117,7 +136,10 @@ impl Distribution<String> for StringValuesDistribution {
 
         let index = DistributionUtils::pick_random_index_from_weights(weights, stream)?;
         if index >= values.len() {
-            return Err(TpcdsError::new(&format!("Selected index {} out of bounds for values", index)));
+            return Err(TpcdsError::new(&format!(
+                "Selected index {} out of bounds for values",
+                index
+            )));
         }
 
         Ok(values[index].clone())
@@ -126,12 +148,18 @@ impl Distribution<String> for StringValuesDistribution {
     /// Get value at specific index
     fn get_value_at_index(&self, value_list: usize, index: usize) -> Result<String> {
         if value_list >= self.values_lists.len() {
-            return Err(TpcdsError::new(&format!("Value list index {} out of bounds", value_list)));
+            return Err(TpcdsError::new(&format!(
+                "Value list index {} out of bounds",
+                value_list
+            )));
         }
 
         let values = &self.values_lists[value_list];
         if index >= values.len() {
-            return Err(TpcdsError::new(&format!("Index {} out of bounds for values", index)));
+            return Err(TpcdsError::new(&format!(
+                "Index {} out of bounds for values",
+                index
+            )));
         }
 
         Ok(values[index].clone())
@@ -154,11 +182,7 @@ mod tests {
 
     #[test]
     fn test_from_embedded_data() {
-        let data = &[
-            ("apple", 30),
-            ("banana", 20),
-            ("cherry", 50),
-        ];
+        let data = &[("apple", 30), ("banana", 20), ("cherry", 50)];
 
         let dist = StringValuesDistribution::from_embedded_data(data).unwrap();
         assert_eq!(dist.get_value_lists_count(), 1);
@@ -177,9 +201,9 @@ mod tests {
         let weights2 = [4031, 4031];
         let weights3 = [2500, 2500];
         let data = &[
-            ("", weights1.as_slice()),        // Empty string - weight 0 for first, 317000 for second
+            ("", weights1.as_slice()), // Empty string - weight 0 for first, 317000 for second
             ("Church", weights2.as_slice()), // Church - weight 4031 for both
-            ("Main", weights3.as_slice()),   // Main - weight 2500 for both
+            ("Main", weights3.as_slice()), // Main - weight 2500 for both
         ];
 
         let dist = StringValuesDistribution::from_multi_weight_data(data).unwrap();
@@ -190,10 +214,7 @@ mod tests {
 
     #[test]
     fn test_pick_random_value() {
-        let data = &[
-            ("rare", 1),
-            ("common", 99),
-        ];
+        let data = &[("rare", 1), ("common", 99)];
 
         let dist = StringValuesDistribution::from_embedded_data(data).unwrap();
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
@@ -210,8 +231,8 @@ mod tests {
         let weights1 = [0, 100];
         let weights2 = [50, 0];
         let data = &[
-            ("empty", weights1.as_slice()),   // Never picked from first weight, always from second
-            ("value", weights2.as_slice()),    // Sometimes picked from first, never from second
+            ("empty", weights1.as_slice()), // Never picked from first weight, always from second
+            ("value", weights2.as_slice()), // Sometimes picked from first, never from second
         ];
 
         let dist = StringValuesDistribution::from_multi_weight_data(data).unwrap();
@@ -228,15 +249,10 @@ mod tests {
 
     #[test]
     fn test_deterministic_behavior() {
-        let data = &[
-            ("first", 25),
-            ("second", 25),
-            ("third", 25),
-            ("fourth", 25),
-        ];
+        let data = &[("first", 25), ("second", 25), ("third", 25), ("fourth", 25)];
 
         let dist = StringValuesDistribution::from_embedded_data(data).unwrap();
-        
+
         // Same seed should produce same results
         let mut stream1 = RandomNumberStreamImpl::new_with_column(42, 1).unwrap();
         let mut stream2 = RandomNumberStreamImpl::new_with_column(42, 1).unwrap();
@@ -270,12 +286,14 @@ mod tests {
         assert!(StringValuesDistribution::new(
             vec![vec!["a".to_string()]],
             vec![] // Empty weights but non-empty values
-        ).is_err());
+        )
+        .is_err());
 
         // Mismatched value/weight lengths
         assert!(StringValuesDistribution::new(
             vec![vec!["a".to_string(), "b".to_string()]], // 2 values
-            vec![vec![100]] // 1 weight
-        ).is_err());
+            vec![vec![100]]                               // 1 weight
+        )
+        .is_err());
     }
 }

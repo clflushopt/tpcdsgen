@@ -1,8 +1,8 @@
 use crate::distribution::string_values_distribution::StringValuesDistribution;
 use crate::distribution::utils::Distribution;
+use crate::error::Result;
 use crate::random::stream::RandomNumberStream;
 use std::sync::OnceLock;
-use crate::error::Result;
 
 static ADJECTIVES_DISTRIBUTION: OnceLock<StringValuesDistribution> = OnceLock::new();
 static ADVERBS_DISTRIBUTION: OnceLock<StringValuesDistribution> = OnceLock::new();
@@ -20,7 +20,7 @@ pub fn pick_random_adjective(stream: &mut dyn RandomNumberStream) -> Result<&'st
         StringValuesDistribution::build_string_values_distribution("adjectives.dst", 1, 1)
             .expect("Failed to load adjectives distribution")
     });
-    
+
     dist.pick_random_value(0, 0, stream)
 }
 
@@ -29,7 +29,7 @@ pub fn pick_random_adverb(stream: &mut dyn RandomNumberStream) -> Result<&'stati
         StringValuesDistribution::build_string_values_distribution("adverbs.dst", 1, 1)
             .expect("Failed to load adverbs distribution")
     });
-    
+
     dist.pick_random_value(0, 0, stream)
 }
 
@@ -38,7 +38,7 @@ pub fn pick_random_article(stream: &mut dyn RandomNumberStream) -> Result<&'stat
         StringValuesDistribution::build_string_values_distribution("articles.dst", 1, 1)
             .expect("Failed to load articles distribution")
     });
-    
+
     dist.pick_random_value(0, 0, stream)
 }
 
@@ -47,7 +47,7 @@ pub fn pick_random_auxiliary(stream: &mut dyn RandomNumberStream) -> Result<&'st
         StringValuesDistribution::build_string_values_distribution("auxiliaries.dst", 1, 1)
             .expect("Failed to load auxiliaries distribution")
     });
-    
+
     dist.pick_random_value(0, 0, stream)
 }
 
@@ -56,7 +56,7 @@ pub fn pick_random_preposition(stream: &mut dyn RandomNumberStream) -> Result<&'
         StringValuesDistribution::build_string_values_distribution("prepositions.dst", 1, 1)
             .expect("Failed to load prepositions distribution")
     });
-    
+
     dist.pick_random_value(0, 0, stream)
 }
 
@@ -65,7 +65,7 @@ pub fn pick_random_noun(stream: &mut dyn RandomNumberStream) -> Result<&'static 
         StringValuesDistribution::build_string_values_distribution("nouns.dst", 1, 1)
             .expect("Failed to load nouns distribution")
     });
-    
+
     dist.pick_random_value(0, 0, stream)
 }
 
@@ -74,7 +74,7 @@ pub fn pick_random_sentence(stream: &mut dyn RandomNumberStream) -> Result<&'sta
         StringValuesDistribution::build_string_values_distribution("sentences.dst", 1, 1)
             .expect("Failed to load sentences distribution")
     });
-    
+
     dist.pick_random_value(0, 0, stream)
 }
 
@@ -83,7 +83,7 @@ pub fn pick_random_terminator(stream: &mut dyn RandomNumberStream) -> Result<&'s
         StringValuesDistribution::build_string_values_distribution("terminators.dst", 1, 1)
             .expect("Failed to load terminators distribution")
     });
-    
+
     dist.pick_random_value(0, 0, stream)
 }
 
@@ -92,7 +92,7 @@ pub fn pick_random_verb(stream: &mut dyn RandomNumberStream) -> Result<&'static 
         StringValuesDistribution::build_string_values_distribution("verbs.dst", 1, 1)
             .expect("Failed to load verbs distribution")
     });
-    
+
     dist.pick_random_value(0, 0, stream)
 }
 

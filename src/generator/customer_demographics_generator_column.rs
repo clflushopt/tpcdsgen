@@ -1,5 +1,5 @@
-use crate::generator::GeneratorColumn;
 use crate::column::Table;
+use crate::generator::GeneratorColumn;
 
 /// Generator columns for CUSTOMER_DEMOGRAPHICS table (CustomerDemographicsGeneratorColumn)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

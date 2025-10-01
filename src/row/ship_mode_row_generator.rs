@@ -1,11 +1,11 @@
-use crate::row::{AbstractRowGenerator, RowGenerator, RowGeneratorResult, ShipModeRow};
-use crate::config::Session;
-use crate::table::Table;
-use crate::generator::ShipModeGeneratorColumn;
-use crate::random::RandomValueGenerator;
 use crate::business_key_generator::make_business_key;
+use crate::config::Session;
 use crate::distribution::ShipModeDistributions;
 use crate::error::Result;
+use crate::generator::ShipModeGeneratorColumn;
+use crate::random::RandomValueGenerator;
+use crate::row::{AbstractRowGenerator, RowGenerator, RowGeneratorResult, ShipModeRow};
+use crate::table::Table;
 
 /// Row generator for the SHIP_MODE table (ShipModeRowGenerator)
 pub struct ShipModeRowGenerator {
@@ -21,9 +21,15 @@ impl ShipModeRowGenerator {
     }
 
     /// Generate a ShipModeRow with realistic data following Java implementation
-    fn generate_ship_mode_row(&mut self, row_number: i64, _session: &Session) -> Result<ShipModeRow> {
+    fn generate_ship_mode_row(
+        &mut self,
+        row_number: i64,
+        _session: &Session,
+    ) -> Result<ShipModeRow> {
         // Create null bit map (createNullBitMap call)
-        let nulls_stream = self.abstract_generator.get_random_number_stream(&ShipModeGeneratorColumn::SmNulls);
+        let nulls_stream = self
+            .abstract_generator
+            .get_random_number_stream(&ShipModeGeneratorColumn::SmNulls);
         let threshold = RandomValueGenerator::generate_uniform_random_int(0, 9999, nulls_stream);
         let bit_map = RandomValueGenerator::generate_uniform_random_int(1, i32::MAX, nulls_stream);
 
@@ -45,9 +51,12 @@ impl ShipModeRowGenerator {
 
         let sm_code = ShipModeDistributions::get_ship_mode_code_for_index_mod_size(index)?;
 
-        let sm_carrier = ShipModeDistributions::get_ship_mode_carrier_at_index((row_number - 1) as usize)?;
+        let sm_carrier =
+            ShipModeDistributions::get_ship_mode_carrier_at_index((row_number - 1) as usize)?;
 
-        let contract_stream = self.abstract_generator.get_random_number_stream(&ShipModeGeneratorColumn::SmContract);
+        let contract_stream = self
+            .abstract_generator
+            .get_random_number_stream(&ShipModeGeneratorColumn::SmContract);
         let sm_contract = RandomValueGenerator::generate_random_charset(
             &RandomValueGenerator::ALPHA_NUMERIC,
             1,
@@ -84,6 +93,7 @@ impl RowGenerator for ShipModeRowGenerator {
     }
 
     fn skip_rows_until_starting_row_number(&mut self, starting_row_number: i64) {
-        self.abstract_generator.skip_rows_until_starting_row_number(starting_row_number);
+        self.abstract_generator
+            .skip_rows_until_starting_row_number(starting_row_number);
     }
 }

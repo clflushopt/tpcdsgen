@@ -1,10 +1,10 @@
-use crate::row::{AbstractRowGenerator, RowGenerator, RowGeneratorResult, CustomerDemographicsRow};
 use crate::config::Session;
-use crate::table::Table;
-use crate::generator::CustomerDemographicsGeneratorColumn;
-use crate::random::RandomValueGenerator;
 use crate::distribution::DemographicsDistributions;
 use crate::error::Result;
+use crate::generator::CustomerDemographicsGeneratorColumn;
+use crate::random::RandomValueGenerator;
+use crate::row::{AbstractRowGenerator, CustomerDemographicsRow, RowGenerator, RowGeneratorResult};
+use crate::table::Table;
 
 /// Row generator for the CUSTOMER_DEMOGRAPHICS table (CustomerDemographicsRowGenerator)
 pub struct CustomerDemographicsRowGenerator {
@@ -25,11 +25,18 @@ impl CustomerDemographicsRowGenerator {
     }
 
     /// Generate a CustomerDemographicsRow with realistic data following Java implementation
-    fn generate_customer_demographics_row(&mut self, row_number: i64, _session: &Session) -> Result<CustomerDemographicsRow> {
+    fn generate_customer_demographics_row(
+        &mut self,
+        row_number: i64,
+        _session: &Session,
+    ) -> Result<CustomerDemographicsRow> {
         // Create null bit map (createNullBitMap call)
-        let nulls_stream = self.abstract_generator.get_random_number_stream(&CustomerDemographicsGeneratorColumn::CdNulls);
+        let nulls_stream = self
+            .abstract_generator
+            .get_random_number_stream(&CustomerDemographicsGeneratorColumn::CdNulls);
         let threshold = RandomValueGenerator::generate_uniform_random_int(0, 9999, nulls_stream);
-        let bit_map = RandomValueGenerator::generate_uniform_random_key(1, i32::MAX as i64, nulls_stream);
+        let bit_map =
+            RandomValueGenerator::generate_uniform_random_key(1, i32::MAX as i64, nulls_stream);
 
         // Calculate null_bit_map based on threshold and table's not-null bitmap (Nulls.createNullBitMap)
         let null_bit_map = if threshold < Table::CustomerDemographics.get_null_basis_points() {
@@ -47,19 +54,23 @@ impl CustomerDemographicsRowGenerator {
         index /= DemographicsDistributions::get_gender_size() as i64;
 
         // Get marital status and divide index
-        let cd_marital_status = DemographicsDistributions::get_marital_status_for_index_mod_size(index);
+        let cd_marital_status =
+            DemographicsDistributions::get_marital_status_for_index_mod_size(index);
         index /= DemographicsDistributions::get_marital_status_size() as i64;
 
         // Get education and divide index
-        let cd_education_status = DemographicsDistributions::get_education_for_index_mod_size(index);
+        let cd_education_status =
+            DemographicsDistributions::get_education_for_index_mod_size(index);
         index /= DemographicsDistributions::get_education_size() as i64;
 
         // Get purchase band and divide index
-        let cd_purchase_estimate = DemographicsDistributions::get_purchase_band_for_index_mod_size(index);
+        let cd_purchase_estimate =
+            DemographicsDistributions::get_purchase_band_for_index_mod_size(index);
         index /= DemographicsDistributions::get_purchase_band_size() as i64;
 
         // Get credit rating and divide index
-        let cd_credit_rating = DemographicsDistributions::get_credit_rating_for_index_mod_size(index);
+        let cd_credit_rating =
+            DemographicsDistributions::get_credit_rating_for_index_mod_size(index);
         index /= DemographicsDistributions::get_credit_rating_size() as i64;
 
         // Get dependent counts using modulo (no division lookup needed)
@@ -103,6 +114,7 @@ impl RowGenerator for CustomerDemographicsRowGenerator {
     }
 
     fn skip_rows_until_starting_row_number(&mut self, starting_row_number: i64) {
-        self.abstract_generator.skip_rows_until_starting_row_number(starting_row_number);
+        self.abstract_generator
+            .skip_rows_until_starting_row_number(starting_row_number);
     }
 }

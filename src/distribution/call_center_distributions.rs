@@ -1,6 +1,6 @@
 use crate::distribution::string_values_distribution::StringValuesDistribution;
-use crate::random::RandomNumberStream;
 use crate::error::Result;
+use crate::random::RandomNumberStream;
 use std::sync::OnceLock;
 
 /// Call center distributions (CallCenterDistributions)
@@ -16,13 +16,13 @@ impl CallCenterDistributions {
         // Initialize call centers distribution
         if CALL_CENTERS_DISTRIBUTION.get().is_none() {
             let dist = StringValuesDistribution::build_string_values_distribution(
-                "call_centers.dst", 
+                "call_centers.dst",
                 1, // 1 value field: name
                 2, // 2 weight fields: uniform, sales percentage
             )?;
             let _ = CALL_CENTERS_DISTRIBUTION.set(dist);
         }
-        
+
         // Initialize call center classes distribution
         if CALL_CENTER_CLASSES_DISTRIBUTION.get().is_none() {
             let dist = StringValuesDistribution::build_string_values_distribution(
@@ -32,7 +32,7 @@ impl CallCenterDistributions {
             )?;
             let _ = CALL_CENTER_CLASSES_DISTRIBUTION.set(dist);
         }
-        
+
         // Initialize call center hours distribution
         if CALL_CENTER_HOURS_DISTRIBUTION.get().is_none() {
             let dist = StringValuesDistribution::build_string_values_distribution(
@@ -42,33 +42,37 @@ impl CallCenterDistributions {
             )?;
             let _ = CALL_CENTER_HOURS_DISTRIBUTION.set(dist);
         }
-        
+
         Ok(())
     }
-    
+
     /// Get call center name at specific index
     pub fn get_call_center_at_index(index: usize) -> Result<&'static str> {
         Self::ensure_initialized()?;
         let dist = CALL_CENTERS_DISTRIBUTION.get().unwrap();
         dist.get_value_at_index(0, index)
     }
-    
+
     /// Get total number of call centers
     pub fn get_number_of_call_centers() -> Result<usize> {
         Self::ensure_initialized()?;
         let dist = CALL_CENTERS_DISTRIBUTION.get().unwrap();
         Ok(dist.get_size())
     }
-    
+
     /// Pick a random call center class
-    pub fn pick_random_call_center_class(stream: &mut dyn RandomNumberStream) -> Result<&'static str> {
+    pub fn pick_random_call_center_class(
+        stream: &mut dyn RandomNumberStream,
+    ) -> Result<&'static str> {
         Self::ensure_initialized()?;
         let dist = CALL_CENTER_CLASSES_DISTRIBUTION.get().unwrap();
         dist.pick_random_value(0, 0, stream)
     }
-    
+
     /// Pick random call center hours
-    pub fn pick_random_call_center_hours(stream: &mut dyn RandomNumberStream) -> Result<&'static str> {
+    pub fn pick_random_call_center_hours(
+        stream: &mut dyn RandomNumberStream,
+    ) -> Result<&'static str> {
         Self::ensure_initialized()?;
         let dist = CALL_CENTER_HOURS_DISTRIBUTION.get().unwrap();
         dist.pick_random_value(0, 0, stream)
@@ -110,10 +114,10 @@ mod tests {
     fn test_deterministic_selection() {
         let mut stream1 = RandomNumberStreamImpl::new(42).unwrap();
         let mut stream2 = RandomNumberStreamImpl::new(42).unwrap();
-        
+
         let class1 = CallCenterDistributions::pick_random_call_center_class(&mut stream1).unwrap();
         let class2 = CallCenterDistributions::pick_random_call_center_class(&mut stream2).unwrap();
-        
+
         assert_eq!(class1, class2);
     }
 }

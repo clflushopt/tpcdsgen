@@ -40,7 +40,11 @@ impl ColumnType {
     }
 
     /// Create column type with precision and scale
-    pub fn with_precision_and_scale(base: ColumnTypeBase, precision: i32, scale: i32) -> Result<Self> {
+    pub fn with_precision_and_scale(
+        base: ColumnTypeBase,
+        precision: i32,
+        scale: i32,
+    ) -> Result<Self> {
         Self::new(base, Some(precision), Some(scale))
     }
 
@@ -75,7 +79,10 @@ impl ColumnType {
 
     /// Check if this is a numeric type
     pub fn is_numeric(&self) -> bool {
-        matches!(self.base, ColumnTypeBase::Integer | ColumnTypeBase::Identifier | ColumnTypeBase::Decimal)
+        matches!(
+            self.base,
+            ColumnTypeBase::Integer | ColumnTypeBase::Identifier | ColumnTypeBase::Decimal
+        )
     }
 
     /// Check if this is a string type
@@ -109,13 +116,11 @@ impl ColumnType {
                     "CHAR".to_string()
                 }
             }
-            ColumnTypeBase::Decimal => {
-                match (self.precision, self.scale) {
-                    (Some(p), Some(s)) => format!("DECIMAL({},{})", p, s),
-                    (Some(p), None) => format!("DECIMAL({})", p),
-                    _ => "DECIMAL".to_string(),
-                }
-            }
+            ColumnTypeBase::Decimal => match (self.precision, self.scale) {
+                (Some(p), Some(s)) => format!("DECIMAL({},{})", p, s),
+                (Some(p), None) => format!("DECIMAL({})", p),
+                _ => "DECIMAL".to_string(),
+            },
         }
     }
 }
@@ -130,7 +135,7 @@ impl std::fmt::Display for ColumnTypeBase {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let name = match self {
             ColumnTypeBase::Integer => "INTEGER",
-            ColumnTypeBase::Identifier => "IDENTIFIER", 
+            ColumnTypeBase::Identifier => "IDENTIFIER",
             ColumnTypeBase::Date => "DATE",
             ColumnTypeBase::Decimal => "DECIMAL",
             ColumnTypeBase::Varchar => "VARCHAR",
@@ -177,7 +182,8 @@ mod tests {
 
     #[test]
     fn test_decimal_with_precision_and_scale() {
-        let decimal_type = ColumnType::with_precision_and_scale(ColumnTypeBase::Decimal, 10, 2).unwrap();
+        let decimal_type =
+            ColumnType::with_precision_and_scale(ColumnTypeBase::Decimal, 10, 2).unwrap();
         assert_eq!(decimal_type.get_base(), ColumnTypeBase::Decimal);
         assert_eq!(decimal_type.get_precision(), Some(10));
         assert_eq!(decimal_type.get_scale(), Some(2));
@@ -217,7 +223,8 @@ mod tests {
         assert!(!date_type.is_string());
         assert!(date_type.is_temporal());
 
-        let decimal_type = ColumnType::with_precision_and_scale(ColumnTypeBase::Decimal, 10, 2).unwrap();
+        let decimal_type =
+            ColumnType::with_precision_and_scale(ColumnTypeBase::Decimal, 10, 2).unwrap();
         assert!(decimal_type.is_numeric());
         assert!(!decimal_type.is_string());
         assert!(!decimal_type.is_temporal());
@@ -225,9 +232,24 @@ mod tests {
 
     #[test]
     fn test_display() {
-        assert_eq!(format!("{}", ColumnType::simple(ColumnTypeBase::Integer)), "INTEGER");
-        assert_eq!(format!("{}", ColumnType::with_precision(ColumnTypeBase::Varchar, 100).unwrap()), "VARCHAR(100)");
-        assert_eq!(format!("{}", ColumnType::with_precision_and_scale(ColumnTypeBase::Decimal, 15, 4).unwrap()), "DECIMAL(15,4)");
+        assert_eq!(
+            format!("{}", ColumnType::simple(ColumnTypeBase::Integer)),
+            "INTEGER"
+        );
+        assert_eq!(
+            format!(
+                "{}",
+                ColumnType::with_precision(ColumnTypeBase::Varchar, 100).unwrap()
+            ),
+            "VARCHAR(100)"
+        );
+        assert_eq!(
+            format!(
+                "{}",
+                ColumnType::with_precision_and_scale(ColumnTypeBase::Decimal, 15, 4).unwrap()
+            ),
+            "DECIMAL(15,4)"
+        );
     }
 
     #[test]

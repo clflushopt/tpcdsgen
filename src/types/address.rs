@@ -29,11 +29,12 @@ impl Address {
         zip: i32,
         gmt_offset: i32,
     ) -> Result<Self> {
-        check_argument!(street_number >= 1 && street_number <= 1000, 
-                       "streetNumber is not between 1 and 1000");
-        check_argument!(zip >= 0 && zip <= 99999, 
-                       "zip is not between 0 and 99999");
-        
+        check_argument!(
+            street_number >= 1 && street_number <= 1000,
+            "streetNumber is not between 1 and 1000"
+        );
+        check_argument!(zip >= 0 && zip <= 99999, "zip is not between 0 and 99999");
+
         Ok(Address {
             suite_number,
             street_number,
@@ -106,7 +107,7 @@ impl Address {
     pub fn compute_city_hash(name: &str) -> i32 {
         let mut hash_value = 0i32;
         let mut result = 0i32;
-        
+
         for ch in name.chars() {
             hash_value = hash_value.wrapping_mul(26);
             hash_value = hash_value.wrapping_add((ch as i32) - ('A' as i32));
@@ -128,20 +129,23 @@ impl Address {
         stream: &mut dyn crate::random::stream::RandomNumberStream,
         scaling: &crate::config::Scaling,
     ) -> Result<Self> {
-        use crate::random::RandomValueGenerator;
         use crate::distribution::{
-            pick_random_street_name, pick_random_street_type, pick_random_city, get_city_at_index,
-            StreetNamesWeights, CitiesWeights, FipsCountyDistribution, FipsWeights
+            get_city_at_index, pick_random_city, pick_random_street_name, pick_random_street_type,
+            CitiesWeights, FipsCountyDistribution, FipsWeights, StreetNamesWeights,
         };
         use crate::pseudo_table_scaling_infos::PseudoTableScalingInfos;
-        
+        use crate::random::RandomValueGenerator;
+
         let street_number = RandomValueGenerator::generate_uniform_random_int(1, 1000, stream);
         let street_name1 = pick_random_street_name(StreetNamesWeights::Default, stream)
-            .unwrap_or("Main").to_string();
+            .unwrap_or("Main")
+            .to_string();
         let street_name2 = pick_random_street_name(StreetNamesWeights::HalfEmpty, stream)
-            .unwrap_or("").to_string();
+            .unwrap_or("")
+            .to_string();
         let street_type = pick_random_street_type(stream)
-            .unwrap_or("Street").to_string();
+            .unwrap_or("Street")
+            .to_string();
 
         let random_int = RandomValueGenerator::generate_uniform_random_int(1, 100, stream);
         let suite_number = if random_int % 2 == 1 {
@@ -149,7 +153,10 @@ impl Address {
             format!("Suite {}", (random_int / 2) * 10)
         } else {
             // if i is even, suiteNumber is a letter
-            format!("Suite {}", ((random_int / 2) % 25 + ('A' as i32)) as u8 as char)
+            format!(
+                "Suite {}",
+                ((random_int / 2) % 25 + ('A' as i32)) as u8 as char
+            )
         };
 
         let config_table = match table {
@@ -159,30 +166,43 @@ impl Address {
         };
         let row_count = scaling.get_row_count(config_table) as i32;
         let city = if table.is_small() {
-            let max_cities = PseudoTableScalingInfos::get_active_cities_row_count_for_scale(scaling.get_scale()) as i32;
+            let max_cities =
+                PseudoTableScalingInfos::get_active_cities_row_count_for_scale(scaling.get_scale())
+                    as i32;
             let random_int = RandomValueGenerator::generate_uniform_random_int(
-                0, 
-                if max_cities > row_count { row_count - 1 } else { max_cities - 1 },
-                stream
+                0,
+                if max_cities > row_count {
+                    row_count - 1
+                } else {
+                    max_cities - 1
+                },
+                stream,
             );
             get_city_at_index(random_int as usize)
-                .unwrap_or("Midway").to_string()
+                .unwrap_or("Midway")
+                .to_string()
         } else {
             pick_random_city(CitiesWeights::UnifiedStepFunction, stream)
-                .unwrap_or("Midway").to_string()
+                .unwrap_or("Midway")
+                .to_string()
         };
 
         // county is picked from a distribution, based on population and keys the rest
         let region_number = if table.is_small() {
-            let max_counties = PseudoTableScalingInfos::get_active_counties_row_count_for_scale(scaling.get_scale()) as i32;
+            let max_counties = PseudoTableScalingInfos::get_active_counties_row_count_for_scale(
+                scaling.get_scale(),
+            ) as i32;
             RandomValueGenerator::generate_uniform_random_int(
                 0,
-                if max_counties > row_count { row_count - 1 } else { max_counties - 1 },
-                stream
+                if max_counties > row_count {
+                    row_count - 1
+                } else {
+                    max_counties - 1
+                },
+                stream,
             ) as usize
         } else {
-            FipsCountyDistribution::pick_random_index(FipsWeights::Uniform, stream)
-                .unwrap_or(0)
+            FipsCountyDistribution::pick_random_index(FipsWeights::Uniform, stream).unwrap_or(0)
         };
 
         let county = if table.is_small() {
@@ -194,22 +214,22 @@ impl Address {
         };
 
         // match state with the selected region/county
-        let state = FipsCountyDistribution::get_state_abbreviation_at_index(region_number)
-            .unwrap_or("TN");
+        let state =
+            FipsCountyDistribution::get_state_abbreviation_at_index(region_number).unwrap_or("TN");
 
         // match the zip prefix with the selected region/county
         let mut zip = Self::compute_city_hash(&city);
 
         // 00000 - 00600 are unused. Avoid them
-        let zip_prefix = FipsCountyDistribution::get_zip_prefix_at_index(region_number)
-            .unwrap_or(0);
+        let zip_prefix =
+            FipsCountyDistribution::get_zip_prefix_at_index(region_number).unwrap_or(0);
         if zip_prefix == 0 && zip < 9400 {
             zip += 600;
         }
         zip += zip_prefix * 10000;
 
-        let gmt_offset = FipsCountyDistribution::get_gmt_offset_at_index(region_number)
-            .unwrap_or(-5);
+        let gmt_offset =
+            FipsCountyDistribution::get_gmt_offset_at_index(region_number).unwrap_or(-5);
         let country = "United States";
 
         Address::new(
@@ -344,7 +364,8 @@ mod tests {
             "United States".to_string(),
             12345,
             -8,
-        ).unwrap();
+        )
+        .unwrap();
 
         assert_eq!(address.get_street_number(), 123);
         assert_eq!(address.get_street_name(), "Main Street");

@@ -1,6 +1,6 @@
-use crate::distribution::{StringValuesDistribution, Distribution};
-use crate::random::RandomNumberStream;
+use crate::distribution::{Distribution, StringValuesDistribution};
 use crate::error::Result;
+use crate::random::RandomNumberStream;
 use std::sync::OnceLock;
 
 /// English language distributions for text generation (EnglishDistributions)
@@ -39,7 +39,7 @@ impl EnglishDistributions {
                 ("same", 90),
                 ("able", 80),
             ];
-            
+
             StringValuesDistribution::from_embedded_data(data)
                 .expect("Failed to create adjectives distribution")
         })
@@ -77,7 +77,7 @@ impl EnglishDistributions {
                 ("perhaps", 120),
                 ("certainly", 100),
             ];
-            
+
             StringValuesDistribution::from_embedded_data(data)
                 .expect("Failed to create adverbs distribution")
         })
@@ -87,12 +87,8 @@ impl EnglishDistributions {
     fn articles_distribution() -> &'static StringValuesDistribution {
         static ARTICLES: OnceLock<StringValuesDistribution> = OnceLock::new();
         ARTICLES.get_or_init(|| {
-            let data = &[
-                ("the", 2000),
-                ("a", 800),
-                ("an", 200),
-            ];
-            
+            let data = &[("the", 2000), ("a", 800), ("an", 200)];
+
             StringValuesDistribution::from_embedded_data(data)
                 .expect("Failed to create articles distribution")
         })
@@ -125,7 +121,7 @@ impl EnglishDistributions {
                 ("does", 250),
                 ("did", 200),
             ];
-            
+
             StringValuesDistribution::from_embedded_data(data)
                 .expect("Failed to create auxiliaries distribution")
         })
@@ -173,7 +169,7 @@ impl EnglishDistributions {
                 ("store", 60),
                 ("item", 50),
             ];
-            
+
             StringValuesDistribution::from_embedded_data(data)
                 .expect("Failed to create nouns distribution")
         })
@@ -210,7 +206,7 @@ impl EnglishDistributions {
                 ("beneath", 80),
                 ("beside", 60),
             ];
-            
+
             StringValuesDistribution::from_embedded_data(data)
                 .expect("Failed to create prepositions distribution")
         })
@@ -252,7 +248,7 @@ impl EnglishDistributions {
                 ("ship", 40),
                 ("return", 30),
             ];
-            
+
             StringValuesDistribution::from_embedded_data(data)
                 .expect("Failed to create verbs distribution")
         })
@@ -262,12 +258,8 @@ impl EnglishDistributions {
     fn terminators_distribution() -> &'static StringValuesDistribution {
         static TERMINATORS: OnceLock<StringValuesDistribution> = OnceLock::new();
         TERMINATORS.get_or_init(|| {
-            let data = &[
-                (".", 70),
-                ("!", 20),
-                ("?", 10),
-            ];
-            
+            let data = &[(".", 70), ("!", 20), ("?", 10)];
+
             StringValuesDistribution::from_embedded_data(data)
                 .expect("Failed to create terminators distribution")
         })
@@ -295,7 +287,7 @@ impl EnglishDistributions {
                 ("Competitive pricing available", 35),
                 ("Premium quality materials", 30),
             ];
-            
+
             StringValuesDistribution::from_embedded_data(data)
                 .expect("Failed to create sentences distribution")
         })
@@ -340,13 +332,16 @@ impl EnglishDistributions {
     }
 
     /// Generate a random phrase by combining words
-    pub fn generate_random_phrase(stream: &mut dyn RandomNumberStream, word_count: usize) -> Result<String> {
+    pub fn generate_random_phrase(
+        stream: &mut dyn RandomNumberStream,
+        word_count: usize,
+    ) -> Result<String> {
         if word_count == 0 {
             return Ok(String::new());
         }
 
         let mut words = Vec::new();
-        
+
         for i in 0..word_count {
             let word = match i % 4 {
                 0 => Self::pick_random_article(stream)?,
@@ -418,7 +413,7 @@ mod tests {
     #[test]
     fn test_generate_random_phrase() {
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
-        
+
         let phrase = EnglishDistributions::generate_random_phrase(&mut stream, 4).unwrap();
         assert!(!phrase.is_empty());
         assert!(phrase.contains(' ')); // Should have spaces between words
@@ -460,7 +455,7 @@ mod tests {
     #[test]
     fn test_weighted_distribution_variety() {
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
-        
+
         // Generate multiple words and ensure we get variety
         let mut words = std::collections::HashSet::new();
         for _ in 0..20 {

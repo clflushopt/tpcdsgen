@@ -14,12 +14,8 @@ impl ReasonGeneratorColumn {
     /// Get all generator columns in order
     pub fn values() -> &'static [ReasonGeneratorColumn] {
         use ReasonGeneratorColumn::*;
-        static VALUES: &[ReasonGeneratorColumn] = &[
-            RReasonSk,
-            RReasonId,
-            RReasonDescription,
-            RNulls,
-        ];
+        static VALUES: &[ReasonGeneratorColumn] =
+            &[RReasonSk, RReasonId, RReasonDescription, RNulls];
         VALUES
     }
 

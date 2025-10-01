@@ -1,4 +1,4 @@
-use crate::config::{Table, Scaling, Options};
+use crate::config::{Options, Scaling, Table};
 
 #[derive(Debug, Clone)]
 pub struct Session {
@@ -132,9 +132,8 @@ impl Session {
     }
 
     pub fn get_only_table_to_generate(&self) -> Table {
-        self.table.unwrap_or_else(|| {
-            panic!("table not present - call generate_only_one_table() first")
-        })
+        self.table
+            .unwrap_or_else(|| panic!("table not present - call generate_only_one_table() first"))
     }
 
     pub fn get_table(&self) -> Option<Table> {
@@ -251,10 +250,13 @@ mod tests {
     #[test]
     fn test_with_methods() {
         let session = Session::get_default_session();
-        
+
         let session_with_table = session.with_table(Table::CatalogSales);
         assert!(session_with_table.generate_only_one_table());
-        assert_eq!(session_with_table.get_only_table_to_generate(), Table::CatalogSales);
+        assert_eq!(
+            session_with_table.get_only_table_to_generate(),
+            Table::CatalogSales
+        );
 
         let session_with_scale = session.with_scale(10.0);
         assert_eq!(session_with_scale.get_scaling().get_scale(), 10.0);
@@ -276,7 +278,10 @@ mod tests {
 
         let session_with_table = session.with_table(Table::StoreSales);
         assert!(session_with_table.generate_only_one_table());
-        assert_eq!(session_with_table.get_only_table_to_generate(), Table::StoreSales);
+        assert_eq!(
+            session_with_table.get_only_table_to_generate(),
+            Table::StoreSales
+        );
     }
 
     #[test]
@@ -295,8 +300,8 @@ mod tests {
             None,
             "".to_string(),
             '|',
-            true,  // do_not_terminate = true
-            true,  // no_sexism = true
+            true, // do_not_terminate = true
+            true, // no_sexism = true
             1,
             false,
         );

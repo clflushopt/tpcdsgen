@@ -12,42 +12,62 @@ pub struct Decimal {
 }
 
 impl Decimal {
-    pub const ZERO: Decimal = Decimal { number: 0, precision: 2 };
-    pub const ONE_HALF: Decimal = Decimal { number: 50, precision: 2 };
-    pub const NINE_PERCENT: Decimal = Decimal { number: 9, precision: 2 };
-    pub const ONE_HUNDRED: Decimal = Decimal { number: 10000, precision: 2 };
-    pub const ONE: Decimal = Decimal { number: 100, precision: 2 };
+    pub const ZERO: Decimal = Decimal {
+        number: 0,
+        precision: 2,
+    };
+    pub const ONE_HALF: Decimal = Decimal {
+        number: 50,
+        precision: 2,
+    };
+    pub const NINE_PERCENT: Decimal = Decimal {
+        number: 9,
+        precision: 2,
+    };
+    pub const ONE_HUNDRED: Decimal = Decimal {
+        number: 10000,
+        precision: 2,
+    };
+    pub const ONE: Decimal = Decimal {
+        number: 100,
+        precision: 2,
+    };
 
     pub fn new(number: i64, precision: i32) -> Result<Self> {
-        check_argument!(precision >= 0, "precision must be greater than or equal to zero");
+        check_argument!(
+            precision >= 0,
+            "precision must be greater than or equal to zero"
+        );
         Ok(Decimal { precision, number })
     }
 
     pub fn parse_decimal(decimal_string: &str) -> Result<Self> {
         let number: i64;
         let precision: i32;
-        
+
         if let Some(decimal_point_index) = decimal_string.find('.') {
             let fractional = &decimal_string[decimal_point_index + 1..];
             precision = fractional.len() as i32;
             let integer_part = &decimal_string[..decimal_point_index];
             let combined = format!("{}{}", integer_part, fractional);
-            number = combined.parse::<i64>()
+            number = combined
+                .parse::<i64>()
                 .map_err(|_| crate::TpcdsError::new("Failed to parse decimal string"))?;
         } else {
-            number = decimal_string.parse::<i64>()
+            number = decimal_string
+                .parse::<i64>()
                 .map_err(|_| crate::TpcdsError::new("Failed to parse decimal string"))?;
             precision = 0;
         }
-        
+
         Self::new(number, precision)
     }
 
     pub fn add(decimal1: Decimal, decimal2: Decimal) -> Decimal {
-        let precision = if decimal1.precision > decimal2.precision { 
-            decimal1.precision 
-        } else { 
-            decimal2.precision 
+        let precision = if decimal1.precision > decimal2.precision {
+            decimal1.precision
+        } else {
+            decimal2.precision
         };
         // This is not mathematically correct when the precisions aren't the same, but it's what the C code does
         let number = decimal1.number + decimal2.number;
@@ -55,10 +75,10 @@ impl Decimal {
     }
 
     pub fn subtract(decimal1: Decimal, decimal2: Decimal) -> Decimal {
-        let precision = if decimal1.precision > decimal2.precision { 
-            decimal1.precision 
-        } else { 
-            decimal2.precision 
+        let precision = if decimal1.precision > decimal2.precision {
+            decimal1.precision
+        } else {
+            decimal2.precision
         };
         // again following C code
         let number = decimal1.number - decimal2.number;
@@ -66,10 +86,10 @@ impl Decimal {
     }
 
     pub fn multiply(decimal1: Decimal, decimal2: Decimal) -> Decimal {
-        let precision = if decimal1.precision > decimal2.precision { 
-            decimal1.precision 
-        } else { 
-            decimal2.precision 
+        let precision = if decimal1.precision > decimal2.precision {
+            decimal1.precision
+        } else {
+            decimal2.precision
         };
         let mut number = decimal1.number * decimal2.number;
         for _i in (precision + 1)..=(decimal1.precision + decimal2.precision) {
@@ -80,12 +100,12 @@ impl Decimal {
 
     pub fn divide(decimal1: Decimal, decimal2: Decimal) -> Decimal {
         let mut f1 = decimal1.number as f32;
-        let precision = if decimal1.precision > decimal2.precision { 
-            decimal1.precision 
-        } else { 
-            decimal2.precision 
+        let precision = if decimal1.precision > decimal2.precision {
+            decimal1.precision
+        } else {
+            decimal2.precision
         };
-        
+
         for _i in decimal1.precision..precision {
             f1 *= 10.0;
         }
@@ -104,16 +124,16 @@ impl Decimal {
     }
 
     pub fn negate(decimal: Decimal) -> Decimal {
-        Decimal { 
-            number: decimal.number * -1, 
-            precision: decimal.precision 
+        Decimal {
+            number: decimal.number * -1,
+            precision: decimal.precision,
         }
     }
 
     pub fn from_integer(from: i32) -> Decimal {
-        Decimal { 
-            number: from as i64, 
-            precision: 0 
+        Decimal {
+            number: from as i64,
+            precision: 0,
         }
     }
 
@@ -138,7 +158,12 @@ impl std::fmt::Display for Decimal {
             temp /= 10.0;
         }
 
-        write!(f, "{:.precision$}", temp, precision = self.precision as usize)
+        write!(
+            f,
+            "{:.precision$}",
+            temp,
+            precision = self.precision as usize
+        )
     }
 }
 
@@ -174,11 +199,11 @@ mod tests {
     #[test]
     fn test_arithmetic() {
         let d1 = Decimal::new(100, 2).unwrap(); // 1.00
-        let d2 = Decimal::new(50, 2).unwrap();  // 0.50
-        
+        let d2 = Decimal::new(50, 2).unwrap(); // 0.50
+
         let sum = Decimal::add(d1, d2);
         assert_eq!(sum.get_number(), 150); // Buggy behavior: should be 150, not mathematically correct
-        
+
         let diff = Decimal::subtract(d1, d2);
         assert_eq!(diff.get_number(), 50);
     }
@@ -187,7 +212,7 @@ mod tests {
     fn test_display() {
         let decimal = Decimal::new(12345, 2).unwrap();
         assert_eq!(format!("{}", decimal), "123.45");
-        
+
         let decimal = Decimal::new(123, 0).unwrap();
         assert_eq!(format!("{}", decimal), "123");
     }

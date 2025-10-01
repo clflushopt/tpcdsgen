@@ -29,12 +29,12 @@ pub struct Pricing {
 
 impl Pricing {
     pub const QUANTITY_MIN: i32 = 1;
-    
+
     // Predefined markup and discount minimums
     pub fn markup_min() -> Decimal {
         Decimal::new(0, 2).unwrap()
     }
-    
+
     pub fn discount_min() -> Decimal {
         Decimal::new(0, 2).unwrap()
     }
@@ -237,7 +237,7 @@ mod tests {
             Decimal::new(1000, 2).unwrap(), // wholesale_cost: 10.00
             Decimal::new(1500, 2).unwrap(), // list_price: 15.00
             Decimal::new(1200, 2).unwrap(), // sales_price: 12.00
-            5,                               // quantity
+            5,                              // quantity
             Decimal::new(300, 2).unwrap(),  // ext_discount_amount: 3.00
             Decimal::new(6000, 2).unwrap(), // ext_sales_price: 60.00
             Decimal::new(5000, 2).unwrap(), // ext_wholesale_cost: 50.00
@@ -252,11 +252,11 @@ mod tests {
             Decimal::new(6900, 2).unwrap(), // net_paid_including_shipping: 69.00
             Decimal::new(7380, 2).unwrap(), // net_paid_including_shipping_and_tax: 73.80
             Decimal::new(900, 2).unwrap(),  // net_profit: 9.00
-            Decimal::ZERO,                   // refunded_cash
-            Decimal::ZERO,                   // reversed_charge
-            Decimal::ZERO,                   // store_credit
-            Decimal::ZERO,                   // fee
-            Decimal::ZERO,                   // net_loss
+            Decimal::ZERO,                  // refunded_cash
+            Decimal::ZERO,                  // reversed_charge
+            Decimal::ZERO,                  // store_credit
+            Decimal::ZERO,                  // fee
+            Decimal::ZERO,                  // net_loss
         );
 
         assert_eq!(pricing.get_quantity(), 5);
@@ -266,12 +266,7 @@ mod tests {
 
     #[test]
     fn test_pricing_limits() {
-        let limits = PricingLimits::new(
-            100,
-            Decimal::ONE,
-            Decimal::ONE,
-            Decimal::ONE_HUNDRED,
-        );
+        let limits = PricingLimits::new(100, Decimal::ONE, Decimal::ONE, Decimal::ONE_HUNDRED);
 
         assert_eq!(limits.get_max_quantity_sold(), 100);
         assert_eq!(limits.get_max_markup(), Decimal::ONE);

@@ -1,10 +1,11 @@
-use crate::types::{Date, Decimal};
 use crate::random::stream::RandomNumberStream;
+use crate::types::{Date, Decimal};
 
 pub struct RandomValueGenerator;
 
 impl RandomValueGenerator {
-    pub const ALPHA_NUMERIC: &'static str = "abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ0123456789";
+    pub const ALPHA_NUMERIC: &'static str =
+        "abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ0123456789";
     pub const DIGITS: &'static str = "0123456789";
 
     pub fn generate_uniform_random_int(
@@ -56,8 +57,8 @@ impl RandomValueGenerator {
         random_number_stream: &mut dyn RandomNumberStream,
     ) -> crate::error::Result<Date> {
         let range = max.to_julian_days() - min.to_julian_days();
-        let julian_days = min.to_julian_days() + 
-            Self::generate_uniform_random_int(0, range, random_number_stream);
+        let julian_days = min.to_julian_days()
+            + Self::generate_uniform_random_int(0, range, random_number_stream);
         Date::from_julian_days(julian_days)
     }
 
@@ -69,16 +70,13 @@ impl RandomValueGenerator {
     ) -> String {
         let chars: Vec<char> = character_set.chars().collect();
         let mut result = String::with_capacity(length);
-        
+
         for _ in 0..length {
-            let index = Self::generate_uniform_random_int(
-                0,
-                chars.len() as i32 - 1,
-                random_number_stream,
-            );
+            let index =
+                Self::generate_uniform_random_int(0, chars.len() as i32 - 1, random_number_stream);
             result.push(chars[index as usize]);
         }
-        
+
         result
     }
 
@@ -112,7 +110,8 @@ impl RandomValueGenerator {
 
         // Loop to max to consume the same number of random values (behavior)
         for i in 0..max {
-            let index = Self::generate_uniform_random_int(0, chars.len() as i32 - 1, random_number_stream);
+            let index =
+                Self::generate_uniform_random_int(0, chars.len() as i32 - 1, random_number_stream);
             if i < length {
                 result.push(chars[index as usize]);
             }
@@ -136,7 +135,7 @@ impl RandomValueGenerator {
     ) -> usize {
         let total_weight: i32 = weights.iter().sum();
         let random_value = Self::generate_uniform_random_int(1, total_weight, random_number_stream);
-        
+
         let mut cumulative_weight = 0;
         for (index, &weight) in weights.iter().enumerate() {
             cumulative_weight += weight;
@@ -144,7 +143,7 @@ impl RandomValueGenerator {
                 return index;
             }
         }
-        
+
         // Fallback to last index (should not happen with proper weights)
         weights.len() - 1
     }
@@ -156,15 +155,21 @@ impl RandomValueGenerator {
         random_number_stream: &mut dyn RandomNumberStream,
     ) -> String {
         use crate::distribution::*;
-        
+
         let mut is_sentence_beginning = true;
         let mut text = String::new();
-        let mut target_length = Self::generate_uniform_random_int(min_length, max_length, random_number_stream);
+        let mut target_length =
+            Self::generate_uniform_random_int(min_length, max_length, random_number_stream);
 
         while target_length > 0 {
             let mut generated = Self::generate_random_sentence(random_number_stream);
             if is_sentence_beginning && !generated.is_empty() {
-                let first_char = generated.chars().next().unwrap().to_uppercase().collect::<String>();
+                let first_char = generated
+                    .chars()
+                    .next()
+                    .unwrap()
+                    .to_uppercase()
+                    .collect::<String>();
                 generated = first_char + &generated[1..];
             }
 
@@ -191,24 +196,36 @@ impl RandomValueGenerator {
     // Generate random sentence following Java implementation exactly
     fn generate_random_sentence(random_number_stream: &mut dyn RandomNumberStream) -> String {
         use crate::distribution::*;
-        
+
         let mut verbiage = String::new();
         let syntax = pick_random_sentence(random_number_stream).unwrap_or("N V.");
-        
+
         for ch in syntax.chars() {
             match ch {
                 'N' => verbiage.push_str(pick_random_noun(random_number_stream).unwrap_or("thing")),
                 'V' => verbiage.push_str(pick_random_verb(random_number_stream).unwrap_or("is")),
-                'J' => verbiage.push_str(pick_random_adjective(random_number_stream).unwrap_or("good")),
-                'D' => verbiage.push_str(pick_random_adverb(random_number_stream).unwrap_or("well")),
-                'X' => verbiage.push_str(pick_random_auxiliary(random_number_stream).unwrap_or("can")),
-                'P' => verbiage.push_str(pick_random_preposition(random_number_stream).unwrap_or("to")),
-                'A' => verbiage.push_str(pick_random_article(random_number_stream).unwrap_or("the")),
-                'T' => verbiage.push_str(pick_random_terminator(random_number_stream).unwrap_or(".")),
+                'J' => {
+                    verbiage.push_str(pick_random_adjective(random_number_stream).unwrap_or("good"))
+                }
+                'D' => {
+                    verbiage.push_str(pick_random_adverb(random_number_stream).unwrap_or("well"))
+                }
+                'X' => {
+                    verbiage.push_str(pick_random_auxiliary(random_number_stream).unwrap_or("can"))
+                }
+                'P' => {
+                    verbiage.push_str(pick_random_preposition(random_number_stream).unwrap_or("to"))
+                }
+                'A' => {
+                    verbiage.push_str(pick_random_article(random_number_stream).unwrap_or("the"))
+                }
+                'T' => {
+                    verbiage.push_str(pick_random_terminator(random_number_stream).unwrap_or("."))
+                }
                 _ => verbiage.push(ch), // this is for adding punctuation and white space.
             }
         }
-        
+
         verbiage
     }
 
@@ -220,24 +237,25 @@ impl RandomValueGenerator {
     ) -> String {
         use crate::distribution::get_syllables_distribution;
         use crate::distribution::utils::Distribution;
-        
+
         let distribution = get_syllables_distribution();
         let size = distribution.get_size();
         let mut word = String::new();
         let mut seed = seed as i64;
-        
+
         while seed > 0 {
-            let syllable = distribution.get_value_at_index(0, (seed % size as i64) as usize)
+            let syllable = distribution
+                .get_value_at_index(0, (seed % size as i64) as usize)
                 .unwrap_or("syl");
             seed /= size as i64;
-            
+
             if (word.len() + syllable.len()) <= max_chars as usize {
                 word.push_str(syllable);
             } else {
                 break;
             }
         }
-        
+
         word
     }
 }
@@ -267,7 +285,7 @@ mod tests {
         let min = Decimal::new(100, 2).unwrap(); // 1.00
         let max = Decimal::new(500, 2).unwrap(); // 5.00
         let result = RandomValueGenerator::generate_uniform_random_decimal(min, max, &mut stream);
-        
+
         assert!(result.get_number() >= min.get_number() && result.get_number() <= max.get_number());
         assert_eq!(result.get_precision(), 2);
     }
@@ -277,8 +295,9 @@ mod tests {
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
         let min = Date::new(2020, 1, 1).unwrap();
         let max = Date::new(2020, 12, 31).unwrap();
-        let result = RandomValueGenerator::generate_uniform_random_date(min, max, &mut stream).unwrap();
-        
+        let result =
+            RandomValueGenerator::generate_uniform_random_date(min, max, &mut stream).unwrap();
+
         assert!(result.to_julian_days() >= min.to_julian_days());
         assert!(result.to_julian_days() <= max.to_julian_days());
         assert_eq!(result.get_year(), 2020);
@@ -288,7 +307,7 @@ mod tests {
     fn test_random_alphanumeric() {
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
         let result = RandomValueGenerator::generate_random_alphanumeric(10, &mut stream);
-        
+
         assert_eq!(result.len(), 10);
         for ch in result.chars() {
             assert!(RandomValueGenerator::ALPHA_NUMERIC.contains(ch));
@@ -299,7 +318,7 @@ mod tests {
     fn test_random_digits() {
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
         let result = RandomValueGenerator::generate_random_digits(5, &mut stream);
-        
+
         assert_eq!(result.len(), 5);
         for ch in result.chars() {
             assert!(ch.is_ascii_digit());
@@ -309,11 +328,11 @@ mod tests {
     #[test]
     fn test_random_boolean() {
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
-        
+
         // Test with 0% probability - should always be false
         let result_never = RandomValueGenerator::generate_random_boolean(0.0, &mut stream);
         // Note: This might not always be false due to floating point precision, but typically should be
-        
+
         // Test with 100% probability - should always be true
         let result_always = RandomValueGenerator::generate_random_boolean(1.0, &mut stream);
         assert!(result_always);
@@ -324,7 +343,7 @@ mod tests {
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
         let weights = vec![10, 20, 30, 40];
         let result = RandomValueGenerator::generate_weighted_random_index(&weights, &mut stream);
-        
+
         assert!(result < weights.len());
     }
 
@@ -333,7 +352,7 @@ mod tests {
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
         let charset = "ABC123";
         let result = RandomValueGenerator::generate_random_string(8, charset, &mut stream);
-        
+
         assert_eq!(result.len(), 8);
         for ch in result.chars() {
             assert!(charset.contains(ch));

@@ -24,7 +24,9 @@ pub struct ScalingInfo {
 
 impl ScalingInfo {
     /// Defined scale factors (DEFINED_SCALES)
-    pub const DEFINED_SCALES: [f64; 10] = [0.0, 1.0, 10.0, 100.0, 300.0, 1000.0, 3000.0, 10000.0, 30000.0, 100000.0];
+    pub const DEFINED_SCALES: [f64; 10] = [
+        0.0, 1.0, 10.0, 100.0, 300.0, 1000.0, 3000.0, 10000.0, 30000.0, 100000.0,
+    ];
 
     /// Create new ScalingInfo
     pub fn new(
@@ -33,8 +35,14 @@ impl ScalingInfo {
         row_counts_per_scale: &[i32],
         update_percentage: i32,
     ) -> Result<Self> {
-        check_argument!(multiplier >= 0, "multiplier is not greater than or equal to 0");
-        check_argument!(update_percentage >= 0, "updatePercentage is not greater than or equal to zero");
+        check_argument!(
+            multiplier >= 0,
+            "multiplier is not greater than or equal to 0"
+        );
+        check_argument!(
+            update_percentage >= 0,
+            "updatePercentage is not greater than or equal to zero"
+        );
         check_argument!(
             row_counts_per_scale.len() == Self::DEFINED_SCALES.len(),
             "row_counts_per_scale length must match DEFINED_SCALES length"
@@ -98,7 +106,7 @@ impl ScalingInfo {
         let scale_slot = Self::get_scale_slot(scale)?;
         let delta = self.get_row_count_for_scale(Self::DEFINED_SCALES[scale_slot])?
             - self.get_row_count_for_scale(Self::DEFINED_SCALES[scale_slot - 1])?;
-        
+
         let float_offset = (scale - Self::DEFINED_SCALES[scale_slot - 1])
             / (Self::DEFINED_SCALES[scale_slot] - Self::DEFINED_SCALES[scale_slot - 1]);
 
@@ -156,7 +164,7 @@ mod tests {
     fn test_scaling_info_creation() {
         let row_counts = [0, 100, 500, 2000, 5000, 12000, 30000, 65000, 80000, 100000];
         let scaling_info = ScalingInfo::new(3, ScalingModel::Logarithmic, &row_counts, 0).unwrap();
-        
+
         assert_eq!(scaling_info.get_multiplier(), 3);
         assert_eq!(scaling_info.get_scaling_model(), ScalingModel::Logarithmic);
         assert_eq!(scaling_info.get_update_percentage(), 0);
@@ -165,17 +173,17 @@ mod tests {
     #[test]
     fn test_scaling_info_validation() {
         let row_counts = [0, 100, 500, 2000, 5000, 12000, 30000, 65000, 80000, 100000];
-        
+
         // Test negative multiplier
         assert!(ScalingInfo::new(-1, ScalingModel::Static, &row_counts, 0).is_err());
-        
+
         // Test negative update percentage
         assert!(ScalingInfo::new(0, ScalingModel::Static, &row_counts, -1).is_err());
-        
+
         // Test wrong array length
         let wrong_counts = [0, 100, 500];
         assert!(ScalingInfo::new(0, ScalingModel::Static, &wrong_counts, 0).is_err());
-        
+
         // Test negative row count
         let negative_counts = [0, -100, 500, 2000, 5000, 12000, 30000, 65000, 80000, 100000];
         assert!(ScalingInfo::new(0, ScalingModel::Static, &negative_counts, 0).is_err());
@@ -183,9 +191,11 @@ mod tests {
 
     #[test]
     fn test_static_scaling() {
-        let row_counts = [0, 73049, 73049, 73049, 73049, 73049, 73049, 73049, 73049, 73049];
+        let row_counts = [
+            0, 73049, 73049, 73049, 73049, 73049, 73049, 73049, 73049, 73049,
+        ];
         let scaling_info = ScalingInfo::new(0, ScalingModel::Static, &row_counts, 0).unwrap();
-        
+
         // Static scaling should always return the scale=1 value
         assert_eq!(scaling_info.get_row_count_for_scale(1.0).unwrap(), 73049);
         assert_eq!(scaling_info.get_row_count_for_scale(10.0).unwrap(), 73049);
@@ -196,7 +206,7 @@ mod tests {
     fn test_exact_scale_matches() {
         let row_counts = [0, 100, 500, 2000, 5000, 12000, 30000, 65000, 80000, 100000];
         let scaling_info = ScalingInfo::new(0, ScalingModel::Logarithmic, &row_counts, 0).unwrap();
-        
+
         // Test exact matches from the defined scales
         assert_eq!(scaling_info.get_row_count_for_scale(0.0).unwrap(), 0);
         assert_eq!(scaling_info.get_row_count_for_scale(1.0).unwrap(), 100);
@@ -209,7 +219,7 @@ mod tests {
     fn test_logarithmic_scaling_interpolation() {
         let row_counts = [0, 100, 500, 2000, 5000, 12000, 30000, 65000, 80000, 100000];
         let scaling_info = ScalingInfo::new(0, ScalingModel::Logarithmic, &row_counts, 0).unwrap();
-        
+
         // Test interpolation - should be between defined points
         let result_5 = scaling_info.get_row_count_for_scale(5.0).unwrap();
         assert!(result_5 > 100); // Greater than scale=1 result
@@ -218,13 +228,15 @@ mod tests {
 
     #[test]
     fn test_linear_scaling_fractional() {
-        let row_counts = [0, 24, 240, 2400, 7200, 24000, 72000, 240000, 720000, 2400000];
+        let row_counts = [
+            0, 24, 240, 2400, 7200, 24000, 72000, 240000, 720000, 2400000,
+        ];
         let scaling_info = ScalingInfo::new(4, ScalingModel::Linear, &row_counts, 0).unwrap();
-        
+
         // Test fractional scaling (< 1.0)
         let result = scaling_info.get_row_count_for_scale(0.5).unwrap();
         assert_eq!(result, 12); // 0.5 * 24 = 12
-        
+
         // Test that zero result becomes 1
         let result_tiny = scaling_info.get_row_count_for_scale(0.001).unwrap();
         assert_eq!(result_tiny, 1);
@@ -232,14 +244,16 @@ mod tests {
 
     #[test]
     fn test_linear_scaling_large() {
-        let row_counts = [0, 24, 240, 2400, 7200, 24000, 72000, 240000, 720000, 2400000];
+        let row_counts = [
+            0, 24, 240, 2400, 7200, 24000, 72000, 240000, 720000, 2400000,
+        ];
         let scaling_info = ScalingInfo::new(4, ScalingModel::Linear, &row_counts, 0).unwrap();
-        
+
         // Test larger scale that requires multiple additions
         let result = scaling_info.get_row_count_for_scale(1100.0).unwrap();
         // Linear scaling works from largest to smallest:
         // 1100.0 - 1000.0 = 100.0 remaining, use scale[1000] = 24000
-        // 100.0 - 100.0 = 0.0 remaining, use scale[100] = 2400  
+        // 100.0 - 100.0 = 0.0 remaining, use scale[100] = 2400
         // Total: 24000 + 2400 = 26400
         assert_eq!(result, 26400);
     }
@@ -248,7 +262,7 @@ mod tests {
     fn test_scale_validation() {
         let row_counts = [0, 100, 500, 2000, 5000, 12000, 30000, 65000, 80000, 100000];
         let scaling_info = ScalingInfo::new(0, ScalingModel::Static, &row_counts, 0).unwrap();
-        
+
         // Test scale too large
         assert!(scaling_info.get_row_count_for_scale(100001.0).is_err());
     }
@@ -262,14 +276,16 @@ mod tests {
         assert_eq!(ScalingInfo::get_scale_slot(10.0).unwrap(), 2);
         assert_eq!(ScalingInfo::get_scale_slot(50.0).unwrap(), 3);
         assert_eq!(ScalingInfo::get_scale_slot(100000.0).unwrap(), 9);
-        
+
         // Test scale too large
         assert!(ScalingInfo::get_scale_slot(100001.0).is_err());
     }
 
     #[test]
     fn test_defined_scales_constant() {
-        let expected = [0.0, 1.0, 10.0, 100.0, 300.0, 1000.0, 3000.0, 10000.0, 30000.0, 100000.0];
+        let expected = [
+            0.0, 1.0, 10.0, 100.0, 300.0, 1000.0, 3000.0, 10000.0, 30000.0, 100000.0,
+        ];
         assert_eq!(ScalingInfo::DEFINED_SCALES, expected);
     }
 
@@ -285,11 +301,11 @@ mod tests {
         // Test with actual CallCenter values from Java Table.java
         let row_counts = [0, 3, 12, 15, 18, 21, 24, 27, 30, 30];
         let scaling_info = ScalingInfo::new(0, ScalingModel::Logarithmic, &row_counts, 0).unwrap();
-        
+
         // Test some specific scale calculations
         assert_eq!(scaling_info.get_row_count_for_scale(1.0).unwrap(), 3);
         assert_eq!(scaling_info.get_row_count_for_scale(100000.0).unwrap(), 30);
-        
+
         // Test interpolation
         let result_5 = scaling_info.get_row_count_for_scale(5.0).unwrap();
         assert!(result_5 >= 3 && result_5 <= 12);

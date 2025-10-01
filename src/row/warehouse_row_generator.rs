@@ -1,11 +1,11 @@
-use crate::row::{AbstractRowGenerator, RowGenerator, RowGeneratorResult, WarehouseRow};
+use crate::business_key_generator::make_business_key;
 use crate::config::Session;
-use crate::table::Table;
+use crate::error::Result;
 use crate::generator::WarehouseGeneratorColumn;
 use crate::random::RandomValueGenerator;
+use crate::row::{AbstractRowGenerator, RowGenerator, RowGeneratorResult, WarehouseRow};
+use crate::table::Table;
 use crate::types::Address;
-use crate::business_key_generator::make_business_key;
-use crate::error::Result;
 
 /// Row generator for the WAREHOUSE table (WarehouseRowGenerator)
 pub struct WarehouseRowGenerator {
@@ -21,9 +21,15 @@ impl WarehouseRowGenerator {
     }
 
     /// Generate a WarehouseRow with realistic data following Java implementation
-    fn generate_warehouse_row(&mut self, row_number: i64, session: &Session) -> Result<WarehouseRow> {
+    fn generate_warehouse_row(
+        &mut self,
+        row_number: i64,
+        session: &Session,
+    ) -> Result<WarehouseRow> {
         // Create null bit map (createNullBitMap call)
-        let nulls_stream = self.abstract_generator.get_random_number_stream(&WarehouseGeneratorColumn::WNulls);
+        let nulls_stream = self
+            .abstract_generator
+            .get_random_number_stream(&WarehouseGeneratorColumn::WNulls);
         let threshold = RandomValueGenerator::generate_uniform_random_int(0, 9999, nulls_stream);
         let bit_map = RandomValueGenerator::generate_uniform_random_int(1, i32::MAX, nulls_stream);
 
@@ -37,15 +43,23 @@ impl WarehouseRowGenerator {
         let w_warehouse_sk = row_number;
         let w_warehouse_id = make_business_key(row_number);
 
-        let name_stream = self.abstract_generator.get_random_number_stream(&WarehouseGeneratorColumn::WWarehouseName);
+        let name_stream = self
+            .abstract_generator
+            .get_random_number_stream(&WarehouseGeneratorColumn::WWarehouseName);
         let w_warehouse_name = RandomValueGenerator::generate_random_text(10, 20, name_stream);
 
-        let sq_ft_stream = self.abstract_generator.get_random_number_stream(&WarehouseGeneratorColumn::WWarehouseSqFt);
-        let w_warehouse_sq_ft = RandomValueGenerator::generate_uniform_random_int(50000, 1000000, sq_ft_stream);
+        let sq_ft_stream = self
+            .abstract_generator
+            .get_random_number_stream(&WarehouseGeneratorColumn::WWarehouseSqFt);
+        let w_warehouse_sq_ft =
+            RandomValueGenerator::generate_uniform_random_int(50000, 1000000, sq_ft_stream);
 
         let scaling = session.get_scaling();
-        let address_stream = self.abstract_generator.get_random_number_stream(&WarehouseGeneratorColumn::WWarehouseAddress);
-        let w_address = Address::make_address_for_column(Table::Warehouse, address_stream, scaling)?;
+        let address_stream = self
+            .abstract_generator
+            .get_random_number_stream(&WarehouseGeneratorColumn::WWarehouseAddress);
+        let w_address =
+            Address::make_address_for_column(Table::Warehouse, address_stream, scaling)?;
 
         Ok(WarehouseRow::new(
             null_bit_map,
@@ -75,6 +89,7 @@ impl RowGenerator for WarehouseRowGenerator {
     }
 
     fn skip_rows_until_starting_row_number(&mut self, starting_row_number: i64) {
-        self.abstract_generator.skip_rows_until_starting_row_number(starting_row_number);
+        self.abstract_generator
+            .skip_rows_until_starting_row_number(starting_row_number);
     }
 }

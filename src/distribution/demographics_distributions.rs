@@ -1,5 +1,5 @@
-use crate::distribution::{IntValuesDistribution, Distribution};
 use crate::distribution::string_values_distribution::StringValuesDistribution as FileBasedStringValuesDistribution;
+use crate::distribution::{Distribution, IntValuesDistribution};
 use crate::error::Result;
 use std::sync::OnceLock;
 
@@ -20,8 +20,12 @@ impl DemographicsDistributions {
     fn get_marital_status_distribution() -> &'static FileBasedStringValuesDistribution {
         static DISTRIBUTION: OnceLock<FileBasedStringValuesDistribution> = OnceLock::new();
         DISTRIBUTION.get_or_init(|| {
-            FileBasedStringValuesDistribution::build_string_values_distribution("marital_statuses.dst", 1, 1)
-                .expect("Failed to load marital_statuses.dst")
+            FileBasedStringValuesDistribution::build_string_values_distribution(
+                "marital_statuses.dst",
+                1,
+                1,
+            )
+            .expect("Failed to load marital_statuses.dst")
         })
     }
 
@@ -29,8 +33,12 @@ impl DemographicsDistributions {
     fn get_education_distribution() -> &'static FileBasedStringValuesDistribution {
         static DISTRIBUTION: OnceLock<FileBasedStringValuesDistribution> = OnceLock::new();
         DISTRIBUTION.get_or_init(|| {
-            FileBasedStringValuesDistribution::build_string_values_distribution("education.dst", 1, 4)
-                .expect("Failed to load education.dst")
+            FileBasedStringValuesDistribution::build_string_values_distribution(
+                "education.dst",
+                1,
+                4,
+            )
+            .expect("Failed to load education.dst")
         })
     }
 
@@ -47,8 +55,12 @@ impl DemographicsDistributions {
     fn get_credit_rating_distribution() -> &'static FileBasedStringValuesDistribution {
         static DISTRIBUTION: OnceLock<FileBasedStringValuesDistribution> = OnceLock::new();
         DISTRIBUTION.get_or_init(|| {
-            FileBasedStringValuesDistribution::build_string_values_distribution("credit_ratings.dst", 1, 1)
-                .expect("Failed to load credit_ratings.dst")
+            FileBasedStringValuesDistribution::build_string_values_distribution(
+                "credit_ratings.dst",
+                1,
+                1,
+            )
+            .expect("Failed to load credit_ratings.dst")
         })
     }
 
@@ -64,19 +76,22 @@ impl DemographicsDistributions {
 
     /// Get gender for index mod size (getGenderForIndexModSize)
     pub fn get_gender_for_index_mod_size(index: i64) -> &'static str {
-        Self::get_gender_distribution().get_value_for_index_mod_size(index, 0)
+        Self::get_gender_distribution()
+            .get_value_for_index_mod_size(index, 0)
             .expect("Failed to get gender value")
     }
 
     /// Get marital status for index mod size (getMaritalStatusForIndexModSize)
     pub fn get_marital_status_for_index_mod_size(index: i64) -> &'static str {
-        Self::get_marital_status_distribution().get_value_for_index_mod_size(index, 0)
+        Self::get_marital_status_distribution()
+            .get_value_for_index_mod_size(index, 0)
             .expect("Failed to get marital status value")
     }
 
     /// Get education for index mod size (getEducationForIndexModSize)
     pub fn get_education_for_index_mod_size(index: i64) -> &'static str {
-        Self::get_education_distribution().get_value_for_index_mod_size(index, 0)
+        Self::get_education_distribution()
+            .get_value_for_index_mod_size(index, 0)
             .expect("Failed to get education value")
     }
 
@@ -87,7 +102,8 @@ impl DemographicsDistributions {
 
     /// Get credit rating for index mod size (getCreditRatingForIndexModSize)
     pub fn get_credit_rating_for_index_mod_size(index: i64) -> &'static str {
-        Self::get_credit_rating_distribution().get_value_for_index_mod_size(index, 0)
+        Self::get_credit_rating_distribution()
+            .get_value_for_index_mod_size(index, 0)
             .expect("Failed to get credit rating value")
     }
 
@@ -140,22 +156,37 @@ mod tests {
     fn test_income_band_distribution() {
         // Test that we can load the distribution
         let size = DemographicsDistributions::get_income_band_size();
-        assert!(size > 0, "Income band distribution should have at least one entry");
+        assert!(
+            size > 0,
+            "Income band distribution should have at least one entry"
+        );
 
         // Test that we can get values at valid indices
         for i in 0..size.min(5) {
             let lower = DemographicsDistributions::get_income_band_lower_bound_at_index(i);
             let upper = DemographicsDistributions::get_income_band_upper_bound_at_index(i);
 
-            assert!(lower.is_ok(), "Should be able to get lower bound at index {}", i);
-            assert!(upper.is_ok(), "Should be able to get upper bound at index {}", i);
+            assert!(
+                lower.is_ok(),
+                "Should be able to get lower bound at index {}",
+                i
+            );
+            assert!(
+                upper.is_ok(),
+                "Should be able to get upper bound at index {}",
+                i
+            );
 
             // Lower bound should be less than or equal to upper bound
             let lower_val = lower.unwrap();
             let upper_val = upper.unwrap();
-            assert!(lower_val <= upper_val,
+            assert!(
+                lower_val <= upper_val,
                 "Lower bound {} should be <= upper bound {} at index {}",
-                lower_val, upper_val, i);
+                lower_val,
+                upper_val,
+                i
+            );
         }
     }
 

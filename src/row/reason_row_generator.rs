@@ -1,11 +1,11 @@
-use crate::row::{AbstractRowGenerator, RowGenerator, RowGeneratorResult, ReasonRow};
-use crate::config::Session;
-use crate::table::Table;
-use crate::generator::ReasonGeneratorColumn;
-use crate::random::RandomValueGenerator;
 use crate::business_key_generator::make_business_key;
+use crate::config::Session;
 use crate::distribution::ReturnReasonsDistribution;
 use crate::error::Result;
+use crate::generator::ReasonGeneratorColumn;
+use crate::random::RandomValueGenerator;
+use crate::row::{AbstractRowGenerator, ReasonRow, RowGenerator, RowGeneratorResult};
+use crate::table::Table;
 
 /// Row generator for the REASON table (ReasonRowGenerator)
 pub struct ReasonRowGenerator {
@@ -23,7 +23,9 @@ impl ReasonRowGenerator {
     /// Generate a ReasonRow with realistic data following Java implementation
     fn generate_reason_row(&mut self, row_number: i64, _session: &Session) -> Result<ReasonRow> {
         // Create null bit map (createNullBitMap call)
-        let nulls_stream = self.abstract_generator.get_random_number_stream(&ReasonGeneratorColumn::RNulls);
+        let nulls_stream = self
+            .abstract_generator
+            .get_random_number_stream(&ReasonGeneratorColumn::RNulls);
         let threshold = RandomValueGenerator::generate_uniform_random_int(0, 9999, nulls_stream);
         let bit_map = RandomValueGenerator::generate_uniform_random_int(1, i32::MAX, nulls_stream);
 
@@ -36,7 +38,8 @@ impl ReasonRowGenerator {
 
         let r_reason_sk = row_number;
         let r_reason_id = make_business_key(row_number);
-        let r_reason_description = ReturnReasonsDistribution::get_return_reason_at_index((row_number - 1) as usize)?;
+        let r_reason_description =
+            ReturnReasonsDistribution::get_return_reason_at_index((row_number - 1) as usize)?;
 
         Ok(ReasonRow::new(
             null_bit_map,
@@ -64,6 +67,7 @@ impl RowGenerator for ReasonRowGenerator {
     }
 
     fn skip_rows_until_starting_row_number(&mut self, starting_row_number: i64) {
-        self.abstract_generator.skip_rows_until_starting_row_number(starting_row_number);
+        self.abstract_generator
+            .skip_rows_until_starting_row_number(starting_row_number);
     }
 }

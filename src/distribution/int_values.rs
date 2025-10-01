@@ -1,4 +1,6 @@
-use crate::distribution::{Distribution, WeightsBuilder, DistributionUtils, DistributionFileLoader};
+use crate::distribution::{
+    Distribution, DistributionFileLoader, DistributionUtils, WeightsBuilder,
+};
 use crate::random::RandomNumberStream;
 use crate::{error::Result, TpcdsError};
 
@@ -14,13 +16,17 @@ impl IntValuesDistribution {
     pub fn new(values_lists: Vec<Vec<i32>>, weights_lists: Vec<Vec<i32>>) -> Result<Self> {
         // Validate that values and weights lists have same structure
         if values_lists.len() != weights_lists.len() {
-            return Err(TpcdsError::new("Values and weights lists must have same number of lists"));
+            return Err(TpcdsError::new(
+                "Values and weights lists must have same number of lists",
+            ));
         }
 
         for (i, (values, weights)) in values_lists.iter().zip(weights_lists.iter()).enumerate() {
             if values.len() != weights.len() {
                 return Err(TpcdsError::new(&format!(
-                    "Values list {} and weights list {} must have same length", i, i)));
+                    "Values list {} and weights list {} must have same length",
+                    i, i
+                )));
             }
         }
 
@@ -63,7 +69,9 @@ impl IntValuesDistribution {
 
         for (value, weights) in data {
             if weights.len() != num_weight_columns {
-                return Err(TpcdsError::new("All data entries must have same number of weights"));
+                return Err(TpcdsError::new(
+                    "All data entries must have same number of weights",
+                ));
             }
 
             values.push(*value);
@@ -103,40 +111,51 @@ impl IntValuesDistribution {
         let parsed_lines = DistributionFileLoader::load_distribution_file(filename)?;
 
         let mut values_builders: Vec<Vec<i32>> = vec![Vec::new(); num_value_fields];
-        let mut weights_builders: Vec<WeightsBuilder> = vec![WeightsBuilder::new(); num_weight_fields];
+        let mut weights_builders: Vec<WeightsBuilder> =
+            vec![WeightsBuilder::new(); num_weight_fields];
 
         for (values, weights) in parsed_lines {
             if values.len() != num_value_fields {
                 return Err(TpcdsError::new(&format!(
                     "Expected line to contain {} values, but it contained {}: {:?}",
-                    num_value_fields, values.len(), values
+                    num_value_fields,
+                    values.len(),
+                    values
                 )));
             }
 
             if weights.len() != num_weight_fields {
                 return Err(TpcdsError::new(&format!(
                     "Expected line to contain {} weights, but it contained {}: {:?}",
-                    num_weight_fields, weights.len(), weights
+                    num_weight_fields,
+                    weights.len(),
+                    weights
                 )));
             }
 
             // Add values to builders - parse as integers
             for (i, value) in values.into_iter().enumerate() {
-                let int_value: i32 = value.parse()
-                    .map_err(|e| TpcdsError::new(&format!("Failed to parse value '{}' as integer: {}", value, e)))?;
+                let int_value: i32 = value.parse().map_err(|e| {
+                    TpcdsError::new(&format!(
+                        "Failed to parse value '{}' as integer: {}",
+                        value, e
+                    ))
+                })?;
                 values_builders[i].push(int_value);
             }
 
             // Add weights to builders
             for (i, weight_str) in weights.into_iter().enumerate() {
-                let weight: i32 = weight_str.parse()
-                    .map_err(|e| TpcdsError::new(&format!("Failed to parse weight '{}': {}", weight_str, e)))?;
+                let weight: i32 = weight_str.parse().map_err(|e| {
+                    TpcdsError::new(&format!("Failed to parse weight '{}': {}", weight_str, e))
+                })?;
                 weights_builders[i].compute_and_add_next_weight(weight)?;
             }
         }
 
         let values_lists = values_builders;
-        let weights_lists = weights_builders.into_iter()
+        let weights_lists = weights_builders
+            .into_iter()
             .map(|builder| builder.build())
             .collect();
 
@@ -191,19 +210,32 @@ impl IntValuesDistribution {
 
 impl Distribution<i32> for IntValuesDistribution {
     /// Pick random value based on weights (core method matching Java)
-    fn pick_random_value(&self, value_list: usize, weight_list: usize, stream: &mut dyn RandomNumberStream) -> Result<i32> {
+    fn pick_random_value(
+        &self,
+        value_list: usize,
+        weight_list: usize,
+        stream: &mut dyn RandomNumberStream,
+    ) -> Result<i32> {
         if value_list >= self.values_lists.len() {
-            return Err(TpcdsError::new(&format!("Value list index {} out of bounds", value_list)));
+            return Err(TpcdsError::new(&format!(
+                "Value list index {} out of bounds",
+                value_list
+            )));
         }
         if weight_list >= self.weights_lists.len() {
-            return Err(TpcdsError::new(&format!("Weight list index {} out of bounds", weight_list)));
+            return Err(TpcdsError::new(&format!(
+                "Weight list index {} out of bounds",
+                weight_list
+            )));
         }
 
         let values = &self.values_lists[value_list];
         let weights = &self.weights_lists[weight_list];
 
         if values.len() != weights.len() {
-            return Err(TpcdsError::new("Values and weights lists have different lengths"));
+            return Err(TpcdsError::new(
+                "Values and weights lists have different lengths",
+            ));
         }
 
         if values.is_empty() {
@@ -212,7 +244,10 @@ impl Distribution<i32> for IntValuesDistribution {
 
         let index = DistributionUtils::pick_random_index_from_weights(weights, stream)?;
         if index >= values.len() {
-            return Err(TpcdsError::new(&format!("Selected index {} out of bounds for values", index)));
+            return Err(TpcdsError::new(&format!(
+                "Selected index {} out of bounds for values",
+                index
+            )));
         }
 
         Ok(values[index])
@@ -221,12 +256,18 @@ impl Distribution<i32> for IntValuesDistribution {
     /// Get value at specific index
     fn get_value_at_index(&self, value_list: usize, index: usize) -> Result<i32> {
         if value_list >= self.values_lists.len() {
-            return Err(TpcdsError::new(&format!("Value list index {} out of bounds", value_list)));
+            return Err(TpcdsError::new(&format!(
+                "Value list index {} out of bounds",
+                value_list
+            )));
         }
 
         let values = &self.values_lists[value_list];
         if index >= values.len() {
-            return Err(TpcdsError::new(&format!("Index {} out of bounds for values", index)));
+            return Err(TpcdsError::new(&format!(
+                "Index {} out of bounds for values",
+                index
+            )));
         }
 
         Ok(values[index])
@@ -249,11 +290,7 @@ mod tests {
 
     #[test]
     fn test_from_embedded_data() {
-        let data = &[
-            (1, 30),
-            (2, 20),
-            (3, 50),
-        ];
+        let data = &[(1, 30), (2, 20), (3, 50)];
 
         let dist = IntValuesDistribution::from_embedded_data(data).unwrap();
         assert_eq!(dist.get_value_lists_count(), 1);
@@ -270,12 +307,12 @@ mod tests {
     fn test_uniform_distribution() {
         let values = &[10, 20, 30, 40, 50];
         let dist = IntValuesDistribution::uniform(values).unwrap();
-        
+
         assert_eq!(dist.get_value_lists_count(), 1);
         assert_eq!(dist.get_value_count(0), 5);
 
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
-        
+
         // Test multiple picks - all should be valid values
         for _ in 0..10 {
             let value = dist.pick_random_value(0, 0, &mut stream).unwrap();
@@ -289,9 +326,9 @@ mod tests {
         let weights2 = [500, 500];
         let weights3 = [1000, 0];
         let data = &[
-            (0, weights1.as_slice()),     // 0 - never picked from first, always from second
-            (1, weights2.as_slice()),    // 1 - balanced in both
-            (2, weights3.as_slice()),     // 2 - always picked from first, never from second
+            (0, weights1.as_slice()), // 0 - never picked from first, always from second
+            (1, weights2.as_slice()), // 1 - balanced in both
+            (2, weights3.as_slice()), // 2 - always picked from first, never from second
         ];
 
         let dist = IntValuesDistribution::from_multi_weight_data(data).unwrap();
@@ -303,8 +340,8 @@ mod tests {
     #[test]
     fn test_pick_random_value() {
         let data = &[
-            (100, 1),    // Rare value
-            (200, 99),   // Common value
+            (100, 1),  // Rare value
+            (200, 99), // Common value
         ];
 
         let dist = IntValuesDistribution::from_embedded_data(data).unwrap();
@@ -319,15 +356,10 @@ mod tests {
 
     #[test]
     fn test_deterministic_behavior() {
-        let data = &[
-            (1, 25),
-            (2, 25),
-            (3, 25),
-            (4, 25),
-        ];
+        let data = &[(1, 25), (2, 25), (3, 25), (4, 25)];
 
         let dist = IntValuesDistribution::from_embedded_data(data).unwrap();
-        
+
         // Same seed should produce same results
         let mut stream1 = RandomNumberStreamImpl::new_with_column(42, 1).unwrap();
         let mut stream2 = RandomNumberStreamImpl::new_with_column(42, 1).unwrap();
@@ -342,8 +374,8 @@ mod tests {
     fn test_weighted_distribution_bias() {
         // Create heavily biased distribution
         let data = &[
-            (1, 1),      // Very rare
-            (2, 1000),   // Very common
+            (1, 1),    // Very rare
+            (2, 1000), // Very common
         ];
 
         let dist = IntValuesDistribution::from_embedded_data(data).unwrap();
@@ -352,7 +384,7 @@ mod tests {
         // Test many picks - should heavily favor value 2
         let mut count_1 = 0;
         let mut count_2 = 0;
-        
+
         for _ in 0..100 {
             match dist.pick_random_value(0, 0, &mut stream).unwrap() {
                 1 => count_1 += 1,
@@ -388,12 +420,14 @@ mod tests {
         assert!(IntValuesDistribution::new(
             vec![vec![1]],
             vec![] // Empty weights but non-empty values
-        ).is_err());
+        )
+        .is_err());
 
         // Mismatched value/weight lengths
         assert!(IntValuesDistribution::new(
             vec![vec![1, 2]], // 2 values
             vec![vec![100]]   // 1 weight
-        ).is_err());
+        )
+        .is_err());
     }
 }

@@ -3,7 +3,7 @@
 pub trait TableRow: Send + Sync {
     /// Get all values as strings for output (getValues())
     fn get_values(&self) -> Vec<String>;
-    
+
     /// Get the number of columns in this row
     fn get_column_count(&self) -> usize {
         self.get_values().len()

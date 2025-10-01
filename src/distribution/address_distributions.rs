@@ -1,7 +1,7 @@
 use crate::distribution::string_values_distribution::StringValuesDistribution;
+use crate::error::Result;
 use crate::random::stream::RandomNumberStream;
 use std::sync::OnceLock;
-use crate::error::Result;
 
 static STREET_NAMES_DISTRIBUTION: OnceLock<StringValuesDistribution> = OnceLock::new();
 static STREET_TYPES_DISTRIBUTION: OnceLock<StringValuesDistribution> = OnceLock::new();
@@ -24,12 +24,15 @@ pub enum CitiesWeights {
     UnifiedStepFunction = 5,
 }
 
-pub fn pick_random_street_name(weights: StreetNamesWeights, stream: &mut dyn RandomNumberStream) -> Result<&'static str> {
+pub fn pick_random_street_name(
+    weights: StreetNamesWeights,
+    stream: &mut dyn RandomNumberStream,
+) -> Result<&'static str> {
     let dist = STREET_NAMES_DISTRIBUTION.get_or_init(|| {
         StringValuesDistribution::build_string_values_distribution("street_names.dst", 1, 2)
             .expect("Failed to load street names distribution")
     });
-    
+
     dist.pick_random_value(0, weights as usize, stream)
 }
 
@@ -38,16 +41,19 @@ pub fn pick_random_street_type(stream: &mut dyn RandomNumberStream) -> Result<&'
         StringValuesDistribution::build_string_values_distribution("street_types.dst", 1, 1)
             .expect("Failed to load street types distribution")
     });
-    
+
     dist.pick_random_value(0, 0, stream)
 }
 
-pub fn pick_random_city(weights: CitiesWeights, stream: &mut dyn RandomNumberStream) -> Result<&'static str> {
+pub fn pick_random_city(
+    weights: CitiesWeights,
+    stream: &mut dyn RandomNumberStream,
+) -> Result<&'static str> {
     let dist = CITIES_DISTRIBUTION.get_or_init(|| {
         StringValuesDistribution::build_string_values_distribution("cities.dst", 1, 6)
             .expect("Failed to load cities distribution")
     });
-    
+
     dist.pick_random_value(0, weights as usize, stream)
 }
 
@@ -56,7 +62,7 @@ pub fn pick_random_country(stream: &mut dyn RandomNumberStream) -> Result<&'stat
         StringValuesDistribution::build_string_values_distribution("countries.dst", 1, 1)
             .expect("Failed to load countries distribution")
     });
-    
+
     dist.pick_random_value(0, 0, stream)
 }
 
@@ -65,6 +71,6 @@ pub fn get_city_at_index(index: usize) -> Result<&'static str> {
         StringValuesDistribution::build_string_values_distribution("cities.dst", 1, 6)
             .expect("Failed to load cities distribution")
     });
-    
+
     dist.get_value_at_index(0, index)
 }

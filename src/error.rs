@@ -9,7 +9,7 @@ impl TpcdsError {
             message: message.to_string(),
         }
     }
-    
+
     pub fn message(&self) -> &str {
         &self.message
     }
@@ -61,8 +61,11 @@ impl InvalidOptionError {
 
 impl std::fmt::Display for InvalidOptionError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Invalid value for {}: '{}'. {}", 
-               self.option_name, self.value, self.message)
+        write!(
+            f,
+            "Invalid value for {}: '{}'. {}",
+            self.option_name, self.value, self.message
+        )
     }
 }
 

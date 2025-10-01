@@ -11,35 +11,59 @@ impl Date {
     // Constants matching Java implementation
     pub const JULIAN_DATA_START_DATE: i64 = 2450815; // toJulianDays(Date::new(1998, 1, 1))
     pub const JULIAN_DATA_END_DATE: i64 = 2453005; // toJulianDays(Date::new(2003, 12, 31))
-    pub const TODAYS_DATE: Date = Date { year: 2003, month: 1, day: 8 };
+    pub const TODAYS_DATE: Date = Date {
+        year: 2003,
+        month: 1,
+        day: 8,
+    };
     pub const JULIAN_TODAYS_DATE: i32 = 2452663; // toJulianDays(TODAYS_DATE)
     pub const CURRENT_QUARTER: i32 = 1;
     pub const CURRENT_WEEK: i32 = 2;
-    
-    pub const DATE_MAXIMUM: Date = Date { year: 2002, month: 12, day: 31 };
-    pub const DATE_MINIMUM: Date = Date { year: 1998, month: 1, day: 1 };
+
+    pub const DATE_MAXIMUM: Date = Date {
+        year: 2002,
+        month: 12,
+        day: 31,
+    };
+    pub const DATE_MINIMUM: Date = Date {
+        year: 1998,
+        month: 1,
+        day: 1,
+    };
     pub const JULIAN_DATE_MAXIMUM: i32 = 2452640; // toJulianDays(DATE_MAXIMUM)
     pub const JULIAN_DATE_MINIMUM: i32 = 2450815; // toJulianDays(DATE_MINIMUM)
-    
-    pub const WEEKDAY_NAMES: [&'static str; 7] = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    
+
+    pub const WEEKDAY_NAMES: [&'static str; 7] = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+    ];
+
     // Month day cumulative arrays (0-indexed for convenience, but month 0 is unused)
     const MONTH_DAYS: [i32; 13] = [0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
-    const MONTH_DAYS_LEAP_YEAR: [i32; 13] = [0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
+    const MONTH_DAYS_LEAP_YEAR: [i32; 13] =
+        [0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
 
     pub fn new(year: i32, month: i32, day: i32) -> Result<Self> {
         check_argument!(year > 0, "Year must be a positive value");
-        check_argument!(month > 0 && month <= 12, "Month must be a number between 1 and 12 (inclusive)");
-        check_argument!(day > 0 && day <= Self::get_days_in_month(month, year)?, 
+        check_argument!(
+            month > 0 && month <= 12,
+            "Month must be a number between 1 and 12 (inclusive)"
+        );
+        check_argument!(day > 0 && day <= Self::get_days_in_month(month, year)?,
                        "Day must be a positive value and cannot exceed the maximum number of days in the month");
-        
+
         Ok(Date { year, month, day })
     }
 
     // Algorithm: Fleigel and Van Flandern (CACM, vol 11, #10, Oct. 1968, p. 657)
     pub fn from_julian_days(julian_days: i32) -> Result<Self> {
         check_argument!(julian_days >= 0, "Days must be a positive value");
-        
+
         let l = julian_days + 68569;
         let n = (4 * l) / 146097;
         let l = l - (146097 * n + 3) / 4;
@@ -86,7 +110,11 @@ impl Date {
     }
 
     pub fn get_days_in_year(year: i32) -> i32 {
-        if Self::is_leap_year(year) { 366 } else { 365 }
+        if Self::is_leap_year(year) {
+            366
+        } else {
+            365
+        }
     }
 
     pub fn get_day(&self) -> i32 {
@@ -139,7 +167,8 @@ impl Date {
     pub fn compute_last_date_of_month(&self) -> Result<Self> {
         // Copies a bug in the C code that adds all the days in the year
         // through the first of month instead of just the number of days in the month
-        let julian_days = self.to_julian_days() - self.day + Self::get_days_through_first_of_month(self);
+        let julian_days =
+            self.to_julian_days() - self.day + Self::get_days_through_first_of_month(self);
         Self::from_julian_days(julian_days)
     }
 
@@ -158,8 +187,13 @@ impl Date {
         let distance_from_start = julian_date - julian_start_of_quarter;
 
         let last_quarter = if quarter > 0 { quarter - 1 } else { 3 };
-        let last_quarter_year = if quarter > 0 { self.year } else { self.year - 1 };
-        let julian_start_of_previous_quarter = Self::new(last_quarter_year, last_quarter * 3 + 1, 1)?.to_julian_days();
+        let last_quarter_year = if quarter > 0 {
+            self.year
+        } else {
+            self.year - 1
+        };
+        let julian_start_of_previous_quarter =
+            Self::new(last_quarter_year, last_quarter * 3 + 1, 1)?.to_julian_days();
 
         Self::from_julian_days(julian_start_of_previous_quarter + distance_from_start)
     }
@@ -279,7 +313,7 @@ mod tests {
         let date = Date::new(1998, 1, 1).unwrap();
         let julian = date.to_julian_days();
         assert_eq!(julian as i64, Date::JULIAN_DATA_START_DATE);
-        
+
         let back = Date::from_julian_days(julian).unwrap();
         assert_eq!(back, date);
     }

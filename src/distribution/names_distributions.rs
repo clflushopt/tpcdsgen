@@ -1,6 +1,6 @@
 use crate::distribution::string_values_distribution::StringValuesDistribution;
-use crate::random::RandomNumberStream;
 use crate::error::Result;
+use crate::random::RandomNumberStream;
 use std::sync::OnceLock;
 
 /// First names weight categories (FirstNamesWeights enum)
@@ -38,7 +38,7 @@ impl NamesDistributions {
             )?;
             let _ = FIRST_NAMES_DISTRIBUTION.set(dist);
         }
-        
+
         // Initialize last names distribution
         if LAST_NAMES_DISTRIBUTION.get().is_none() {
             let dist = StringValuesDistribution::build_string_values_distribution(
@@ -48,7 +48,7 @@ impl NamesDistributions {
             )?;
             let _ = LAST_NAMES_DISTRIBUTION.set(dist);
         }
-        
+
         // Initialize salutations distribution
         if SALUTATIONS_DISTRIBUTION.get().is_none() {
             let dist = StringValuesDistribution::build_string_values_distribution(
@@ -58,10 +58,10 @@ impl NamesDistributions {
             )?;
             let _ = SALUTATIONS_DISTRIBUTION.set(dist);
         }
-        
+
         Ok(())
     }
-    
+
     /// Pick a random first name using the specified weight category
     pub fn pick_random_first_name(
         weights: FirstNamesWeights,
@@ -71,7 +71,7 @@ impl NamesDistributions {
         let dist = FIRST_NAMES_DISTRIBUTION.get().unwrap();
         dist.pick_random_value(0, weights as usize, stream)
     }
-    
+
     /// Pick a random index from first names using the specified weight category
     pub fn pick_random_index(
         weights: FirstNamesWeights,
@@ -81,28 +81,28 @@ impl NamesDistributions {
         let dist = FIRST_NAMES_DISTRIBUTION.get().unwrap();
         dist.pick_random_index(weights as usize, stream)
     }
-    
+
     /// Get first name from specific index
     pub fn get_first_name_from_index(index: usize) -> Result<&'static str> {
         Self::ensure_initialized()?;
         let dist = FIRST_NAMES_DISTRIBUTION.get().unwrap();
         dist.get_value_at_index(0, index)
     }
-    
+
     /// Get weight for specific index and weight category
     pub fn get_weight_for_index(index: usize, weights: FirstNamesWeights) -> Result<i32> {
         Self::ensure_initialized()?;
         let dist = FIRST_NAMES_DISTRIBUTION.get().unwrap();
         dist.get_weight_for_index(index, weights as usize)
     }
-    
+
     /// Pick a random last name
     pub fn pick_random_last_name(stream: &mut dyn RandomNumberStream) -> Result<&'static str> {
         Self::ensure_initialized()?;
         let dist = LAST_NAMES_DISTRIBUTION.get().unwrap();
         dist.pick_random_value(0, 0, stream)
     }
-    
+
     /// Pick a random salutation using the specified weight category
     pub fn pick_random_salutation(
         weights: SalutationsWeights,
@@ -125,7 +125,8 @@ mod tests {
         let name = NamesDistributions::pick_random_first_name(
             FirstNamesWeights::MaleFrequency,
             &mut stream,
-        ).unwrap();
+        )
+        .unwrap();
         assert!(!name.is_empty());
     }
 
@@ -135,7 +136,8 @@ mod tests {
         let name = NamesDistributions::pick_random_first_name(
             FirstNamesWeights::FemaleFrequency,
             &mut stream,
-        ).unwrap();
+        )
+        .unwrap();
         assert!(!name.is_empty());
     }
 
@@ -145,7 +147,8 @@ mod tests {
         let name = NamesDistributions::pick_random_first_name(
             FirstNamesWeights::GeneralFrequency,
             &mut stream,
-        ).unwrap();
+        )
+        .unwrap();
         assert!(!name.is_empty());
     }
 
@@ -159,23 +162,22 @@ mod tests {
     #[test]
     fn test_pick_random_salutation() {
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
-        
+
         let neutral = NamesDistributions::pick_random_salutation(
             SalutationsWeights::GenderNeutral,
             &mut stream,
-        ).unwrap();
+        )
+        .unwrap();
         assert!(!neutral.is_empty());
-        
-        let male = NamesDistributions::pick_random_salutation(
-            SalutationsWeights::Male,
-            &mut stream,
-        ).unwrap();
+
+        let male =
+            NamesDistributions::pick_random_salutation(SalutationsWeights::Male, &mut stream)
+                .unwrap();
         assert!(!male.is_empty());
-        
-        let female = NamesDistributions::pick_random_salutation(
-            SalutationsWeights::Female,
-            &mut stream,
-        ).unwrap();
+
+        let female =
+            NamesDistributions::pick_random_salutation(SalutationsWeights::Female, &mut stream)
+                .unwrap();
         assert!(!female.is_empty());
     }
 
@@ -189,17 +191,19 @@ mod tests {
     fn test_deterministic_behavior() {
         let mut stream1 = RandomNumberStreamImpl::new(42).unwrap();
         let mut stream2 = RandomNumberStreamImpl::new(42).unwrap();
-        
+
         let name1 = NamesDistributions::pick_random_first_name(
             FirstNamesWeights::GeneralFrequency,
             &mut stream1,
-        ).unwrap();
-        
+        )
+        .unwrap();
+
         let name2 = NamesDistributions::pick_random_first_name(
             FirstNamesWeights::GeneralFrequency,
             &mut stream2,
-        ).unwrap();
-        
+        )
+        .unwrap();
+
         assert_eq!(name1, name2);
     }
 }

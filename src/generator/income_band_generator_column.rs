@@ -14,12 +14,8 @@ impl IncomeBandGeneratorColumn {
     /// Get all generator columns in order
     pub fn values() -> &'static [IncomeBandGeneratorColumn] {
         use IncomeBandGeneratorColumn::*;
-        static VALUES: &[IncomeBandGeneratorColumn] = &[
-            IbIncomeBandId,
-            IbLowerBound,
-            IbUpperBound,
-            IbNulls,
-        ];
+        static VALUES: &[IncomeBandGeneratorColumn] =
+            &[IbIncomeBandId, IbLowerBound, IbUpperBound, IbNulls];
         VALUES
     }
 

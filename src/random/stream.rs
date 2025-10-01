@@ -1,4 +1,4 @@
-use crate::{check_argument, TpcdsError, error::Result};
+use crate::{check_argument, error::Result, TpcdsError};
 
 pub trait RandomNumberStream: Send + Sync {
     fn next_random(&mut self) -> i64;
@@ -22,8 +22,8 @@ pub struct RandomNumberStreamImpl {
 impl RandomNumberStreamImpl {
     const DEFAULT_SEED_BASE: i32 = 19620718;
     const MULTIPLIER: i64 = 16807;
-    const QUOTIENT: i64 = 127773;   // the quotient MAX_INT / MULTIPLIER
-    const REMAINDER: i64 = 2836;    // the remainder MAX_INT % MULTIPLIER
+    const QUOTIENT: i64 = 127773; // the quotient MAX_INT / MULTIPLIER
+    const REMAINDER: i64 = 2836; // the remainder MAX_INT % MULTIPLIER
 
     pub fn new(seeds_per_row: i32) -> Result<Self> {
         check_argument!(seeds_per_row >= 0, "seedsPerRow must be >=0");
@@ -39,7 +39,11 @@ impl RandomNumberStreamImpl {
         Self::new_with_base(global_column_number, Self::DEFAULT_SEED_BASE, seeds_per_row)
     }
 
-    pub fn new_with_base(global_column_number: i32, seed_base: i32, seeds_per_row: i32) -> Result<Self> {
+    pub fn new_with_base(
+        global_column_number: i32,
+        seed_base: i32,
+        seeds_per_row: i32,
+    ) -> Result<Self> {
         check_argument!(seeds_per_row >= 0, "seedsPerRow must be >=0");
         let initial_seed = seed_base as i64 + global_column_number as i64 * (i32::MAX as i64 / 799);
         Ok(RandomNumberStreamImpl {
@@ -75,15 +79,16 @@ impl RandomNumberStream for RandomNumberStreamImpl {
         let mut number_of_values_to_skip = number_of_rows * self.seeds_per_row as i64;
         let mut next_seed = self.initial_seed;
         let mut multiplier = Self::MULTIPLIER;
-        
+
         while number_of_values_to_skip > 0 {
-            if number_of_values_to_skip % 2 != 0 { // n is odd
+            if number_of_values_to_skip % 2 != 0 {
+                // n is odd
                 next_seed = (multiplier * next_seed) % i32::MAX as i64;
             }
             number_of_values_to_skip /= 2;
             multiplier = (multiplier * multiplier) % i32::MAX as i64;
         }
-        
+
         self.seed = next_seed;
         self.seeds_used = 0;
     }
@@ -121,7 +126,7 @@ mod tests {
     fn test_random_stream_with_column() {
         let stream = RandomNumberStreamImpl::new_with_column(1, 1).unwrap();
         assert_eq!(stream.get_seeds_per_row(), 1);
-        
+
         // Initial seed should be computed based on column number
         assert_ne!(stream.initial_seed, 3); // Should be different from default
     }
@@ -131,7 +136,7 @@ mod tests {
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
         let first = stream.next_random();
         let second = stream.next_random();
-        
+
         // Should generate different values
         assert_ne!(first, second);
         assert_eq!(stream.get_seeds_used(), 2);
@@ -141,7 +146,7 @@ mod tests {
     fn test_random_double() {
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
         let random_double = stream.next_random_double();
-        
+
         // Should be between 0 and 1
         assert!(random_double >= 0.0 && random_double <= 1.0);
     }
@@ -151,10 +156,10 @@ mod tests {
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
         let initial = stream.next_random();
         stream.next_random(); // Generate another
-        
+
         stream.reset_seed();
         let after_reset = stream.next_random();
-        
+
         assert_eq!(initial, after_reset);
         assert_eq!(stream.get_seeds_used(), 1);
     }
@@ -163,16 +168,16 @@ mod tests {
     fn test_skip_rows() {
         let mut stream1 = RandomNumberStreamImpl::new(2).unwrap();
         let mut stream2 = RandomNumberStreamImpl::new(2).unwrap();
-        
+
         // Generate 2 rows manually on stream1
         stream1.next_random();
         stream1.next_random();
         stream1.next_random();
         stream1.next_random();
-        
+
         // Skip 2 rows on stream2
         stream2.skip_rows(2);
-        
+
         // Both should now generate the same next value
         let manual = stream1.next_random();
         let skipped = stream2.next_random();

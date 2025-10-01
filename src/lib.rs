@@ -1,16 +1,16 @@
-pub mod error;
-pub mod types;
-pub mod random;
+pub mod business_key_generator;
+pub mod column;
 pub mod config;
 pub mod distribution;
-pub mod column;
-pub mod table_flags;
-pub mod scaling_info;
+pub mod error;
 pub mod generator;
-pub mod table;
-pub mod row;
-pub mod business_key_generator;
-pub mod slowly_changing_dimension_utils;
 pub mod pseudo_table_scaling_infos;
+pub mod random;
+pub mod row;
+pub mod scaling_info;
+pub mod slowly_changing_dimension_utils;
+pub mod table;
+pub mod table_flags;
+pub mod types;
 
 pub use error::TpcdsError;

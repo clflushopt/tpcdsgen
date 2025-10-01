@@ -62,7 +62,7 @@ mod tests {
     fn test_row_generator_result_single() {
         let row = Box::new(CallCenterRow::builder().build());
         let result = RowGeneratorResult::new(row);
-        
+
         assert_eq!(result.get_rows().len(), 1);
         assert!(result.should_end_row());
     }
@@ -74,7 +74,7 @@ mod tests {
             Box::new(CallCenterRow::builder().build()) as Box<dyn TableRow>,
         ];
         let result = RowGeneratorResult::new_with_multiple(rows, false);
-        
+
         assert_eq!(result.get_rows().len(), 2);
         assert!(!result.should_end_row());
     }

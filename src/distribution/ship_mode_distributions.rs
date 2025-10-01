@@ -9,24 +9,36 @@ impl ShipModeDistributions {
     fn get_ship_mode_carrier_distribution() -> &'static FileBasedStringValuesDistribution {
         static DISTRIBUTION: OnceLock<FileBasedStringValuesDistribution> = OnceLock::new();
         DISTRIBUTION.get_or_init(|| {
-            FileBasedStringValuesDistribution::build_string_values_distribution("ship_mode_carrier.dst", 1, 1)
-                .expect("Failed to load ship_mode_carrier.dst")
+            FileBasedStringValuesDistribution::build_string_values_distribution(
+                "ship_mode_carrier.dst",
+                1,
+                1,
+            )
+            .expect("Failed to load ship_mode_carrier.dst")
         })
     }
 
     fn get_ship_mode_code_distribution() -> &'static FileBasedStringValuesDistribution {
         static DISTRIBUTION: OnceLock<FileBasedStringValuesDistribution> = OnceLock::new();
         DISTRIBUTION.get_or_init(|| {
-            FileBasedStringValuesDistribution::build_string_values_distribution("ship_mode_code.dst", 1, 1)
-                .expect("Failed to load ship_mode_code.dst")
+            FileBasedStringValuesDistribution::build_string_values_distribution(
+                "ship_mode_code.dst",
+                1,
+                1,
+            )
+            .expect("Failed to load ship_mode_code.dst")
         })
     }
 
     fn get_ship_mode_type_distribution() -> &'static FileBasedStringValuesDistribution {
         static DISTRIBUTION: OnceLock<FileBasedStringValuesDistribution> = OnceLock::new();
         DISTRIBUTION.get_or_init(|| {
-            FileBasedStringValuesDistribution::build_string_values_distribution("ship_mode_type.dst", 1, 1)
-                .expect("Failed to load ship_mode_type.dst")
+            FileBasedStringValuesDistribution::build_string_values_distribution(
+                "ship_mode_type.dst",
+                1,
+                1,
+            )
+            .expect("Failed to load ship_mode_type.dst")
         })
     }
 
