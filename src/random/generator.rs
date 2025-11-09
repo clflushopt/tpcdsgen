@@ -59,7 +59,7 @@ impl RandomValueGenerator {
         let range = max.to_julian_days() - min.to_julian_days();
         let julian_days = min.to_julian_days()
             + Self::generate_uniform_random_int(0, range, random_number_stream);
-        Date::from_julian_days(julian_days)
+        Ok(Date::from_julian_days(julian_days))
     }
 
     // Generate random string of specified length from given character set

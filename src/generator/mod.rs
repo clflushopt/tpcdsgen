@@ -1,15 +1,19 @@
 pub mod call_center_generator_column;
 pub mod customer_demographics_generator_column;
+pub mod date_dim_generator_column;
 pub mod generator_column;
 pub mod income_band_generator_column;
 pub mod reason_generator_column;
 pub mod ship_mode_generator_column;
+pub mod time_dim_generator_column;
 pub mod warehouse_generator_column;
 
 pub use call_center_generator_column::CallCenterGeneratorColumn;
 pub use customer_demographics_generator_column::CustomerDemographicsGeneratorColumn;
+pub use date_dim_generator_column::DateDimGeneratorColumn;
 pub use generator_column::GeneratorColumn;
 pub use income_band_generator_column::IncomeBandGeneratorColumn;
 pub use reason_generator_column::ReasonGeneratorColumn;
 pub use ship_mode_generator_column::ShipModeGeneratorColumn;
+pub use time_dim_generator_column::TimeDimGeneratorColumn;
 pub use warehouse_generator_column::WarehouseGeneratorColumn;

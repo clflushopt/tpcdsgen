@@ -48,7 +48,13 @@ impl Date {
     const MONTH_DAYS_LEAP_YEAR: [i32; 13] =
         [0, 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
 
-    pub fn new(year: i32, month: i32, day: i32) -> Result<Self> {
+    // Const version for compile-time date creation (no validation)
+    pub const fn new(year: i32, month: i32, day: i32) -> Self {
+        Date { year, month, day }
+    }
+
+    // Safe version with validation
+    pub fn new_validated(year: i32, month: i32, day: i32) -> Result<Self> {
         check_argument!(year > 0, "Year must be a positive value");
         check_argument!(
             month > 0 && month <= 12,
@@ -61,9 +67,7 @@ impl Date {
     }
 
     // Algorithm: Fleigel and Van Flandern (CACM, vol 11, #10, Oct. 1968, p. 657)
-    pub fn from_julian_days(julian_days: i32) -> Result<Self> {
-        check_argument!(julian_days >= 0, "Days must be a positive value");
-
+    pub fn from_julian_days(julian_days: i32) -> Self {
         let l = julian_days + 68569;
         let n = (4 * l) / 146097;
         let l = l - (146097 * n + 3) / 4;
@@ -161,7 +165,7 @@ impl Date {
     }
 
     pub fn compute_first_date_of_month(&self) -> Result<Self> {
-        Self::new(self.year, self.month, 1)
+        Ok(Self::new(self.year, self.month, 1))
     }
 
     pub fn compute_last_date_of_month(&self) -> Result<Self> {
@@ -169,7 +173,7 @@ impl Date {
         // through the first of month instead of just the number of days in the month
         let julian_days =
             self.to_julian_days() - self.day + Self::get_days_through_first_of_month(self);
-        Self::from_julian_days(julian_days)
+        Ok(Self::from_julian_days(julian_days))
     }
 
     pub fn compute_same_day_last_year(&self) -> Result<Self> {
@@ -177,12 +181,12 @@ impl Date {
         if Self::is_leap_year(self.year) && self.month == 2 && self.day == 29 {
             day = 28;
         }
-        Self::new(self.year - 1, self.month, day)
+        Ok(Self::new(self.year - 1, self.month, day))
     }
 
     pub fn compute_same_day_last_quarter(&self) -> Result<Self> {
         let quarter = (self.month - 1) / 3; // zero-indexed quarter number
-        let julian_start_of_quarter = Self::new(self.year, quarter * 3 + 1, 1)?.to_julian_days();
+        let julian_start_of_quarter = Self::new(self.year, quarter * 3 + 1, 1).to_julian_days();
         let julian_date = self.to_julian_days();
         let distance_from_start = julian_date - julian_start_of_quarter;
 
@@ -193,9 +197,9 @@ impl Date {
             self.year - 1
         };
         let julian_start_of_previous_quarter =
-            Self::new(last_quarter_year, last_quarter * 3 + 1, 1)?.to_julian_days();
+            Self::new(last_quarter_year, last_quarter * 3 + 1, 1).to_julian_days();
 
-        Self::from_julian_days(julian_start_of_previous_quarter + distance_from_start)
+        Ok(Self::from_julian_days(julian_start_of_previous_quarter + distance_from_start))
     }
 
     // Uses the doomsday algorithm to calculate the day of the week.
@@ -283,10 +287,42 @@ impl Date {
 
     // Helper function to convert Julian date to formatted string
     pub fn julian_to_date_string(julian_days: i64) -> String {
-        match Self::from_julian_days(julian_days as i32) {
-            Ok(date) => date.to_string(),
-            Err(_) => "-1".to_string(), // Handle invalid dates like Java does
-        }
+        let date = Self::from_julian_days(julian_days as i32);
+        date.to_string()
+    }
+
+    // Convenience methods for cleaner API
+    pub fn year(&self) -> i32 {
+        self.year
+    }
+
+    pub fn month(&self) -> i32 {
+        self.month
+    }
+
+    pub fn day(&self) -> i32 {
+        self.day
+    }
+
+    pub fn day_of_week(&self) -> i32 {
+        self.compute_day_of_week()
+    }
+
+    pub fn day_of_year(&self) -> i32 {
+        self.get_day_index()
+    }
+
+    pub fn last_day_of_month(&self) -> Date {
+        // Using unwrap is safe here because we're constructing from valid dates
+        self.compute_last_date_of_month().unwrap()
+    }
+
+    pub fn same_day_last_year(&self) -> Date {
+        self.compute_same_day_last_year().unwrap()
+    }
+
+    pub fn same_day_last_quarter(&self) -> Date {
+        self.compute_same_day_last_quarter().unwrap()
     }
 }
 

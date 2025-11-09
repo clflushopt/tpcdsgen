@@ -8,6 +8,8 @@ pub enum Table {
     Reason,
     IncomeBand,
     CustomerDemographics,
+    DateDim,
+    TimeDim,
     // TODO(clflushopt): Add remaining tables
 }
 
@@ -21,6 +23,8 @@ impl Table {
             Table::Reason => "reason",
             Table::IncomeBand => "income_band",
             Table::CustomerDemographics => "customer_demographics",
+            Table::DateDim => "date_dim",
+            Table::TimeDim => "time_dim",
         }
     }
 }
