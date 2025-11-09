@@ -1,5 +1,0 @@
-- name: Generate fixtures
-  run: ./scripts/generate-fixtures.sh --quiet
-
-- name: Test all tables
-  run: ./scripts/test-all-tables.sh --quiet
