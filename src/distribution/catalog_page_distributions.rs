@@ -32,9 +32,9 @@ use std::sync::OnceLock;
 ///
 /// Only the second weight field (sales volume) is used for random picking.
 pub struct CatalogPageTypesDistribution {
-    values: Vec<String>,     // Catalog type names
-    weights_list1: Vec<i32>, // Distribution frequency weights (not used)
-    weights_list2: Vec<i32>, // Sales volume weights (used for picking)
+    values: Vec<String>,      // Catalog type names
+    _weights_list1: Vec<i32>, // Distribution frequency weights (not used)
+    weights_list2: Vec<i32>,  // Sales volume weights (used for picking)
 }
 
 impl CatalogPageTypesDistribution {
@@ -100,7 +100,7 @@ impl CatalogPageTypesDistribution {
 
         Ok(CatalogPageTypesDistribution {
             values,
-            weights_list1: weights_builder1.build(),
+            _weights_list1: weights_builder1.build(),
             weights_list2: weights_builder2.build(),
         })
     }
@@ -137,7 +137,7 @@ mod tests {
 
         // Should have 3 catalog types: monthly, bi-annual, quarterly
         assert_eq!(dist.values.len(), 3, "Should have 3 catalog types");
-        assert_eq!(dist.weights_list1.len(), 3);
+        assert_eq!(dist._weights_list1.len(), 3);
         assert_eq!(dist.weights_list2.len(), 3);
     }
 

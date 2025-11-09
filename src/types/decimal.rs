@@ -63,7 +63,7 @@ impl Decimal {
         Self::new(number, precision)
     }
 
-    pub fn add(decimal1: Decimal, decimal2: Decimal) -> Decimal {
+    pub fn add2(decimal1: Decimal, decimal2: Decimal) -> Decimal {
         let precision = if decimal1.precision > decimal2.precision {
             decimal1.precision
         } else {
@@ -201,7 +201,7 @@ mod tests {
         let d1 = Decimal::new(100, 2).unwrap(); // 1.00
         let d2 = Decimal::new(50, 2).unwrap(); // 0.50
 
-        let sum = Decimal::add(d1, d2);
+        let sum = Decimal::add2(d1, d2);
         assert_eq!(sum.get_number(), 150); // Buggy behavior: should be 150, not mathematically correct
 
         let diff = Decimal::subtract(d1, d2);

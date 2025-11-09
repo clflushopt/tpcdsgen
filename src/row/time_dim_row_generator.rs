@@ -26,7 +26,7 @@ impl RowGenerator for TimeDimRowGenerator {
     fn generate_row_and_child_rows(
         &mut self,
         row_number: i64,
-        session: &Session,
+        _session: &Session,
         _parent_row_generator: Option<&mut dyn RowGenerator>,
         _child_row_generator: Option<&mut dyn RowGenerator>,
     ) -> crate::error::Result<RowGeneratorResult> {

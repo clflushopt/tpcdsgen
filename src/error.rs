@@ -81,6 +81,7 @@ impl From<InvalidOptionError> for TpcdsError {
 #[macro_export]
 macro_rules! check_argument {
     ($condition:expr, $message:expr) => {
+        #[allow(clippy::neg_cmp_op_on_partial_ord)]
         if !$condition {
             return Err(TpcdsError::new($message));
         }

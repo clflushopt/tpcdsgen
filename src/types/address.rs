@@ -15,6 +15,7 @@ pub struct Address {
     gmt_offset: i32,
 }
 
+#[allow(clippy::too_many_arguments)]
 impl Address {
     pub fn new(
         suite_number: String,
@@ -205,13 +206,16 @@ impl Address {
             FipsCountyDistribution::pick_random_index(FipsWeights::Uniform, stream).unwrap_or(0)
         };
 
-        let county = if table.is_small() {
-            FipsCountyDistribution::get_county_at_index(region_number)
-                .unwrap_or("Williamson County")
-        } else {
-            FipsCountyDistribution::get_county_at_index(region_number)
-                .unwrap_or("Williamson County")
-        };
+        let county = FipsCountyDistribution::get_county_at_index(region_number)
+            .unwrap_or("Williamson County");
+        // let county = if table.is_small() {
+        //     FipsCountyDistribution::get_county_at_index(region_number)
+        //         .unwrap_or("Williamson County")
+        // } else {
+        //     // stubbed.
+        //     FipsCountyDistribution::get_county_at_index(region_number)
+        //         .unwrap_or("Williamson County")
+        // };
 
         // match state with the selected region/county
         let state =

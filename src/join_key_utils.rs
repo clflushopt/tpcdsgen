@@ -16,16 +16,6 @@
 //!
 //! This module provides functionality to generate foreign keys (join keys) between
 //! TPC-DS tables, respecting the benchmark's referential integrity requirements.
-//!
-//! **Phase 2 Sprint 1 Status**: ✅ COMPLETE
-//! - ✅ CalendarDistribution::pick_random_day_of_year ported
-//! - ✅ HoursDistribution::pick_random_hour ported
-//! - ✅ CatalogPageTypesDistribution ported
-//! - ✅ All Phase 1 stubs replaced with full implementations
-//!
-//! Some logic remains simplified due to column::Table vs config::Table type mismatches.
-//! This will be resolved when table generators are ported.
-
 use crate::config::{Scaling, Table};
 use crate::distribution::calendar_distribution::{CalendarDistribution, CalendarWeights};
 use crate::distribution::catalog_page_distributions::CatalogPageTypesDistribution;
@@ -37,9 +27,13 @@ use crate::random::{RandomNumberStream, RandomValueGenerator};
 // use crate::table::Table as MetadataTable;
 use crate::types::Date;
 
+#[allow(dead_code)]
 const WEB_PAGES_PER_SITE: i32 = 123;
+#[allow(dead_code)]
 const WEB_DATE_STAGGER: i64 = 17;
+#[allow(dead_code)]
 const CS_MIN_SHIP_DELAY: i32 = 2;
+#[allow(dead_code)]
 const CS_MAX_SHIP_DELAY: i32 = 90;
 const CATALOGS_PER_YEAR: i32 = 18;
 
@@ -274,6 +268,7 @@ fn generate_scd_join_key(
 /// Generates a join key for web-related tables (web_site, web_page).
 ///
 /// Web tables have complex date logic involving site creation, open, and close dates.
+#[allow(dead_code)]
 fn generate_web_join_key(
     _from_column: &dyn GeneratorColumn,
     _random_number_stream: &mut dyn RandomNumberStream,

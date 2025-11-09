@@ -234,7 +234,6 @@ impl RandomValueGenerator {
         _random_number_stream: &mut dyn RandomNumberStream,
     ) -> String {
         use crate::distribution::get_syllables_distribution;
-        use crate::distribution::utils::Distribution;
 
         let distribution = get_syllables_distribution();
         let size = distribution.get_size();

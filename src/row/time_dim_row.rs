@@ -32,6 +32,7 @@ pub struct TimeDimRow {
 }
 
 impl TimeDimRow {
+    #[allow(clippy::too_many_arguments)]
     /// Create a new TimeDimRow with all fields
     pub fn new(
         null_bit_map: i64,
