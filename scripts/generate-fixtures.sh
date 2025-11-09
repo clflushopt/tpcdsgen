@@ -236,7 +236,12 @@ main() {
     start_time=$(date +%s)
 
     for table in "${tables_to_generate[@]}"; do
-        if generate_table "$table"; then
+        # Temporarily disable exit-on-error (CI workaround)
+        set +e
+        generate_table "$table"
+        local exit_code=$?
+        set -e
+        if [[ $exit_code -eq 0 ]]; then
             ((success_count++))
         else
             ((fail_count++))
