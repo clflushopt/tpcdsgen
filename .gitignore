@@ -3,7 +3,7 @@
 *.txt
 
 # Patches and Java tree changes.
-/patches
+/patches/
 
 # Test fixtures (generated).
 /tests/fixtures/

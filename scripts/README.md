@@ -7,6 +7,16 @@ This directory contains scripts for testing the Rust TPC-DS implementation again
 The testing infrastructure validates that the Rust port generates **byte-for-byte identical** output to the Java
 implementation (which itself maintains bug-for-bug compatibility with the original C dsdgen).
 
+## Prerequisites
+
+You need the Java TPC-DS implementation for conformance testing. Use the bootstrap script to set it up:
+
+```bash
+./scripts/bootstrap-java.sh
+```
+
+This will clone and build the Java implementation automatically. See the bootstrap section below for details.
+
 ## Directory Structure
 
 ```
@@ -18,6 +28,7 @@ tpcdsgen/
 │           ├── warehouse.dat
 │           └── ... (all 24 tables)
 └── scripts/
+    ├── bootstrap-java.sh      # Setup Java TPC-DS implementation
     ├── generate-fixtures.sh   # Generate Java reference data
     ├── compare-table.sh       # Compare one table
     ├── test-all-tables.sh     # Test all ported tables
@@ -25,7 +36,59 @@ tpcdsgen/
     └── README.md              # This file
 ```
 
+## Quick Start
+
+```bash
+# 1. Bootstrap Java implementation (first time only)
+./scripts/bootstrap-java.sh
+
+# 2. Generate reference fixtures
+./scripts/generate-fixtures.sh
+
+# 3. Test all ported tables
+./scripts/test-all-tables.sh
+```
+
 ## Scripts
+
+### 0. `bootstrap-java.sh` - Setup Java TPC-DS Implementation
+
+**⚠️ Run this first!** Sets up the Java TPC-DS implementation needed for conformance testing.
+
+**Usage:**
+```bash
+# First time setup (clone and build)
+./scripts/bootstrap-java.sh
+
+# Force rebuild
+./scripts/bootstrap-java.sh --rebuild
+
+# Verify existing installation
+./scripts/bootstrap-java.sh --verify
+
+# Show help
+./scripts/bootstrap-java.sh --help
+```
+
+**What it does:**
+1. Checks if Java and Maven are installed
+2. Clones the Java TPC-DS repository from GitHub (if needed)
+3. Builds the Java implementation with Maven
+4. Runs a smoke test to verify it works
+
+**Requirements:**
+- Java 11+ (e.g., `brew install openjdk@11`)
+- Maven (e.g., `brew install maven`)
+- Git
+
+**Environment Variables:**
+- `TPCDS_JAVA_REPO` - Override the Java repo URL (default: https://github.com/trinodb/tpcds.git)
+
+**Output:**
+- Clones to `../tpcds/` (parallel to this repo)
+- Creates `../tpcds/target/tpcds-*-jar-with-dependencies.jar`
+
+**Time:** ~2-3 minutes (first run)
 
 ### 1. `generate-fixtures.sh` - Generate Reference Data
 

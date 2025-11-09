@@ -1,0 +1,159 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  # Job 1: Build and test Rust code
+  rust-tests:
+    name: Rust Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: rustfmt, clippy
+
+    - name: Cache Rust dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+
+    - name: Check formatting
+      run: cargo fmt -- --check
+
+    - name: Run clippy
+      run: cargo clippy -- -D warnings
+
+    - name: Build
+      run: cargo build --verbose
+
+    - name: Run unit tests
+      run: cargo test --verbose
+
+  # Job 2: Conformance testing against Java implementation
+  conformance-tests:
+    name: Conformance Tests
+    runs-on: ubuntu-latest
+    needs: rust-tests  # Only run if Rust tests pass
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '11'
+        cache: 'maven'
+
+    - name: Cache Rust dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+
+    - name: Bootstrap Java TPC-DS implementation
+      run: |
+        cd tpcdsgen
+        ./scripts/bootstrap-java.sh
+
+    - name: Build Rust table generators
+      run: |
+        cd tpcdsgen
+        cargo build --release
+
+    - name: Generate test fixtures (Java reference data)
+      run: |
+        cd tpcdsgen
+        ./scripts/generate-fixtures.sh --quiet
+
+    - name: Run conformance tests (Rust vs Java)
+      run: |
+        cd tpcdsgen
+        ./scripts/test-all-tables.sh
+
+    - name: Upload test fixtures as artifacts
+      if: failure()  # Upload fixtures if tests fail for debugging
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-fixtures
+        path: tpcdsgen/tests/fixtures/
+        retention-days: 7
+
+  # Job 3: Build benchmarks (optional - only on main)
+  benchmarks:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    needs: conformance-tests
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Cache Rust dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+
+    - name: Build release binaries
+      run: |
+        cd tpcdsgen
+        cargo build --release
+
+    - name: Run benchmarks
+      run: |
+        cd tpcdsgen
+        # Generate all 9 ported tables and time it
+        time for table in call_center warehouse ship_mode reason income_band customer_demographics date_dim time_dim household_demographics; do
+          ./target/release/generate_${table} --scale 1 --directory /tmp/bench
+        done
+
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v3
+      with:
+        name: benchmark-results
+        path: /tmp/bench/
+        retention-days: 30
