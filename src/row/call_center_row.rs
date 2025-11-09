@@ -362,10 +362,10 @@ impl CallCenterRowBuilder {
         CallCenterRow {
             cc_call_center_sk: self.cc_call_center_sk.unwrap_or(0),
             cc_call_center_id: self.cc_call_center_id.unwrap_or_default(),
-            cc_rec_start_date_id: self.cc_rec_start_date_id.unwrap_or_else(String::new),
-            cc_rec_end_date_id: self.cc_rec_end_date_id.unwrap_or_else(String::new),
-            cc_closed_date_id: self.cc_closed_date_id.unwrap_or_else(String::new), // Default empty for null
-            cc_open_date_id: self.cc_open_date_id.unwrap_or_else(String::new),
+            cc_rec_start_date_id: self.cc_rec_start_date_id.unwrap_or_default(),
+            cc_rec_end_date_id: self.cc_rec_end_date_id.unwrap_or_default(),
+            cc_closed_date_id: self.cc_closed_date_id.unwrap_or_default(), // Default empty for null
+            cc_open_date_id: self.cc_open_date_id.unwrap_or_default(),
             cc_name: self.cc_name.unwrap_or_default(),
             cc_class: self.cc_class.unwrap_or_default(),
             cc_employees: self.cc_employees.unwrap_or(0),
