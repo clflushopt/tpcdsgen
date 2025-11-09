@@ -30,10 +30,10 @@ impl Address {
         gmt_offset: i32,
     ) -> Result<Self> {
         check_argument!(
-            street_number >= 1 && street_number <= 1000,
+            (1..=1000).contains(&street_number),
             "streetNumber is not between 1 and 1000"
         );
-        check_argument!(zip >= 0 && zip <= 99999, "zip is not between 0 and 99999");
+        check_argument!((0..=99999).contains(&zip), "zip is not between 0 and 99999");
 
         Ok(Address {
             suite_number,

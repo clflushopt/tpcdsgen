@@ -1,12 +1,17 @@
 use crate::business_key_generator::make_business_key;
 use crate::config::Session;
 use crate::distribution::HoursDistribution;
-use crate::generator::TimeDimGeneratorColumn;
 use crate::row::{AbstractRowGenerator, RowGenerator, RowGeneratorResult, TableRow, TimeDimRow};
 use crate::table::Table;
 
 pub struct TimeDimRowGenerator {
     base: AbstractRowGenerator,
+}
+
+impl Default for TimeDimRowGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl TimeDimRowGenerator {

@@ -27,6 +27,12 @@ pub struct HouseholdDemographicsRowGenerator {
     abstract_generator: AbstractRowGenerator,
 }
 
+impl Default for HouseholdDemographicsRowGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl HouseholdDemographicsRowGenerator {
     /// Create a new HouseholdDemographicsRowGenerator
     pub fn new() -> Self {

@@ -125,7 +125,7 @@ impl Decimal {
 
     pub fn negate(decimal: Decimal) -> Decimal {
         Decimal {
-            number: decimal.number * -1,
+            number: -decimal.number,
             precision: decimal.precision,
         }
     }

@@ -31,6 +31,12 @@ const WIDTH_CC_MARKET_DESC: i32 = 100;
 const MAX_NUMBER_OF_EMPLOYEES_UNSCALED: i32 = 7;
 const JULIAN_DATE_START: i64 = Date::JULIAN_DATA_START_DATE - 23; // 23 is the ordinal of CALL_CENTER table
 
+impl Default for CallCenterRowGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CallCenterRowGenerator {
     /// Create a new CallCenterRowGenerator
     pub fn new() -> Self {
@@ -140,8 +146,8 @@ impl CallCenterRowGenerator {
         let mut cc_employees = RandomValueGenerator::generate_uniform_random_int(
             1,
             MAX_NUMBER_OF_EMPLOYEES_UNSCALED
-                * (scaling.get_scale() as f64).ceil() as i32
-                * (scaling.get_scale() as f64).ceil() as i32,
+                * scaling.get_scale().ceil() as i32
+                * scaling.get_scale().ceil() as i32,
             employees_stream,
         );
         if let Some(ref prev_row) = self.previous_row {

@@ -31,10 +31,8 @@ impl AbstractRowGenerator {
     ) -> &mut dyn RandomNumberStream {
         let global_column_number = column.get_global_column_number();
 
-        if !self
-            .random_number_streams
-            .contains_key(&global_column_number)
-        {
+        self
+            .random_number_streams.entry(global_column_number).or_insert_with(|| {
             // Create a new stream for this column
             let seeds_per_row = column.get_seeds_per_row();
             let stream = crate::random::RandomNumberStreamImpl::new_with_column(
@@ -42,9 +40,8 @@ impl AbstractRowGenerator {
                 seeds_per_row,
             )
             .expect("Failed to create random number stream");
-            self.random_number_streams
-                .insert(global_column_number, Box::new(stream));
-        }
+            Box::new(stream)
+        });
 
         self.random_number_streams
             .get_mut(&global_column_number)

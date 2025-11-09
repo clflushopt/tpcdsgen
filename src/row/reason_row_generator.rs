@@ -12,6 +12,12 @@ pub struct ReasonRowGenerator {
     abstract_generator: AbstractRowGenerator,
 }
 
+impl Default for ReasonRowGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ReasonRowGenerator {
     /// Create a new ReasonRowGenerator
     pub fn new() -> Self {

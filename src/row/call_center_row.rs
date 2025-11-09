@@ -195,13 +195,13 @@ impl TableRow for CallCenterRow {
             // Address fields (flattened)
             self.format_numeric(self.cc_address.get_street_number(), 20),
             self.format_value(&self.cc_address.get_street_name(), 21),
-            self.format_value(&self.cc_address.get_street_type(), 22),
-            self.format_value(&self.cc_address.get_suite_number(), 23),
-            self.format_value(&self.cc_address.get_city(), 24),
-            self.format_value(&self.cc_address.get_county().unwrap_or(""), 25),
-            self.format_value(&self.cc_address.get_state(), 26),
+            self.format_value(self.cc_address.get_street_type(), 22),
+            self.format_value(self.cc_address.get_suite_number(), 23),
+            self.format_value(self.cc_address.get_city(), 24),
+            self.format_value(self.cc_address.get_county().unwrap_or(""), 25),
+            self.format_value(self.cc_address.get_state(), 26),
             self.format_numeric(self.cc_address.get_zip(), 27),
-            self.format_value(&self.cc_address.get_country(), 28),
+            self.format_value(self.cc_address.get_country(), 28),
             self.format_numeric(self.cc_address.get_gmt_offset(), 29),
             self.format_value(&self.cc_tax_percentage.to_string(), 30),
         ]
@@ -362,10 +362,10 @@ impl CallCenterRowBuilder {
         CallCenterRow {
             cc_call_center_sk: self.cc_call_center_sk.unwrap_or(0),
             cc_call_center_id: self.cc_call_center_id.unwrap_or_default(),
-            cc_rec_start_date_id: self.cc_rec_start_date_id.unwrap_or_else(|| String::new()),
-            cc_rec_end_date_id: self.cc_rec_end_date_id.unwrap_or_else(|| String::new()),
-            cc_closed_date_id: self.cc_closed_date_id.unwrap_or_else(|| String::new()), // Default empty for null
-            cc_open_date_id: self.cc_open_date_id.unwrap_or_else(|| String::new()),
+            cc_rec_start_date_id: self.cc_rec_start_date_id.unwrap_or_else(String::new),
+            cc_rec_end_date_id: self.cc_rec_end_date_id.unwrap_or_else(String::new),
+            cc_closed_date_id: self.cc_closed_date_id.unwrap_or_else(String::new), // Default empty for null
+            cc_open_date_id: self.cc_open_date_id.unwrap_or_else(String::new),
             cc_name: self.cc_name.unwrap_or_default(),
             cc_class: self.cc_class.unwrap_or_default(),
             cc_employees: self.cc_employees.unwrap_or(0),

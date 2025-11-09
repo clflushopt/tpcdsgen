@@ -154,7 +154,7 @@ impl RandomValueGenerator {
         max_length: i32,
         random_number_stream: &mut dyn RandomNumberStream,
     ) -> String {
-        use crate::distribution::*;
+        
 
         let mut is_sentence_beginning = true;
         let mut text = String::new();
@@ -174,7 +174,7 @@ impl RandomValueGenerator {
             }
 
             let generated_length = generated.len() as i32;
-            is_sentence_beginning = generated.chars().last() == Some('.');
+            is_sentence_beginning = generated.ends_with('.');
 
             // truncate so as not to exceed target length
             if target_length < generated_length {

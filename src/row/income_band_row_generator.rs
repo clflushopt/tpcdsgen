@@ -11,6 +11,12 @@ pub struct IncomeBandRowGenerator {
     abstract_generator: AbstractRowGenerator,
 }
 
+impl Default for IncomeBandRowGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl IncomeBandRowGenerator {
     /// Create a new IncomeBandRowGenerator
     pub fn new() -> Self {

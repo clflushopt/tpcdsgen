@@ -11,6 +11,12 @@ pub struct CustomerDemographicsRowGenerator {
     abstract_generator: AbstractRowGenerator,
 }
 
+impl Default for CustomerDemographicsRowGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CustomerDemographicsRowGenerator {
     // Constants matching Java implementation
     const MAX_CHILDREN: i64 = 7;

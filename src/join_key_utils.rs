@@ -32,7 +32,6 @@ use crate::distribution::catalog_page_distributions::CatalogPageTypesDistributio
 use crate::distribution::hours_distribution::{HoursDistribution, HoursWeights};
 use crate::error::{Result, TpcdsError};
 use crate::generator::GeneratorColumn;
-use crate::pseudo_table_scaling_infos::PseudoTableScalingInfos;
 use crate::random::{RandomNumberStream, RandomValueGenerator};
 // use crate::slowly_changing_dimension_utils;
 // use crate::table::Table as MetadataTable;
@@ -121,9 +120,9 @@ fn generate_catalog_page_join_key(
         random_number_stream,
     );
 
-    let offset_from_start = (julian_date - Date::JULIAN_DATA_START_DATE as i64 - 1) as i32;
+    let offset_from_start = (julian_date - Date::JULIAN_DATA_START_DATE - 1) as i32;
     let mut count = (offset_from_start / 365) * CATALOGS_PER_YEAR;
-    let mut offset = offset_from_start % 365;
+    let offset = offset_from_start % 365;
 
     // Adjust count based on catalog type frequency
     match catalog_type.as_str() {
@@ -257,7 +256,7 @@ fn generate_scd_join_key(
     }
 
     let id_count = scaling.get_id_count(to_table);
-    let mut key =
+    let key =
         RandomValueGenerator::generate_uniform_random_key(1, id_count, random_number_stream);
 
     // TODO: Port SlowlyChangingDimensionUtils::matchSurrogateKey from Java

@@ -1,5 +1,6 @@
 /// Table flags indicating special properties (TableFlags)
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Default)]
 pub struct TableFlags {
     /// FL_TYPE_2 in the C code. This dimension keeps history -- rowcount shows unique entities (not including revisions).
     keeps_history: bool,
@@ -35,15 +36,6 @@ impl TableFlags {
     }
 }
 
-impl Default for TableFlags {
-    fn default() -> Self {
-        Self {
-            keeps_history: false,
-            is_small: false,
-            is_date_based: false,
-        }
-    }
-}
 
 /// Builder for TableFlags (TableFlagsBuilder)
 #[derive(Debug, Default)]

@@ -1,7 +1,6 @@
 use crate::business_key_generator::make_business_key;
 use crate::config::Session;
 use crate::distribution::CalendarDistribution;
-use crate::generator::DateDimGeneratorColumn;
 use crate::row::{AbstractRowGenerator, DateDimRow, RowGenerator, RowGeneratorResult, TableRow};
 use crate::table::Table;
 use crate::types::Date;
@@ -23,6 +22,12 @@ const WEEKDAY_NAMES: [&str; 7] = [
 
 pub struct DateDimRowGenerator {
     base: AbstractRowGenerator,
+}
+
+impl Default for DateDimRowGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl DateDimRowGenerator {

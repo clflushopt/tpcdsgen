@@ -12,6 +12,12 @@ pub struct WarehouseRowGenerator {
     abstract_generator: AbstractRowGenerator,
 }
 
+impl Default for WarehouseRowGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl WarehouseRowGenerator {
     /// Create a new WarehouseRowGenerator
     pub fn new() -> Self {

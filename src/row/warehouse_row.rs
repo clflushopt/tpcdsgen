@@ -91,7 +91,7 @@ impl TableRow for WarehouseRow {
             self.get_string_or_null(self.w_address.get_city(), 8),
             self.get_string_or_null(self.w_address.get_county().unwrap_or(""), 9),
             self.get_string_or_null(self.w_address.get_state(), 10),
-            self.get_string_or_null(&format!("{:05}", self.w_address.get_zip()), 11),
+            self.get_string_or_null(format!("{:05}", self.w_address.get_zip()), 11),
             self.get_string_or_null(self.w_address.get_country(), 12),
             self.get_string_or_null(self.w_address.get_gmt_offset(), 13),
         ]

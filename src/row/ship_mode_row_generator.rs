@@ -12,6 +12,12 @@ pub struct ShipModeRowGenerator {
     abstract_generator: AbstractRowGenerator,
 }
 
+impl Default for ShipModeRowGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ShipModeRowGenerator {
     /// Create a new ShipModeRowGenerator
     pub fn new() -> Self {
@@ -58,7 +64,7 @@ impl ShipModeRowGenerator {
             .abstract_generator
             .get_random_number_stream(&ShipModeGeneratorColumn::SmContract);
         let sm_contract = RandomValueGenerator::generate_random_charset(
-            &RandomValueGenerator::ALPHA_NUMERIC,
+            RandomValueGenerator::ALPHA_NUMERIC,
             1,
             20,
             contract_stream,
