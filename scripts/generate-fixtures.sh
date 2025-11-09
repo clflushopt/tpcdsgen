@@ -20,7 +20,7 @@ NC='\033[0m' # No Color
 # Script directory and project root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-JAVA_DIR="$(cd "$PROJECT_ROOT/../tpcds" && pwd)"
+JAVA_DIR="$(cd "$PROJECT_ROOT/tpcds" && pwd)"
 
 # Configuration
 SCALE_FACTOR=1
