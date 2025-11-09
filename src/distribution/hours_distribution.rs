@@ -1,8 +1,17 @@
 use crate::distribution::file_loader::DistributionFileLoader;
-use crate::distribution::utils::WeightsBuilder;
+use crate::distribution::utils::{pick_random_value, WeightsBuilder};
 use crate::error::Result;
+use crate::random::RandomNumberStream;
 use crate::TpcdsError;
 use std::sync::OnceLock;
+
+/// Weights for hours distribution (HoursDistribution.Weights)
+#[derive(Debug, Clone, Copy)]
+pub enum HoursWeights {
+    Uniform = 0,
+    Store = 1,
+    CatalogAndWeb = 2,
+}
 
 /// Information about a specific hour (HourInfo)
 #[derive(Debug, Clone)]
@@ -143,6 +152,30 @@ impl HoursDistribution {
             dist.meals[hour as usize].clone(),
         )
     }
+
+    /// Pick a random hour using weighted distribution (HoursDistribution.pickRandomHour)
+    ///
+    /// This uses weighted random selection based on the specified weights type.
+    /// Different weight types model different hour patterns for different sales channels.
+    ///
+    /// # Arguments
+    ///
+    /// * `weights` - The weight distribution to use for selection
+    /// * `stream` - Random number stream for generating random values
+    ///
+    /// # Returns
+    ///
+    /// An hour value (0-23) based on the weighted distribution
+    pub fn pick_random_hour(
+        weights: HoursWeights,
+        stream: &mut dyn RandomNumberStream,
+    ) -> Result<i32> {
+        let dist = Self::get_instance();
+        let weights_list = &dist.weights_lists[weights as usize];
+
+        let value_ref = pick_random_value(&dist.hours, weights_list, stream)?;
+        Ok(*value_ref)
+    }
 }
 
 #[cfg(test)]
@@ -165,5 +198,47 @@ mod tests {
         let hour_info_12 = HoursDistribution::get_hour_info_for_hour(12);
         // Hour 12 should be PM
         assert!(hour_info_12.get_am_pm() == "AM" || hour_info_12.get_am_pm() == "PM");
+    }
+
+    #[test]
+    fn test_pick_random_hour() {
+        use crate::random::RandomNumberStreamImpl;
+
+        let mut stream = RandomNumberStreamImpl::new(1).unwrap();
+        let hour = HoursDistribution::pick_random_hour(HoursWeights::Uniform, &mut stream).unwrap();
+
+        // Hour should be in valid range [0, 23]
+        assert!(hour >= 0 && hour <= 23, "Hour {} should be in range [0, 23]", hour);
+    }
+
+    #[test]
+    fn test_pick_random_hour_deterministic() {
+        use crate::random::RandomNumberStreamImpl;
+
+        // Same seed should produce same hour
+        let mut stream1 = RandomNumberStreamImpl::new(42).unwrap();
+        let mut stream2 = RandomNumberStreamImpl::new(42).unwrap();
+
+        let hour1 = HoursDistribution::pick_random_hour(HoursWeights::Store, &mut stream1).unwrap();
+        let hour2 = HoursDistribution::pick_random_hour(HoursWeights::Store, &mut stream2).unwrap();
+
+        assert_eq!(hour1, hour2, "Same seed should produce same hour");
+    }
+
+    #[test]
+    fn test_pick_random_hour_different_weights() {
+        use crate::random::RandomNumberStreamImpl;
+
+        // Different weights should potentially produce different results
+        let mut stream = RandomNumberStreamImpl::new(1).unwrap();
+
+        let hour_uniform = HoursDistribution::pick_random_hour(HoursWeights::Uniform, &mut stream).unwrap();
+        let hour_store = HoursDistribution::pick_random_hour(HoursWeights::Store, &mut stream).unwrap();
+        let hour_catalog = HoursDistribution::pick_random_hour(HoursWeights::CatalogAndWeb, &mut stream).unwrap();
+
+        // All should be valid
+        assert!(hour_uniform >= 0 && hour_uniform <= 23);
+        assert!(hour_store >= 0 && hour_store <= 23);
+        assert!(hour_catalog >= 0 && hour_catalog <= 23);
     }
 }

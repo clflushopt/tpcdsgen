@@ -1,6 +1,7 @@
 pub mod address_distributions;
 pub mod call_center_distributions;
 pub mod calendar_distribution;
+pub mod catalog_page_distributions;
 pub mod demographics_distributions;
 pub mod english;
 pub mod english_distributions;
@@ -18,6 +19,7 @@ pub mod utils;
 pub use address_distributions::*;
 pub use call_center_distributions::CallCenterDistributions;
 pub use calendar_distribution::CalendarDistribution;
+pub use catalog_page_distributions::CatalogPageTypesDistribution;
 pub use demographics_distributions::DemographicsDistributions;
 pub use english::EnglishDistributions;
 pub use english_distributions::*;

@@ -1,8 +1,24 @@
 use crate::distribution::file_loader::DistributionFileLoader;
-use crate::distribution::utils::WeightsBuilder;
+use crate::distribution::utils::{pick_random_value, WeightsBuilder};
 use crate::error::Result;
+use crate::random::RandomNumberStream;
 use crate::TpcdsError;
 use std::sync::OnceLock;
+
+/// Weights for calendar distribution (CalendarDistribution.Weights)
+#[derive(Debug, Clone, Copy)]
+pub enum CalendarWeights {
+    Uniform = 0,
+    UniformLeapYear = 1,
+    Sales = 2,
+    SalesLeapYear = 3,
+    Returns = 4,
+    ReturnsLeapYear = 5,
+    CombinedSkew = 6,
+    Low = 7,
+    Medium = 8,
+    High = 9,
+}
 
 /// Calendar distribution for date_dim generation (CalendarDistribution)
 pub struct CalendarDistribution {
@@ -106,6 +122,30 @@ impl CalendarDistribution {
         let dist = Self::get_instance();
         dist.holiday_flags[(index - 1) as usize]
     }
+
+    /// Pick a random day of year using weighted distribution (CalendarDistribution.pickRandomDayOfYear)
+    ///
+    /// This uses weighted random selection based on the specified weights type.
+    /// Different weight types model different temporal patterns (sales, returns, uniform, etc.)
+    ///
+    /// # Arguments
+    ///
+    /// * `weights` - The weight distribution to use for selection
+    /// * `stream` - Random number stream for generating random values
+    ///
+    /// # Returns
+    ///
+    /// A day of year value (1-366) based on the weighted distribution
+    pub fn pick_random_day_of_year(
+        weights: CalendarWeights,
+        stream: &mut dyn RandomNumberStream,
+    ) -> Result<i32> {
+        let dist = Self::get_instance();
+        let weights_list = &dist.weights_lists[weights as usize];
+
+        let value_ref = pick_random_value(&dist.days_of_year, weights_list, stream)?;
+        Ok(*value_ref)
+    }
 }
 
 #[cfg(test)]
@@ -135,5 +175,45 @@ mod tests {
 
         // Leap year
         assert_eq!(CalendarDistribution::DAYS_BEFORE_MONTH[1][2], 60); // March in leap year
+    }
+
+    #[test]
+    fn test_pick_random_day_of_year() {
+        use crate::random::RandomNumberStreamImpl;
+
+        let mut stream = RandomNumberStreamImpl::new(1).unwrap();
+        let day = CalendarDistribution::pick_random_day_of_year(CalendarWeights::Uniform, &mut stream).unwrap();
+
+        // Day should be in valid range [1, 366]
+        assert!(day >= 1 && day <= 366, "Day {} should be in range [1, 366]", day);
+    }
+
+    #[test]
+    fn test_pick_random_day_of_year_deterministic() {
+        use crate::random::RandomNumberStreamImpl;
+
+        // Same seed should produce same day
+        let mut stream1 = RandomNumberStreamImpl::new(42).unwrap();
+        let mut stream2 = RandomNumberStreamImpl::new(42).unwrap();
+
+        let day1 = CalendarDistribution::pick_random_day_of_year(CalendarWeights::Sales, &mut stream1).unwrap();
+        let day2 = CalendarDistribution::pick_random_day_of_year(CalendarWeights::Sales, &mut stream2).unwrap();
+
+        assert_eq!(day1, day2, "Same seed should produce same day");
+    }
+
+    #[test]
+    fn test_pick_random_day_of_year_different_weights() {
+        use crate::random::RandomNumberStreamImpl;
+
+        // Different weights should potentially produce different results
+        let mut stream = RandomNumberStreamImpl::new(1).unwrap();
+
+        let day_uniform = CalendarDistribution::pick_random_day_of_year(CalendarWeights::Uniform, &mut stream).unwrap();
+        let day_sales = CalendarDistribution::pick_random_day_of_year(CalendarWeights::Sales, &mut stream).unwrap();
+
+        // Both should be valid
+        assert!(day_uniform >= 1 && day_uniform <= 366);
+        assert!(day_sales >= 1 && day_sales <= 366);
     }
 }
