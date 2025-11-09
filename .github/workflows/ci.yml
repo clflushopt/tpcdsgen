@@ -92,7 +92,7 @@ jobs:
 
     - name: Generate test fixtures (Java reference data)
       run: |
-        ./scripts/generate-fixtures.sh --quiet
+        ./scripts/generate-fixtures.sh
 
     - name: Run conformance tests (Rust vs Java)
       run: |
