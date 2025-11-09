@@ -9,12 +9,15 @@ pub mod file_loader;
 pub mod fips_county_distribution;
 pub mod hours_distribution;
 pub mod int_values;
+pub mod location_types_distribution;
 pub mod names_distributions;
 pub mod return_reasons_distribution;
 pub mod ship_mode_distributions;
 pub mod string_values;
 pub mod string_values_distribution;
+pub mod top_domains_distribution;
 pub mod utils;
+pub mod web_page_use_distribution;
 
 pub use address_distributions::*;
 pub use call_center_distributions::CallCenterDistributions;
@@ -27,11 +30,14 @@ pub use file_loader::DistributionFileLoader;
 pub use fips_county_distribution::{FipsCountyDistribution, FipsWeights};
 pub use hours_distribution::{HoursDistribution, HourInfo};
 pub use int_values::IntValuesDistribution;
+pub use location_types_distribution::{LocationTypesDistribution, LocationTypeWeights};
 pub use names_distributions::{FirstNamesWeights, NamesDistributions, SalutationsWeights};
 pub use return_reasons_distribution::ReturnReasonsDistribution;
 pub use ship_mode_distributions::ShipModeDistributions;
 pub use string_values::StringValuesDistribution;
 pub use string_values_distribution::StringValuesDistribution as FileBasedStringValuesDistribution;
+pub use top_domains_distribution::TopDomainsDistribution;
 pub use utils::{Distribution, DistributionUtils, WeightsBuilder};
+pub use web_page_use_distribution::WebPageUseDistribution;
 
 // TODO(clflushopt): Include files in the module instead of reading them at runtime ?

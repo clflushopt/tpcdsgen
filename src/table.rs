@@ -1,9 +1,10 @@
-use crate::column::{CallCenterColumn, Column};
+use crate::column::{CallCenterColumn, Column, HouseholdDemographicsColumn};
 use crate::error::Result;
 use crate::generator::{
     CallCenterGeneratorColumn, CustomerDemographicsGeneratorColumn, DateDimGeneratorColumn,
-    GeneratorColumn, IncomeBandGeneratorColumn, ReasonGeneratorColumn, ShipModeGeneratorColumn,
-    TimeDimGeneratorColumn, WarehouseGeneratorColumn,
+    GeneratorColumn, HouseholdDemographicsGeneratorColumn, IncomeBandGeneratorColumn,
+    ReasonGeneratorColumn, ShipModeGeneratorColumn, TimeDimGeneratorColumn,
+    WarehouseGeneratorColumn,
 };
 use crate::scaling_info::{ScalingInfo, ScalingModel};
 use crate::table_flags::{TableFlags, TableFlagsBuilder};
@@ -17,6 +18,7 @@ pub enum Table {
     ShipMode,
     Reason,
     IncomeBand,
+    HouseholdDemographics,
     CustomerDemographics,
     DateDim,
     TimeDim,
@@ -32,6 +34,7 @@ impl Table {
             Table::ShipMode => "ship_mode",
             Table::Reason => "reason",
             Table::IncomeBand => "income_band",
+            Table::HouseholdDemographics => "household_demographics",
             Table::CustomerDemographics => "customer_demographics",
             Table::DateDim => "date_dim",
             Table::TimeDim => "time_dim",
@@ -66,6 +69,10 @@ impl Table {
                 static FLAGS: OnceLock<TableFlags> = OnceLock::new();
                 FLAGS.get_or_init(|| TableFlagsBuilder::new().set_is_small().build())
             }
+            Table::HouseholdDemographics => {
+                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
+                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
+            }
             Table::CustomerDemographics => {
                 static FLAGS: OnceLock<TableFlags> = OnceLock::new();
                 FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
@@ -89,6 +96,7 @@ impl Table {
             Table::ShipMode => 100,
             Table::Reason => 100,
             Table::IncomeBand => 0,
+            Table::HouseholdDemographics => 0,
             Table::CustomerDemographics => 0,
             Table::DateDim => 0,
             Table::TimeDim => 0,
@@ -103,6 +111,7 @@ impl Table {
             Table::ShipMode => 0x3,
             Table::Reason => 0x3,
             Table::IncomeBand => 0x1,
+            Table::HouseholdDemographics => 0x1,
             Table::CustomerDemographics => 0x1,
             Table::DateDim => 0x3,
             Table::TimeDim => 0x3,
@@ -152,6 +161,14 @@ impl Table {
                         .expect("IncomeBand ScalingInfo creation should not fail")
                 })
             }
+            Table::HouseholdDemographics => {
+                static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
+                SCALING.get_or_init(|| {
+                    let row_counts = [0, 7200, 7200, 7200, 7200, 7200, 7200, 7200, 7200, 7200];
+                    ScalingInfo::new(0, ScalingModel::Static, &row_counts, 0)
+                        .expect("HouseholdDemographics ScalingInfo creation should not fail")
+                })
+            }
             Table::CustomerDemographics => {
                 static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
                 SCALING.get_or_init(|| {
@@ -193,6 +210,7 @@ impl Table {
             Table::ShipMode => 0, // TODO: Return ShipModeColumn::values().len() once ShipModeColumn is implemented
             Table::Reason => 0, // TODO: Return ReasonColumn::values().len() once ReasonColumn is implemented
             Table::IncomeBand => 0, // TODO: Return IncomeBandColumn::values().len() once IncomeBandColumn is implemented
+            Table::HouseholdDemographics => HouseholdDemographicsColumn::values().len(),
             Table::CustomerDemographics => 0, // TODO: Return CustomerDemographicsColumn::values().len() once CustomerDemographicsColumn is implemented
             Table::DateDim => 0, // TODO: Return DateDimColumn::values().len() once DateDimColumn is implemented
             Table::TimeDim => 0, // TODO: Return TimeDimColumn::values().len() once TimeDimColumn is implemented
@@ -207,6 +225,7 @@ impl Table {
             Table::ShipMode => ShipModeGeneratorColumn::values().len(),
             Table::Reason => ReasonGeneratorColumn::values().len(),
             Table::IncomeBand => IncomeBandGeneratorColumn::values().len(),
+            Table::HouseholdDemographics => HouseholdDemographicsGeneratorColumn::values().len(),
             Table::CustomerDemographics => CustomerDemographicsGeneratorColumn::values().len(),
             Table::DateDim => DateDimGeneratorColumn::values().len(),
             Table::TimeDim => TimeDimGeneratorColumn::values().len(),
@@ -235,6 +254,10 @@ impl Table {
             Table::IncomeBand => {
                 // TODO: Implement once IncomeBandColumn is created
                 None
+            }
+            Table::HouseholdDemographics => {
+                let columns = HouseholdDemographicsColumn::values();
+                columns.get(index).map(|col| col as &dyn Column)
             }
             Table::CustomerDemographics => {
                 // TODO: Implement once CustomerDemographicsColumn is created
@@ -275,6 +298,10 @@ impl Table {
             }
             Table::IncomeBand => {
                 let columns = IncomeBandGeneratorColumn::values();
+                columns.get(index).map(|col| col as &dyn GeneratorColumn)
+            }
+            Table::HouseholdDemographics => {
+                let columns = HouseholdDemographicsGeneratorColumn::values();
                 columns.get(index).map(|col| col as &dyn GeneratorColumn)
             }
             Table::CustomerDemographics => {
@@ -345,6 +372,7 @@ impl Table {
             Table::ShipMode,
             Table::Reason,
             Table::IncomeBand,
+            Table::HouseholdDemographics,
             Table::CustomerDemographics,
             Table::DateDim,
             Table::TimeDim,
@@ -392,6 +420,7 @@ impl From<Table> for crate::column::Table {
             Table::ShipMode => crate::column::Table::ShipMode,
             Table::Reason => crate::column::Table::Reason,
             Table::IncomeBand => crate::column::Table::IncomeBand,
+            Table::HouseholdDemographics => crate::column::Table::HouseholdDemographics,
             Table::CustomerDemographics => crate::column::Table::CustomerDemographics,
             Table::DateDim => crate::column::Table::DateDim,
             Table::TimeDim => crate::column::Table::TimeDim,
@@ -407,6 +436,7 @@ impl From<crate::column::Table> for Table {
             crate::column::Table::ShipMode => Table::ShipMode,
             crate::column::Table::Reason => Table::Reason,
             crate::column::Table::IncomeBand => Table::IncomeBand,
+            crate::column::Table::HouseholdDemographics => Table::HouseholdDemographics,
             crate::column::Table::CustomerDemographics => Table::CustomerDemographics,
             crate::column::Table::DateDim => Table::DateDim,
             crate::column::Table::TimeDim => Table::TimeDim,

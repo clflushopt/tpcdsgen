@@ -74,6 +74,37 @@ impl DemographicsDistributions {
         })
     }
 
+    /// Lazy-loaded distribution instance for buy_potential.dst (BUY_POTENTIAL_DISTRIBUTION)
+    fn get_buy_potential_distribution() -> &'static FileBasedStringValuesDistribution {
+        static DISTRIBUTION: OnceLock<FileBasedStringValuesDistribution> = OnceLock::new();
+        DISTRIBUTION.get_or_init(|| {
+            FileBasedStringValuesDistribution::build_string_values_distribution(
+                "buy_potential.dst",
+                1,
+                1,
+            )
+            .expect("Failed to load buy_potential.dst")
+        })
+    }
+
+    /// Lazy-loaded distribution instance for dep_count.dst (DEP_COUNT_DISTRIBUTION)
+    fn get_dep_count_distribution() -> &'static IntValuesDistribution {
+        static DISTRIBUTION: OnceLock<IntValuesDistribution> = OnceLock::new();
+        DISTRIBUTION.get_or_init(|| {
+            IntValuesDistribution::build_int_values_distribution("dep_count.dst", 1, 1)
+                .expect("Failed to load dep_count.dst")
+        })
+    }
+
+    /// Lazy-loaded distribution instance for vehicle_count.dst (VEHICLE_COUNT_DISTRIBUTION)
+    fn get_vehicle_count_distribution() -> &'static IntValuesDistribution {
+        static DISTRIBUTION: OnceLock<IntValuesDistribution> = OnceLock::new();
+        DISTRIBUTION.get_or_init(|| {
+            IntValuesDistribution::build_int_values_distribution("vehicle_count.dst", 1, 1)
+                .expect("Failed to load vehicle_count.dst")
+        })
+    }
+
     /// Get gender for index mod size (getGenderForIndexModSize)
     pub fn get_gender_for_index_mod_size(index: i64) -> &'static str {
         Self::get_gender_distribution()
@@ -145,6 +176,40 @@ impl DemographicsDistributions {
     /// Get the size of the income band distribution
     pub fn get_income_band_size() -> usize {
         Self::get_income_band_distribution().get_value_count(0)
+    }
+
+    /// Get buy potential for index mod size (getBuyPotentialForIndexModSize)
+    pub fn get_buy_potential_for_index_mod_size(index: i64) -> &'static str {
+        Self::get_buy_potential_distribution()
+            .get_value_for_index_mod_size(index, 0)
+            .expect("Failed to get buy potential value")
+    }
+
+    /// Get dep count for index mod size (getDepCountForIndexModSize)
+    pub fn get_dep_count_for_index_mod_size(index: i64) -> i32 {
+        Self::get_dep_count_distribution()
+            .get_value_for_index_mod_size(index, 0)
+    }
+
+    /// Get vehicle count for index mod size (getVehicleCountForIndexModSize)
+    pub fn get_vehicle_count_for_index_mod_size(index: i64) -> i32 {
+        Self::get_vehicle_count_distribution()
+            .get_value_for_index_mod_size(index, 0)
+    }
+
+    /// Get buy potential distribution size
+    pub fn get_buy_potential_size() -> usize {
+        Self::get_buy_potential_distribution().get_size()
+    }
+
+    /// Get dep count distribution size
+    pub fn get_dep_count_size() -> usize {
+        Self::get_dep_count_distribution().get_size()
+    }
+
+    /// Get vehicle count distribution size
+    pub fn get_vehicle_count_size() -> usize {
+        Self::get_vehicle_count_distribution().get_size()
     }
 }
 
