@@ -363,19 +363,16 @@ mod tests {
     }
 
     #[test]
-    fn test_catalog_page_join_key_is_stubbed() {
+    fn test_catalog_page_join_key() {
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
         let scaling = Scaling::new(1.0);
 
+        // Catalog page join key is now implemented (CatalogPageTypesDistribution ported)
         let result = generate_catalog_page_join_key(&mut stream, 2451545, &scaling);
-        assert!(result.is_err(), "Catalog page join should be stubbed");
+        assert!(result.is_ok(), "Catalog page join should work now");
 
-        if let Err(e) = result {
-            assert!(
-                e.message().contains("CatalogPageDistributions"),
-                "Error should mention missing distribution"
-            );
-        }
+        let key = result.unwrap();
+        assert!(key > 0, "Key should be positive");
     }
 
     // NOTE: Test disabled until column::Table vs config::Table is resolved

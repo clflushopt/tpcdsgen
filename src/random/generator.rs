@@ -293,8 +293,8 @@ mod tests {
     #[test]
     fn test_uniform_random_date() {
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
-        let min = Date::new(2020, 1, 1).unwrap();
-        let max = Date::new(2020, 12, 31).unwrap();
+        let min = Date::new(2020, 1, 1);
+        let max = Date::new(2020, 12, 31);
         let result =
             RandomValueGenerator::generate_uniform_random_date(min, max, &mut stream).unwrap();
 

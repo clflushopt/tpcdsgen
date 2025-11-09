@@ -338,7 +338,7 @@ mod tests {
 
     #[test]
     fn test_date_creation() {
-        let date = Date::new(2003, 1, 8).unwrap();
+        let date = Date::new(2003, 1, 8);
         assert_eq!(date.get_year(), 2003);
         assert_eq!(date.get_month(), 1);
         assert_eq!(date.get_day(), 8);
@@ -346,11 +346,11 @@ mod tests {
 
     #[test]
     fn test_julian_conversion() {
-        let date = Date::new(1998, 1, 1).unwrap();
+        let date = Date::new(1998, 1, 1);
         let julian = date.to_julian_days();
         assert_eq!(julian as i64, Date::JULIAN_DATA_START_DATE);
 
-        let back = Date::from_julian_days(julian).unwrap();
+        let back = Date::from_julian_days(julian);
         assert_eq!(back, date);
     }
 
@@ -364,7 +364,7 @@ mod tests {
 
     #[test]
     fn test_display() {
-        let date = Date::new(2003, 1, 8).unwrap();
+        let date = Date::new(2003, 1, 8);
         assert_eq!(format!("{}", date), "2003-01-08");
     }
 }
