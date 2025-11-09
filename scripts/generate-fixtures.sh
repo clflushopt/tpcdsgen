@@ -149,6 +149,7 @@ generate_table() {
     temp_dir=$(mktemp -d)
 
     # Generate table in temp directory
+    #
     # Run Java generator, filter out DEBUG lines but capture errors
     local output
     if output=$(java -jar "$jar_file" \
@@ -236,15 +237,10 @@ main() {
     start_time=$(date +%s)
 
     for table in "${tables_to_generate[@]}"; do
-        # Temporarily disable exit-on-error (CI workaround)
-        set +e
-        generate_table "$table"
-        local exit_code=$?
-        set -e
-        if [[ $exit_code -eq 0 ]]; then
-            ((success_count++))
+        if generate_table "$table"; then
+            success_count=$((success_count++))
         else
-            ((fail_count++))
+            fail_count=$((fail_count++))
         fi
     done
 
