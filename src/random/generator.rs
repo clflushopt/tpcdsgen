@@ -154,8 +154,6 @@ impl RandomValueGenerator {
         max_length: i32,
         random_number_stream: &mut dyn RandomNumberStream,
     ) -> String {
-        
-
         let mut is_sentence_beginning = true;
         let mut text = String::new();
         let mut target_length =

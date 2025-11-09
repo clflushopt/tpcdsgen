@@ -256,8 +256,7 @@ fn generate_scd_join_key(
     }
 
     let id_count = scaling.get_id_count(to_table);
-    let key =
-        RandomValueGenerator::generate_uniform_random_key(1, id_count, random_number_stream);
+    let key = RandomValueGenerator::generate_uniform_random_key(1, id_count, random_number_stream);
 
     // TODO: Port SlowlyChangingDimensionUtils::matchSurrogateKey from Java
     // For now, just use the key as-is without SCD matching
