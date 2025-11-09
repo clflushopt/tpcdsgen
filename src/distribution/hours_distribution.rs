@@ -66,8 +66,7 @@ impl HoursDistribution {
     fn get_instance() -> &'static HoursDistribution {
         static DISTRIBUTION: OnceLock<HoursDistribution> = OnceLock::new();
         DISTRIBUTION.get_or_init(|| {
-            Self::build_hours_distribution()
-                .expect("Failed to load hours distribution")
+            Self::build_hours_distribution().expect("Failed to load hours distribution")
         })
     }
 
@@ -81,7 +80,8 @@ impl HoursDistribution {
             .map(|_| WeightsBuilder::new())
             .collect();
 
-        let parsed_lines = DistributionFileLoader::load_distribution_file(Self::VALUES_AND_WEIGHTS_FILENAME)?;
+        let parsed_lines =
+            DistributionFileLoader::load_distribution_file(Self::VALUES_AND_WEIGHTS_FILENAME)?;
 
         for (values, weights) in parsed_lines {
             if values.len() < 4 || values.len() > 5 {
@@ -208,7 +208,11 @@ mod tests {
         let hour = HoursDistribution::pick_random_hour(HoursWeights::Uniform, &mut stream).unwrap();
 
         // Hour should be in valid range [0, 23]
-        assert!(hour >= 0 && hour <= 23, "Hour {} should be in range [0, 23]", hour);
+        assert!(
+            hour >= 0 && hour <= 23,
+            "Hour {} should be in range [0, 23]",
+            hour
+        );
     }
 
     #[test]
@@ -232,9 +236,12 @@ mod tests {
         // Different weights should potentially produce different results
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
 
-        let hour_uniform = HoursDistribution::pick_random_hour(HoursWeights::Uniform, &mut stream).unwrap();
-        let hour_store = HoursDistribution::pick_random_hour(HoursWeights::Store, &mut stream).unwrap();
-        let hour_catalog = HoursDistribution::pick_random_hour(HoursWeights::CatalogAndWeb, &mut stream).unwrap();
+        let hour_uniform =
+            HoursDistribution::pick_random_hour(HoursWeights::Uniform, &mut stream).unwrap();
+        let hour_store =
+            HoursDistribution::pick_random_hour(HoursWeights::Store, &mut stream).unwrap();
+        let hour_catalog =
+            HoursDistribution::pick_random_hour(HoursWeights::CatalogAndWeb, &mut stream).unwrap();
 
         // All should be valid
         assert!(hour_uniform >= 0 && hour_uniform <= 23);

@@ -30,8 +30,14 @@ impl HouseholdDemographicsGeneratorColumn {
     /// Get all generator columns in order (values())
     pub fn values() -> &'static [HouseholdDemographicsGeneratorColumn] {
         use HouseholdDemographicsGeneratorColumn::*;
-        static VALUES: &[HouseholdDemographicsGeneratorColumn] =
-            &[HdDemoSk, HdIncomeBandId, HdBuyPotential, HdDepCount, HdVehicleCount, HdNulls];
+        static VALUES: &[HouseholdDemographicsGeneratorColumn] = &[
+            HdDemoSk,
+            HdIncomeBandId,
+            HdBuyPotential,
+            HdDepCount,
+            HdVehicleCount,
+            HdNulls,
+        ];
         VALUES
     }
 }

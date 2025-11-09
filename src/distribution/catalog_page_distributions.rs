@@ -32,9 +32,9 @@ use std::sync::OnceLock;
 ///
 /// Only the second weight field (sales volume) is used for random picking.
 pub struct CatalogPageTypesDistribution {
-    values: Vec<String>,          // Catalog type names
-    weights_list1: Vec<i32>,      // Distribution frequency weights (not used)
-    weights_list2: Vec<i32>,      // Sales volume weights (used for picking)
+    values: Vec<String>,     // Catalog type names
+    weights_list1: Vec<i32>, // Distribution frequency weights (not used)
+    weights_list2: Vec<i32>, // Sales volume weights (used for picking)
 }
 
 impl CatalogPageTypesDistribution {
@@ -55,7 +55,8 @@ impl CatalogPageTypesDistribution {
         let mut weights_builder1 = WeightsBuilder::new();
         let mut weights_builder2 = WeightsBuilder::new();
 
-        let parsed_lines = DistributionFileLoader::load_distribution_file(Self::VALUES_AND_WEIGHTS_FILENAME)?;
+        let parsed_lines =
+            DistributionFileLoader::load_distribution_file(Self::VALUES_AND_WEIGHTS_FILENAME)?;
 
         for (value_fields, weight_fields) in parsed_lines {
             if value_fields.len() != Self::NUM_VALUE_FIELDS {
@@ -81,12 +82,18 @@ impl CatalogPageTypesDistribution {
 
             // Parse weights
             let weight1: i32 = weight_fields[0].parse().map_err(|e| {
-                TpcdsError::new(&format!("Failed to parse weight1 '{}': {}", weight_fields[0], e))
+                TpcdsError::new(&format!(
+                    "Failed to parse weight1 '{}': {}",
+                    weight_fields[0], e
+                ))
             })?;
             weights_builder1.compute_and_add_next_weight(weight1)?;
 
             let weight2: i32 = weight_fields[1].parse().map_err(|e| {
-                TpcdsError::new(&format!("Failed to parse weight2 '{}': {}", weight_fields[1], e))
+                TpcdsError::new(&format!(
+                    "Failed to parse weight2 '{}': {}",
+                    weight_fields[1], e
+                ))
             })?;
             weights_builder2.compute_and_add_next_weight(weight2)?;
         }
@@ -137,7 +144,8 @@ mod tests {
     #[test]
     fn test_pick_random_catalog_page_type() {
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
-        let catalog_type = CatalogPageTypesDistribution::pick_random_catalog_page_type(&mut stream).unwrap();
+        let catalog_type =
+            CatalogPageTypesDistribution::pick_random_catalog_page_type(&mut stream).unwrap();
 
         // Should be one of the valid types
         assert!(
@@ -153,8 +161,10 @@ mod tests {
         let mut stream1 = RandomNumberStreamImpl::new(42).unwrap();
         let mut stream2 = RandomNumberStreamImpl::new(42).unwrap();
 
-        let type1 = CatalogPageTypesDistribution::pick_random_catalog_page_type(&mut stream1).unwrap();
-        let type2 = CatalogPageTypesDistribution::pick_random_catalog_page_type(&mut stream2).unwrap();
+        let type1 =
+            CatalogPageTypesDistribution::pick_random_catalog_page_type(&mut stream1).unwrap();
+        let type2 =
+            CatalogPageTypesDistribution::pick_random_catalog_page_type(&mut stream2).unwrap();
 
         assert_eq!(type1, type2, "Same seed should produce same catalog type");
     }
@@ -166,6 +176,9 @@ mod tests {
         // Verify expected catalog types are present
         let types_set: std::collections::HashSet<&String> = dist.values.iter().collect();
         assert!(types_set.contains(&"monthly".to_string()));
-        assert!(types_set.contains(&"bi-annual".to_string()) || types_set.contains(&"quarterly".to_string()));
+        assert!(
+            types_set.contains(&"bi-annual".to_string())
+                || types_set.contains(&"quarterly".to_string())
+        );
     }
 }

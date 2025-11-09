@@ -7,12 +7,18 @@ use crate::table::Table;
 use crate::types::Date;
 
 /// Constants for date calculations
-const TODAYS_DATE: Date = Date::new(2003, 1, 8);  // January 8, 2003
+const TODAYS_DATE: Date = Date::new(2003, 1, 8); // January 8, 2003
 const CURRENT_QUARTER: i32 = 1;
-const CURRENT_WEEK: i32 = 2;  // Week number for TODAYS_DATE
+const CURRENT_WEEK: i32 = 2; // Week number for TODAYS_DATE
 
 const WEEKDAY_NAMES: [&str; 7] = [
-    "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
 ];
 
 pub struct DateDimRowGenerator {
@@ -79,13 +85,17 @@ impl RowGenerator for DateDimRowGenerator {
         let d_holiday = CalendarDistribution::get_is_holiday_flag_at_index(day_index) != 0;
         // Note: Java implementation has a bug where Friday and Saturday are weekend days
         // We replicate this bug for compatibility
-        let d_weekend = d_dow == 5 || d_dow == 6;  // Friday or Saturday (bug compatibility)
+        let d_weekend = d_dow == 5 || d_dow == 6; // Friday or Saturday (bug compatibility)
 
         // Following holiday flag
         let d_following_holiday = if day_index == 1 {
             // First day of year - check last day of previous year
             // Note: This matches the C/Java bug where it uses 365 + leap year flag
-            let last_day_prev_year = if Date::is_leap_year(d_year - 1) { 366 } else { 365 };
+            let last_day_prev_year = if Date::is_leap_year(d_year - 1) {
+                366
+            } else {
+                365
+            };
             CalendarDistribution::get_is_holiday_flag_at_index(last_day_prev_year) != 0
         } else {
             CalendarDistribution::get_is_holiday_flag_at_index(day_index - 1) != 0
@@ -103,7 +113,7 @@ impl RowGenerator for DateDimRowGenerator {
         // Current flags (relative to TODAYS_DATE)
         // Note: Java has a bug where it compares julian days to day of month
         // This will never be true, but we replicate the bug for compatibility
-        let d_current_day = d_date_sk == TODAYS_DATE.day() as i64;  // Bug: comparing julian to day of month
+        let d_current_day = d_date_sk == TODAYS_DATE.day() as i64; // Bug: comparing julian to day of month
         let d_current_year = d_year == TODAYS_DATE.year();
         let d_current_month = d_current_year && d_moy == TODAYS_DATE.month();
         let d_current_quarter = d_current_year && d_qoy == CURRENT_QUARTER;
@@ -150,6 +160,7 @@ impl RowGenerator for DateDimRowGenerator {
     }
 
     fn skip_rows_until_starting_row_number(&mut self, starting_row_number: i64) {
-        self.base.skip_rows_until_starting_row_number(starting_row_number);
+        self.base
+            .skip_rows_until_starting_row_number(starting_row_number);
     }
 }

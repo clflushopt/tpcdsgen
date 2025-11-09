@@ -51,11 +51,8 @@ pub fn make_permutation(size: usize, stream: &mut dyn RandomNumberStream) -> Vec
 
     // Fisher-Yates shuffle
     for i in 0..number_set.len() {
-        let index = RandomValueGenerator::generate_uniform_random_int(
-            0,
-            (size - 1) as i32,
-            stream,
-        ) as usize;
+        let index = RandomValueGenerator::generate_uniform_random_int(0, (size - 1) as i32, stream)
+            as usize;
         number_set.swap(i, index);
     }
 

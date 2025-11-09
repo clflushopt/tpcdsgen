@@ -23,10 +23,10 @@ pub struct DateDimRow {
 
     // Year components
     pub d_year: i32,
-    pub d_dow: i32,       // Day of week (0-6)
-    pub d_moy: i32,       // Month of year (1-12)
-    pub d_dom: i32,       // Day of month (1-31)
-    pub d_qoy: i32,       // Quarter of year (1-4)
+    pub d_dow: i32, // Day of week (0-6)
+    pub d_moy: i32, // Month of year (1-12)
+    pub d_dom: i32, // Day of month (1-31)
+    pub d_qoy: i32, // Quarter of year (1-4)
 
     // Fiscal year components
     pub d_fy_year: i32,
@@ -34,8 +34,8 @@ pub struct DateDimRow {
     pub d_fy_week_seq: i32,
 
     // Names
-    pub d_day_name: String,      // Monday, Tuesday, etc.
-    pub d_quarter_name: String,   // 2024Q1, 2024Q2, etc.
+    pub d_day_name: String,     // Monday, Tuesday, etc.
+    pub d_quarter_name: String, // 2024Q1, 2024Q2, etc.
 
     // Flags
     pub d_holiday: bool,
@@ -47,8 +47,8 @@ pub struct DateDimRow {
     pub d_last_dom: i32,
 
     // Same day references (julian days)
-    pub d_same_day_ly: i32,  // Same day last year
-    pub d_same_day_lq: i32,  // Same day last quarter
+    pub d_same_day_ly: i32, // Same day last year
+    pub d_same_day_lq: i32, // Same day last quarter
 
     // Current flags (relative to a reference date)
     pub d_current_day: bool,
@@ -132,7 +132,11 @@ impl DateDimRow {
 
     /// Format a boolean value for output
     fn format_boolean(value: bool) -> &'static str {
-        if value { "Y" } else { "N" }
+        if value {
+            "Y"
+        } else {
+            "N"
+        }
     }
 
     /// Get string value or NULL for optional fields

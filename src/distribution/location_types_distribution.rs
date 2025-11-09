@@ -37,9 +37,9 @@ pub enum LocationTypeWeights {
 /// - 1 value field: location type name (single family, condo, apartment)
 /// - 2 weight fields: uniform, distribution frequency
 pub struct LocationTypesDistribution {
-    values: Vec<String>,          // Location type names
-    weights_list1: Vec<i32>,      // Uniform weights
-    weights_list2: Vec<i32>,      // Distribution frequency weights
+    values: Vec<String>,     // Location type names
+    weights_list1: Vec<i32>, // Uniform weights
+    weights_list2: Vec<i32>, // Distribution frequency weights
 }
 
 impl LocationTypesDistribution {
@@ -60,7 +60,8 @@ impl LocationTypesDistribution {
         let mut weights_builder1 = WeightsBuilder::new();
         let mut weights_builder2 = WeightsBuilder::new();
 
-        let parsed_lines = DistributionFileLoader::load_distribution_file(Self::VALUES_AND_WEIGHTS_FILENAME)?;
+        let parsed_lines =
+            DistributionFileLoader::load_distribution_file(Self::VALUES_AND_WEIGHTS_FILENAME)?;
 
         for (value_fields, weight_fields) in parsed_lines {
             if value_fields.len() != Self::NUM_VALUE_FIELDS {
@@ -86,12 +87,18 @@ impl LocationTypesDistribution {
 
             // Parse weights
             let weight1: i32 = weight_fields[0].parse().map_err(|e| {
-                TpcdsError::new(&format!("Failed to parse weight1 '{}': {}", weight_fields[0], e))
+                TpcdsError::new(&format!(
+                    "Failed to parse weight1 '{}': {}",
+                    weight_fields[0], e
+                ))
             })?;
             weights_builder1.compute_and_add_next_weight(weight1)?;
 
             let weight2: i32 = weight_fields[1].parse().map_err(|e| {
-                TpcdsError::new(&format!("Failed to parse weight2 '{}': {}", weight_fields[1], e))
+                TpcdsError::new(&format!(
+                    "Failed to parse weight2 '{}': {}",
+                    weight_fields[1], e
+                ))
             })?;
             weights_builder2.compute_and_add_next_weight(weight2)?;
         }
@@ -152,11 +159,14 @@ mod tests {
         let location_type = LocationTypesDistribution::pick_random_location_type(
             LocationTypeWeights::DistributionFrequency,
             &mut stream,
-        ).unwrap();
+        )
+        .unwrap();
 
         // Should be one of the valid types
         assert!(
-            location_type == "single family" || location_type == "condo" || location_type == "apartment",
+            location_type == "single family"
+                || location_type == "condo"
+                || location_type == "apartment",
             "Location type '{}' should be one of: single family, condo, apartment",
             location_type
         );
@@ -171,11 +181,13 @@ mod tests {
         let type1 = LocationTypesDistribution::pick_random_location_type(
             LocationTypeWeights::Uniform,
             &mut stream1,
-        ).unwrap();
+        )
+        .unwrap();
         let type2 = LocationTypesDistribution::pick_random_location_type(
             LocationTypeWeights::Uniform,
             &mut stream2,
-        ).unwrap();
+        )
+        .unwrap();
 
         assert_eq!(type1, type2, "Same seed should produce same location type");
     }
@@ -187,7 +199,10 @@ mod tests {
         // Verify expected location types are present
         let types_set: std::collections::HashSet<&String> = dist.values.iter().collect();
         assert!(types_set.contains(&"single family".to_string()));
-        assert!(types_set.contains(&"condo".to_string()) || types_set.contains(&"apartment".to_string()));
+        assert!(
+            types_set.contains(&"condo".to_string())
+                || types_set.contains(&"apartment".to_string())
+        );
     }
 
     #[test]
@@ -198,14 +213,20 @@ mod tests {
         let type_uniform = LocationTypesDistribution::pick_random_location_type(
             LocationTypeWeights::Uniform,
             &mut stream,
-        ).unwrap();
+        )
+        .unwrap();
         let type_dist = LocationTypesDistribution::pick_random_location_type(
             LocationTypeWeights::DistributionFrequency,
             &mut stream,
-        ).unwrap();
+        )
+        .unwrap();
 
         // Both should be valid
-        assert!(type_uniform == "single family" || type_uniform == "condo" || type_uniform == "apartment");
+        assert!(
+            type_uniform == "single family"
+                || type_uniform == "condo"
+                || type_uniform == "apartment"
+        );
         assert!(type_dist == "single family" || type_dist == "condo" || type_dist == "apartment");
     }
 }

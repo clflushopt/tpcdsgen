@@ -30,8 +30,8 @@ use std::sync::OnceLock;
 /// - 1 value field: page use type (general, order, welcome, ad, feedback, protected, dynamic)
 /// - 1 weight field: uniform weights
 pub struct WebPageUseDistribution {
-    values: Vec<String>,     // Page use types
-    weights_list: Vec<i32>,  // Uniform weights
+    values: Vec<String>,    // Page use types
+    weights_list: Vec<i32>, // Uniform weights
 }
 
 impl WebPageUseDistribution {
@@ -51,7 +51,8 @@ impl WebPageUseDistribution {
         let mut values = Vec::new();
         let mut weights_builder = WeightsBuilder::new();
 
-        let parsed_lines = DistributionFileLoader::load_distribution_file(Self::VALUES_AND_WEIGHTS_FILENAME)?;
+        let parsed_lines =
+            DistributionFileLoader::load_distribution_file(Self::VALUES_AND_WEIGHTS_FILENAME)?;
 
         for (value_fields, weight_fields) in parsed_lines {
             if value_fields.len() != Self::NUM_VALUE_FIELDS {
@@ -77,7 +78,10 @@ impl WebPageUseDistribution {
 
             // Parse weight
             let weight: i32 = weight_fields[0].parse().map_err(|e| {
-                TpcdsError::new(&format!("Failed to parse weight '{}': {}", weight_fields[0], e))
+                TpcdsError::new(&format!(
+                    "Failed to parse weight '{}': {}",
+                    weight_fields[0], e
+                ))
             })?;
             weights_builder.compute_and_add_next_weight(weight)?;
         }
@@ -129,7 +133,15 @@ mod tests {
         assert!(!page_use.is_empty(), "Page use type should not be empty");
 
         // Should be one of the expected types
-        let valid_types = ["general", "order", "welcome", "ad", "feedback", "protected", "dynamic"];
+        let valid_types = [
+            "general",
+            "order",
+            "welcome",
+            "ad",
+            "feedback",
+            "protected",
+            "dynamic",
+        ];
         assert!(
             valid_types.contains(&page_use.as_str()),
             "Page use '{}' should be one of: {:?}",
@@ -144,10 +156,15 @@ mod tests {
         let mut stream1 = RandomNumberStreamImpl::new(42).unwrap();
         let mut stream2 = RandomNumberStreamImpl::new(42).unwrap();
 
-        let page_use1 = WebPageUseDistribution::pick_random_web_page_use_type(&mut stream1).unwrap();
-        let page_use2 = WebPageUseDistribution::pick_random_web_page_use_type(&mut stream2).unwrap();
+        let page_use1 =
+            WebPageUseDistribution::pick_random_web_page_use_type(&mut stream1).unwrap();
+        let page_use2 =
+            WebPageUseDistribution::pick_random_web_page_use_type(&mut stream2).unwrap();
 
-        assert_eq!(page_use1, page_use2, "Same seed should produce same page use type");
+        assert_eq!(
+            page_use1, page_use2,
+            "Same seed should produce same page use type"
+        );
     }
 
     #[test]
@@ -156,18 +173,33 @@ mod tests {
 
         // Verify expected page use types are present
         let types_set: std::collections::HashSet<&String> = dist.values.iter().collect();
-        assert!(types_set.contains(&"general".to_string()), "Should contain 'general' type");
-        assert!(types_set.contains(&"order".to_string()), "Should contain 'order' type");
+        assert!(
+            types_set.contains(&"general".to_string()),
+            "Should contain 'general' type"
+        );
+        assert!(
+            types_set.contains(&"order".to_string()),
+            "Should contain 'order' type"
+        );
     }
 
     #[test]
     fn test_multiple_picks_are_valid() {
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
-        let valid_types = ["general", "order", "welcome", "ad", "feedback", "protected", "dynamic"];
+        let valid_types = [
+            "general",
+            "order",
+            "welcome",
+            "ad",
+            "feedback",
+            "protected",
+            "dynamic",
+        ];
 
         // Pick multiple page use types and verify all are valid
         for _ in 0..20 {
-            let page_use = WebPageUseDistribution::pick_random_web_page_use_type(&mut stream).unwrap();
+            let page_use =
+                WebPageUseDistribution::pick_random_web_page_use_type(&mut stream).unwrap();
             assert!(
                 valid_types.contains(&page_use.as_str()),
                 "Page use '{}' should be valid",

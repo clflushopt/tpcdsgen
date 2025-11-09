@@ -72,20 +72,16 @@ pub fn generate_join_key(
     // determine the table type if needed
 
     match to_table {
-        Table::CatalogPage => generate_catalog_page_join_key(random_number_stream, join_count, scaling),
+        Table::CatalogPage => {
+            generate_catalog_page_join_key(random_number_stream, join_count, scaling)
+        }
         Table::DateDim => {
             let year = RandomValueGenerator::generate_uniform_random_int(
                 Date::DATE_MINIMUM.year(),
                 Date::DATE_MAXIMUM.year(),
                 random_number_stream,
             );
-            generate_date_join_key(
-                random_number_stream,
-                from_column,
-                join_count,
-                year,
-                scaling,
-            )
+            generate_date_join_key(random_number_stream, from_column, join_count, year, scaling)
         }
         Table::TimeDim => generate_time_join_key(random_number_stream),
         _ => {
@@ -114,10 +110,16 @@ fn generate_catalog_page_join_key(
     scaling: &Scaling,
 ) -> Result<i64> {
     let pages_per_catalog = ((scaling.get_row_count(Table::CatalogPage) / CATALOGS_PER_YEAR as i64)
-        / (Date::DATE_MAXIMUM.year() - Date::DATE_MINIMUM.year() + 2) as i64) as i32;
+        / (Date::DATE_MAXIMUM.year() - Date::DATE_MINIMUM.year() + 2) as i64)
+        as i32;
 
-    let catalog_type = CatalogPageTypesDistribution::pick_random_catalog_page_type(random_number_stream)?;
-    let page = RandomValueGenerator::generate_uniform_random_int(1, pages_per_catalog, random_number_stream);
+    let catalog_type =
+        CatalogPageTypesDistribution::pick_random_catalog_page_type(random_number_stream)?;
+    let page = RandomValueGenerator::generate_uniform_random_int(
+        1,
+        pages_per_catalog,
+        random_number_stream,
+    );
 
     let offset_from_start = (julian_date - Date::JULIAN_DATA_START_DATE as i64 - 1) as i32;
     let mut count = (offset_from_start / 365) * CATALOGS_PER_YEAR;
@@ -181,7 +183,11 @@ fn generate_date_join_key(
 
     let day_number = CalendarDistribution::pick_random_day_of_year(weights, random_number_stream)?;
     let result = Date::to_julian_days(&Date::new(year, 1, 1)) as i64 + day_number as i64;
-    Ok(if result > Date::JULIAN_TODAYS_DATE as i64 { -1 } else { result })
+    Ok(if result > Date::JULIAN_TODAYS_DATE as i64 {
+        -1
+    } else {
+        result
+    })
 }
 
 // NOTE: This function is currently unused due to column::Table vs config::Table mismatch
@@ -220,9 +226,7 @@ fn generate_date_join_key(
 ///
 /// **NOTE**: Since we can't reliably detect the table type from GeneratorColumn,
 /// we use STORE weights as default (most common case for sales tables).
-fn generate_time_join_key(
-    random_number_stream: &mut dyn RandomNumberStream,
-) -> Result<i64> {
+fn generate_time_join_key(random_number_stream: &mut dyn RandomNumberStream) -> Result<i64> {
     // TODO: Detect table type from from_column to select appropriate weights:
     // - STORE_SALES, STORE_RETURNS -> Store
     // - CATALOG_SALES, WEB_SALES, CATALOG_RETURNS, WEB_RETURNS -> CatalogAndWeb
@@ -253,7 +257,8 @@ fn generate_scd_join_key(
     }
 
     let id_count = scaling.get_id_count(to_table);
-    let mut key = RandomValueGenerator::generate_uniform_random_key(1, id_count, random_number_stream);
+    let mut key =
+        RandomValueGenerator::generate_uniform_random_key(1, id_count, random_number_stream);
 
     // TODO: Port SlowlyChangingDimensionUtils::matchSurrogateKey from Java
     // For now, just use the key as-is without SCD matching
@@ -261,7 +266,11 @@ fn generate_scd_join_key(
     // let metadata_table = convert_to_metadata_table(to_table);
     // key = slowly_changing_dimension_utils::match_surrogate_key(key, julian_date, metadata_table, scaling);
 
-    Ok(if key > scaling.get_row_count(to_table) { -1 } else { key })
+    Ok(if key > scaling.get_row_count(to_table) {
+        -1
+    } else {
+        key
+    })
 }
 
 /// Generates a join key for web-related tables (web_site, web_page).
@@ -348,7 +357,10 @@ mod tests {
         let result = generate_time_join_key(&mut stream).unwrap();
 
         // Time keys should be in range [0, 86400) seconds in a day
-        assert!(result >= 0 && result < 86400, "Time key should be valid seconds in day");
+        assert!(
+            result >= 0 && result < 86400,
+            "Time key should be valid seconds in day"
+        );
     }
 
     #[test]

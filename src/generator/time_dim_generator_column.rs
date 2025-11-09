@@ -21,16 +21,7 @@ impl TimeDimGeneratorColumn {
     pub fn values() -> &'static [TimeDimGeneratorColumn] {
         use TimeDimGeneratorColumn::*;
         static VALUES: &[TimeDimGeneratorColumn] = &[
-            TTimeSk,
-            TTimeId,
-            TTime,
-            THour,
-            TMinute,
-            TSecond,
-            TAmPm,
-            TShift,
-            TSubShift,
-            TMealTime,
+            TTimeSk, TTimeId, TTime, THour, TMinute, TSecond, TAmPm, TShift, TSubShift, TMealTime,
             TNulls,
         ];
         VALUES

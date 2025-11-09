@@ -34,15 +34,14 @@ impl CalendarDistribution {
 
     /// Days before each month (non-leap and leap year)
     pub const DAYS_BEFORE_MONTH: [[i32; 12]; 2] = [
-        [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],  // Non-leap year
-        [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335],  // Leap year
+        [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334], // Non-leap year
+        [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335], // Leap year
     ];
 
     fn get_instance() -> &'static CalendarDistribution {
         static DISTRIBUTION: OnceLock<CalendarDistribution> = OnceLock::new();
         DISTRIBUTION.get_or_init(|| {
-            Self::build_calendar_distribution()
-                .expect("Failed to load calendar distribution")
+            Self::build_calendar_distribution().expect("Failed to load calendar distribution")
         })
     }
 
@@ -54,7 +53,8 @@ impl CalendarDistribution {
             .map(|_| WeightsBuilder::new())
             .collect();
 
-        let parsed_lines = DistributionFileLoader::load_distribution_file(Self::VALUES_AND_WEIGHTS_FILENAME)?;
+        let parsed_lines =
+            DistributionFileLoader::load_distribution_file(Self::VALUES_AND_WEIGHTS_FILENAME)?;
 
         for (values, weights) in parsed_lines {
             if values.len() != 8 {
@@ -78,7 +78,10 @@ impl CalendarDistribution {
             // Values are: [0]=day_of_year, [1]=month_name, [2]=day, [3]=season,
             //             [4]=month_number, [5]=quarter, [6]=first_of_month, [7]=holiday_flag
             days_of_year.push(values[0].parse().map_err(|e| {
-                TpcdsError::new(&format!("Failed to parse day_of_year '{}': {}", values[0], e))
+                TpcdsError::new(&format!(
+                    "Failed to parse day_of_year '{}': {}",
+                    values[0], e
+                ))
             })?);
 
             quarters.push(values[5].parse().map_err(|e| {
@@ -86,7 +89,10 @@ impl CalendarDistribution {
             })?);
 
             holiday_flags.push(values[7].parse().map_err(|e| {
-                TpcdsError::new(&format!("Failed to parse holiday_flag '{}': {}", values[7], e))
+                TpcdsError::new(&format!(
+                    "Failed to parse holiday_flag '{}': {}",
+                    values[7], e
+                ))
             })?);
 
             // Parse weights
@@ -170,7 +176,7 @@ mod tests {
     #[test]
     fn test_days_before_month() {
         // Non-leap year
-        assert_eq!(CalendarDistribution::DAYS_BEFORE_MONTH[0][0], 0);  // January
+        assert_eq!(CalendarDistribution::DAYS_BEFORE_MONTH[0][0], 0); // January
         assert_eq!(CalendarDistribution::DAYS_BEFORE_MONTH[0][1], 31); // February
 
         // Leap year
@@ -182,10 +188,16 @@ mod tests {
         use crate::random::RandomNumberStreamImpl;
 
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
-        let day = CalendarDistribution::pick_random_day_of_year(CalendarWeights::Uniform, &mut stream).unwrap();
+        let day =
+            CalendarDistribution::pick_random_day_of_year(CalendarWeights::Uniform, &mut stream)
+                .unwrap();
 
         // Day should be in valid range [1, 366]
-        assert!(day >= 1 && day <= 366, "Day {} should be in range [1, 366]", day);
+        assert!(
+            day >= 1 && day <= 366,
+            "Day {} should be in range [1, 366]",
+            day
+        );
     }
 
     #[test]
@@ -196,8 +208,12 @@ mod tests {
         let mut stream1 = RandomNumberStreamImpl::new(42).unwrap();
         let mut stream2 = RandomNumberStreamImpl::new(42).unwrap();
 
-        let day1 = CalendarDistribution::pick_random_day_of_year(CalendarWeights::Sales, &mut stream1).unwrap();
-        let day2 = CalendarDistribution::pick_random_day_of_year(CalendarWeights::Sales, &mut stream2).unwrap();
+        let day1 =
+            CalendarDistribution::pick_random_day_of_year(CalendarWeights::Sales, &mut stream1)
+                .unwrap();
+        let day2 =
+            CalendarDistribution::pick_random_day_of_year(CalendarWeights::Sales, &mut stream2)
+                .unwrap();
 
         assert_eq!(day1, day2, "Same seed should produce same day");
     }
@@ -209,8 +225,12 @@ mod tests {
         // Different weights should potentially produce different results
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
 
-        let day_uniform = CalendarDistribution::pick_random_day_of_year(CalendarWeights::Uniform, &mut stream).unwrap();
-        let day_sales = CalendarDistribution::pick_random_day_of_year(CalendarWeights::Sales, &mut stream).unwrap();
+        let day_uniform =
+            CalendarDistribution::pick_random_day_of_year(CalendarWeights::Uniform, &mut stream)
+                .unwrap();
+        let day_sales =
+            CalendarDistribution::pick_random_day_of_year(CalendarWeights::Sales, &mut stream)
+                .unwrap();
 
         // Both should be valid
         assert!(day_uniform >= 1 && day_uniform <= 366);

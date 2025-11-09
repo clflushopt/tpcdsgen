@@ -13,9 +13,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut writer = BufWriter::new(file);
 
     // Get number of rows for date_dim at scale 1
-    let num_rows = session
-        .get_scaling()
-        .get_row_count(Table::DateDim);
+    let num_rows = session.get_scaling().get_row_count(Table::DateDim);
 
     println!("Generating {} date_dim rows...", num_rows);
 

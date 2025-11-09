@@ -30,8 +30,8 @@ use std::sync::OnceLock;
 /// - 1 value field: domain suffix (com, org, edu, etc.)
 /// - 1 weight field: uniform weights
 pub struct TopDomainsDistribution {
-    values: Vec<String>,     // Domain suffixes
-    weights_list: Vec<i32>,  // Uniform weights
+    values: Vec<String>,    // Domain suffixes
+    weights_list: Vec<i32>, // Uniform weights
 }
 
 impl TopDomainsDistribution {
@@ -42,8 +42,7 @@ impl TopDomainsDistribution {
     fn get_instance() -> &'static TopDomainsDistribution {
         static DISTRIBUTION: OnceLock<TopDomainsDistribution> = OnceLock::new();
         DISTRIBUTION.get_or_init(|| {
-            Self::build_top_domains_distribution()
-                .expect("Failed to load top domains distribution")
+            Self::build_top_domains_distribution().expect("Failed to load top domains distribution")
         })
     }
 
@@ -51,7 +50,8 @@ impl TopDomainsDistribution {
         let mut values = Vec::new();
         let mut weights_builder = WeightsBuilder::new();
 
-        let parsed_lines = DistributionFileLoader::load_distribution_file(Self::VALUES_AND_WEIGHTS_FILENAME)?;
+        let parsed_lines =
+            DistributionFileLoader::load_distribution_file(Self::VALUES_AND_WEIGHTS_FILENAME)?;
 
         for (value_fields, weight_fields) in parsed_lines {
             if value_fields.len() != Self::NUM_VALUE_FIELDS {
@@ -77,7 +77,10 @@ impl TopDomainsDistribution {
 
             // Parse weight
             let weight: i32 = weight_fields[0].parse().map_err(|e| {
-                TpcdsError::new(&format!("Failed to parse weight '{}': {}", weight_fields[0], e))
+                TpcdsError::new(&format!(
+                    "Failed to parse weight '{}': {}",
+                    weight_fields[0], e
+                ))
             })?;
             weights_builder.compute_and_add_next_weight(weight)?;
         }
@@ -129,7 +132,11 @@ mod tests {
         assert!(!domain.is_empty(), "Domain should not be empty");
 
         // Typical domains are short
-        assert!(domain.len() <= 10, "Domain suffix '{}' should be reasonably short", domain);
+        assert!(
+            domain.len() <= 10,
+            "Domain suffix '{}' should be reasonably short",
+            domain
+        );
     }
 
     #[test]
@@ -150,7 +157,10 @@ mod tests {
 
         // Verify expected domains are present
         let domains_set: std::collections::HashSet<&String> = dist.values.iter().collect();
-        assert!(domains_set.contains(&"com".to_string()), "Should contain 'com' domain");
+        assert!(
+            domains_set.contains(&"com".to_string()),
+            "Should contain 'com' domain"
+        );
     }
 
     #[test]

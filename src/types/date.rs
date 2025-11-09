@@ -199,7 +199,9 @@ impl Date {
         let julian_start_of_previous_quarter =
             Self::new(last_quarter_year, last_quarter * 3 + 1, 1).to_julian_days();
 
-        Ok(Self::from_julian_days(julian_start_of_previous_quarter + distance_from_start))
+        Ok(Self::from_julian_days(
+            julian_start_of_previous_quarter + distance_from_start,
+        ))
     }
 
     // Uses the doomsday algorithm to calculate the day of the week.

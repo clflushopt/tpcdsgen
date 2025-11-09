@@ -17,7 +17,9 @@ use crate::distribution::DemographicsDistributions;
 use crate::error::Result;
 use crate::generator::HouseholdDemographicsGeneratorColumn;
 use crate::random::RandomValueGenerator;
-use crate::row::{AbstractRowGenerator, HouseholdDemographicsRow, RowGenerator, RowGeneratorResult};
+use crate::row::{
+    AbstractRowGenerator, HouseholdDemographicsRow, RowGenerator, RowGeneratorResult,
+};
 use crate::table::Table;
 
 /// Row generator for the HOUSEHOLD_DEMOGRAPHICS table (HouseholdDemographicsRowGenerator)
@@ -59,11 +61,13 @@ impl HouseholdDemographicsRowGenerator {
         let mut index = hd_demo_sk;
 
         // Get income band id using modulo
-        let hd_income_band_sk = (index % DemographicsDistributions::get_income_band_size() as i64) + 1;
+        let hd_income_band_sk =
+            (index % DemographicsDistributions::get_income_band_size() as i64) + 1;
         index /= DemographicsDistributions::get_income_band_size() as i64;
 
         // Get buy potential and divide index
-        let hd_buy_potential = DemographicsDistributions::get_buy_potential_for_index_mod_size(index);
+        let hd_buy_potential =
+            DemographicsDistributions::get_buy_potential_for_index_mod_size(index);
         index /= DemographicsDistributions::get_buy_potential_size() as i64;
 
         // Get dependent count and divide index
@@ -71,7 +75,8 @@ impl HouseholdDemographicsRowGenerator {
         index /= DemographicsDistributions::get_dep_count_size() as i64;
 
         // Get vehicle count (no division needed, last in sequence)
-        let hd_vehicle_count = DemographicsDistributions::get_vehicle_count_for_index_mod_size(index);
+        let hd_vehicle_count =
+            DemographicsDistributions::get_vehicle_count_for_index_mod_size(index);
 
         Ok(HouseholdDemographicsRow::builder()
             .set_hd_demo_sk(hd_demo_sk)

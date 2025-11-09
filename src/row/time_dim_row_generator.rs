@@ -71,6 +71,7 @@ impl RowGenerator for TimeDimRowGenerator {
     }
 
     fn skip_rows_until_starting_row_number(&mut self, starting_row_number: i64) {
-        self.base.skip_rows_until_starting_row_number(starting_row_number);
+        self.base
+            .skip_rows_until_starting_row_number(starting_row_number);
     }
 }

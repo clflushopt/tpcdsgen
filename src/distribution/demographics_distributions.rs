@@ -187,14 +187,12 @@ impl DemographicsDistributions {
 
     /// Get dep count for index mod size (getDepCountForIndexModSize)
     pub fn get_dep_count_for_index_mod_size(index: i64) -> i32 {
-        Self::get_dep_count_distribution()
-            .get_value_for_index_mod_size(index, 0)
+        Self::get_dep_count_distribution().get_value_for_index_mod_size(index, 0)
     }
 
     /// Get vehicle count for index mod size (getVehicleCountForIndexModSize)
     pub fn get_vehicle_count_for_index_mod_size(index: i64) -> i32 {
-        Self::get_vehicle_count_distribution()
-            .get_value_for_index_mod_size(index, 0)
+        Self::get_vehicle_count_distribution().get_value_for_index_mod_size(index, 0)
     }
 
     /// Get buy potential distribution size

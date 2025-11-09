@@ -47,17 +47,11 @@ use crate::table::Table;
 /// let null_bitmap = create_null_bit_map(Table::CallCenter, &mut stream);
 /// // null_bitmap will be 0 or a value respecting CallCenter's not-null constraints
 /// ```
-pub fn create_null_bit_map(
-    table: Table,
-    random_number_stream: &mut dyn RandomNumberStream,
-) -> i64 {
+pub fn create_null_bit_map(table: Table, random_number_stream: &mut dyn RandomNumberStream) -> i64 {
     let threshold =
         RandomValueGenerator::generate_uniform_random_int(0, 9999, random_number_stream);
-    let bit_map = RandomValueGenerator::generate_uniform_random_key(
-        1,
-        i32::MAX as i64,
-        random_number_stream,
-    );
+    let bit_map =
+        RandomValueGenerator::generate_uniform_random_key(1, i32::MAX as i64, random_number_stream);
 
     // Set the bitmap based on threshold and NOT NULL definitions
     if threshold < table.get_null_basis_points() {
@@ -79,7 +73,10 @@ mod tests {
 
         // IncomeBand has 0 null basis points
         let null_bitmap = create_null_bit_map(Table::IncomeBand, &mut stream);
-        assert_eq!(null_bitmap, 0, "Table with 0 null basis points should always return 0 bitmap");
+        assert_eq!(
+            null_bitmap, 0,
+            "Table with 0 null basis points should always return 0 bitmap"
+        );
     }
 
     #[test]

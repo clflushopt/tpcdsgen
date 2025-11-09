@@ -1,6 +1,6 @@
 pub mod address_distributions;
-pub mod call_center_distributions;
 pub mod calendar_distribution;
+pub mod call_center_distributions;
 pub mod catalog_page_distributions;
 pub mod demographics_distributions;
 pub mod english;
@@ -20,17 +20,17 @@ pub mod utils;
 pub mod web_page_use_distribution;
 
 pub use address_distributions::*;
-pub use call_center_distributions::CallCenterDistributions;
 pub use calendar_distribution::CalendarDistribution;
+pub use call_center_distributions::CallCenterDistributions;
 pub use catalog_page_distributions::CatalogPageTypesDistribution;
 pub use demographics_distributions::DemographicsDistributions;
 pub use english::EnglishDistributions;
 pub use english_distributions::*;
 pub use file_loader::DistributionFileLoader;
 pub use fips_county_distribution::{FipsCountyDistribution, FipsWeights};
-pub use hours_distribution::{HoursDistribution, HourInfo};
+pub use hours_distribution::{HourInfo, HoursDistribution};
 pub use int_values::IntValuesDistribution;
-pub use location_types_distribution::{LocationTypesDistribution, LocationTypeWeights};
+pub use location_types_distribution::{LocationTypeWeights, LocationTypesDistribution};
 pub use names_distributions::{FirstNamesWeights, NamesDistributions, SalutationsWeights};
 pub use return_reasons_distribution::ReturnReasonsDistribution;
 pub use ship_mode_distributions::ShipModeDistributions;
