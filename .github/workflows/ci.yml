@@ -84,22 +84,18 @@ jobs:
 
     - name: Bootstrap Java TPC-DS implementation
       run: |
-        cd tpcdsgen
         ./scripts/bootstrap-java.sh
 
     - name: Build Rust table generators
       run: |
-        cd tpcdsgen
         cargo build --release
 
     - name: Generate test fixtures (Java reference data)
       run: |
-        cd tpcdsgen
         ./scripts/generate-fixtures.sh --quiet
 
     - name: Run conformance tests (Rust vs Java)
       run: |
-        cd tpcdsgen
         ./scripts/test-all-tables.sh
 
     - name: Upload test fixtures as artifacts
@@ -107,7 +103,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: test-fixtures
-        path: tpcdsgen/tests/fixtures/
+        path: tests/fixtures/
         retention-days: 7
 
   # Job 3: Build benchmarks (optional - only on main)
@@ -139,12 +135,10 @@ jobs:
 
     - name: Build release binaries
       run: |
-        cd tpcdsgen
         cargo build --release
 
     - name: Run benchmarks
       run: |
-        cd tpcdsgen
         # Generate all 9 ported tables and time it
         time for table in call_center warehouse ship_mode reason income_band customer_demographics date_dim time_dim household_demographics; do
           ./target/release/generate_${table} --scale 1 --directory /tmp/bench
