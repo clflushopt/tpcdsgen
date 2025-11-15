@@ -314,12 +314,12 @@ fn generate_web_join_key(
         let web_site_duration = get_web_site_duration(scaling);
         let mut result = Date::JULIAN_DATE_MINIMUM as i64
             - ((join_key * WEB_DATE_STAGGER) % web_site_duration / 2);
-        result += -1 * web_site_duration; // the -1 here and below are due to undefined values in the C code
+        result += -web_site_duration; // the -1 here and below are due to undefined values in the C code
 
         // the site is completely replaced, and this is the first site
         if is_replaced(join_key) && !is_replacement(join_key) {
             // the close date of the first site needs to align on a revision boundary
-            result -= -1 * web_site_duration / 2;
+            result -= -web_site_duration / 2;
         }
         return Ok(result);
     }

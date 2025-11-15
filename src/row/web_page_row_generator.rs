@@ -18,6 +18,12 @@ pub struct WebPageRowGenerator {
     previous_row: Option<WebPageRow>,
 }
 
+impl Default for WebPageRowGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl WebPageRowGenerator {
     const WP_AUTOGEN_PERCENT: i32 = 30;
 
