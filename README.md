@@ -6,9 +6,10 @@ the [tpchgen](https://github.com/clflushopt/tpchgen-rs) once I am satisfied with
 probably rewrite a lot of it to be more idiomatic Rust instead of the current Java-ism OOP heavy
 mess it is right now.
 
-Currently it offers no CLI instead I just hack together custom generators on demand to test things
-the outputs are tested against the Java implementation (by hand for now) but we will move to CI
-and do everything properly later on, for now only 5 tables are supported out of 24.
+Currently 12 of 25 tables have been ported with byte-for-byte compatibility verified against the Java
+reference implementation. Each table has a dedicated binary generator and automated conformance testing
+via CI. Progress: 48% complete (call_center, customer_demographics, date_dim, household_demographics,
+income_band, promotion, reason, ship_mode, time_dim, warehouse, web_page, web_site).
 
 ## Known Bugs
 

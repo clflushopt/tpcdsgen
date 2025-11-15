@@ -139,8 +139,8 @@ jobs:
 
     - name: Run benchmarks
       run: |
-        # Generate all 9 ported tables and time it
-        time for table in call_center warehouse ship_mode reason income_band customer_demographics date_dim time_dim household_demographics; do
+        # Generate all 12 ported tables and time it
+        time for table in call_center warehouse ship_mode reason income_band customer_demographics date_dim time_dim household_demographics promotion web_page web_site; do
           ./target/release/generate_${table} --scale 1 --directory /tmp/bench
         done
 
