@@ -50,7 +50,7 @@ impl SlowlyChangingDimensionKey {
 
 pub fn compute_scd_key(table: Table, row_number: i64) -> SlowlyChangingDimensionKey {
     let modulo = (row_number % 6) as i32;
-    let table_number = table as i64;
+    let table_number = table.get_ordinal(); // Use Java ordinal, not Rust enum discriminant
 
     let (business_key, start_date, mut end_date, is_new_key) = match modulo {
         1 => {
@@ -124,9 +124,64 @@ pub fn should_change_dimension(flags: i32, is_new_key: bool) -> bool {
     flags % 2 == 0 || is_new_key
 }
 
+/// Match surrogate key for SCD tables based on unique ID and julian date.
+///
+/// This converts a unique ID (which represents a business key) into the appropriate
+/// surrogate key (row number) based on the date, accounting for SCD history revisions.
+///
+/// # Arguments
+/// * `unique` - The unique business key ID (1-based)
+/// * `julian_date` - The julian date for temporal matching
+/// * `table` - The SCD table being referenced (config::Table)
+/// * `scaling` - Scaling information for the table
+///
+/// # Returns
+/// The surrogate key (row number) that matches the business key at the given date
+pub fn match_surrogate_key(
+    unique: i64,
+    julian_date: i64,
+    table: crate::config::Table,
+    scaling: &crate::config::Scaling,
+) -> i64 {
+    let mut surrogate_key = (unique / 3) * 6;
+
+    match unique % 3 {
+        1 => {
+            // Only one occurrence of this ID
+            surrogate_key += 1;
+        }
+        2 => {
+            // Two revisions of this ID
+            surrogate_key += 2;
+            if julian_date > ONE_HALF_DATE {
+                surrogate_key += 1;
+            }
+        }
+        0 => {
+            // Three revisions of this ID
+            surrogate_key -= 2;
+            if julian_date > ONE_THIRD_DATE {
+                surrogate_key += 1;
+            }
+            if julian_date > TWO_THIRDS_DATE {
+                surrogate_key += 1;
+            }
+        }
+        _ => panic!("unique % 3 did not equal 0, 1, or 2"),
+    }
+
+    let row_count = scaling.get_row_count(table);
+    if surrogate_key > row_count {
+        surrogate_key = row_count;
+    }
+
+    surrogate_key
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::Scaling;
 
     #[test]
     fn test_should_change_dimension() {
@@ -134,5 +189,76 @@ mod tests {
         assert!(!should_change_dimension(1, false)); // odd flag
         assert!(should_change_dimension(1, true)); // new key overrides odd flag
         assert!(should_change_dimension(0, true)); // new key + even flag
+    }
+
+    #[test]
+    fn test_match_surrogate_key_single_revision() {
+        let scaling = Scaling::new(1.0);
+        // unique % 3 == 1 means single revision
+        let surrogate = match_surrogate_key(
+            1,
+            Date::JULIAN_DATA_START_DATE,
+            crate::config::Table::Item,
+            &scaling,
+        );
+        assert_eq!(surrogate, 1); // (1/3)*6 + 1 = 0 + 1 = 1
+    }
+
+    #[test]
+    fn test_match_surrogate_key_two_revisions() {
+        let scaling = Scaling::new(1.0);
+        // unique % 3 == 2 means two revisions
+        // Before half date: surrogate_key = (unique/3)*6 + 2
+        let surrogate = match_surrogate_key(
+            2,
+            Date::JULIAN_DATA_START_DATE,
+            crate::config::Table::Item,
+            &scaling,
+        );
+        assert_eq!(surrogate, 2); // (2/3)*6 + 2 = 0 + 2 = 2
+
+        // After half date: surrogate_key = (unique/3)*6 + 2 + 1
+        let surrogate =
+            match_surrogate_key(2, ONE_HALF_DATE + 1, crate::config::Table::Item, &scaling);
+        assert_eq!(surrogate, 3); // (2/3)*6 + 2 + 1 = 0 + 3 = 3
+    }
+
+    #[test]
+    fn test_match_surrogate_key_three_revisions() {
+        let scaling = Scaling::new(1.0);
+        // unique % 3 == 0 means three revisions
+        // Before one-third: (unique/3)*6 - 2
+        let surrogate = match_surrogate_key(
+            3,
+            Date::JULIAN_DATA_START_DATE,
+            crate::config::Table::Item,
+            &scaling,
+        );
+        assert_eq!(surrogate, 4); // (3/3)*6 - 2 = 6 - 2 = 4
+
+        // Between one-third and two-thirds: (unique/3)*6 - 2 + 1
+        let surrogate =
+            match_surrogate_key(3, ONE_THIRD_DATE + 1, crate::config::Table::Item, &scaling);
+        assert_eq!(surrogate, 5); // (3/3)*6 - 2 + 1 = 5
+
+        // After two-thirds: (unique/3)*6 - 2 + 1 + 1
+        let surrogate =
+            match_surrogate_key(3, TWO_THIRDS_DATE + 1, crate::config::Table::Item, &scaling);
+        assert_eq!(surrogate, 6); // (3/3)*6 - 2 + 2 = 6
+    }
+
+    #[test]
+    fn test_match_surrogate_key_capped_at_row_count() {
+        let scaling = Scaling::new(1.0);
+        // For a very large unique ID, surrogate should be capped at row count
+        let row_count = scaling.get_row_count(crate::config::Table::Item);
+        let large_unique = 100000;
+        let surrogate = match_surrogate_key(
+            large_unique,
+            Date::JULIAN_DATA_START_DATE,
+            crate::config::Table::Item,
+            &scaling,
+        );
+        assert_eq!(surrogate, row_count);
     }
 }

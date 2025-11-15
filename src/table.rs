@@ -1,10 +1,13 @@
-use crate::column::{CallCenterColumn, Column, HouseholdDemographicsColumn};
+use crate::column::{
+    CallCenterColumn, Column, HouseholdDemographicsColumn, PromotionColumn, WebSiteColumn,
+};
 use crate::error::Result;
 use crate::generator::{
     CallCenterGeneratorColumn, CustomerDemographicsGeneratorColumn, DateDimGeneratorColumn,
     GeneratorColumn, HouseholdDemographicsGeneratorColumn, IncomeBandGeneratorColumn,
-    ReasonGeneratorColumn, ShipModeGeneratorColumn, TimeDimGeneratorColumn,
-    WarehouseGeneratorColumn,
+    PromotionGeneratorColumn, ReasonGeneratorColumn, ShipModeGeneratorColumn,
+    TimeDimGeneratorColumn, WarehouseGeneratorColumn, WebPageGeneratorColumn,
+    WebSiteGeneratorColumn,
 };
 use crate::scaling_info::{ScalingInfo, ScalingModel};
 use crate::table_flags::{TableFlags, TableFlagsBuilder};
@@ -22,6 +25,10 @@ pub enum Table {
     CustomerDemographics,
     DateDim,
     TimeDim,
+    Item, // Stub for promotion join key - not fully implemented yet
+    Promotion,
+    WebPage,
+    WebSite,
     // TODO: Add other tables as they are implemented
 }
 
@@ -38,6 +45,44 @@ impl Table {
             Table::CustomerDemographics => "customer_demographics",
             Table::DateDim => "date_dim",
             Table::TimeDim => "time_dim",
+            Table::Item => "item",
+            Table::Promotion => "promotion",
+            Table::WebPage => "web_page",
+            Table::WebSite => "web_site",
+        }
+    }
+
+    /// Get the Java Table enum ordinal
+    /// This MUST match the exact order in Java's Table.java enum declaration
+    /// Used for SCD date calculations (table_number * 6 offset)
+    pub fn get_ordinal(&self) -> i64 {
+        match self {
+            // Java enum order (from Table.java):
+            Table::CallCenter => 0,
+            // CATALOG_PAGE => 1,
+            // CATALOG_RETURNS => 2,
+            // CATALOG_SALES => 3,
+            // CUSTOMER => 4,
+            // CUSTOMER_ADDRESS => 5,
+            Table::CustomerDemographics => 6,
+            Table::DateDim => 7,
+            Table::HouseholdDemographics => 8,
+            Table::IncomeBand => 9,
+            // INVENTORY => 10,
+            Table::Item => 11,
+            Table::Promotion => 12,
+            Table::Reason => 13,
+            Table::ShipMode => 14,
+            // STORE => 15,
+            // STORE_RETURNS => 16,
+            // STORE_SALES => 17,
+            Table::TimeDim => 18,
+            Table::Warehouse => 19,
+            Table::WebPage => 20,
+            // WEB_RETURNS => 21,
+            // WEB_SALES => 22,
+            Table::WebSite => 23,
+            // DBGEN_VERSION => 24,
         }
     }
 
@@ -85,6 +130,27 @@ impl Table {
                 static FLAGS: OnceLock<TableFlags> = OnceLock::new();
                 FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
             }
+            Table::Item => {
+                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
+                FLAGS.get_or_init(|| TableFlagsBuilder::new().set_keeps_history().build())
+            }
+            Table::Promotion => {
+                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
+                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
+            }
+            Table::WebPage => {
+                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
+                FLAGS.get_or_init(|| TableFlagsBuilder::new().set_keeps_history().build())
+            }
+            Table::WebSite => {
+                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
+                FLAGS.get_or_init(|| {
+                    TableFlagsBuilder::new()
+                        .set_keeps_history()
+                        .set_is_small()
+                        .build()
+                })
+            }
         }
     }
 
@@ -100,6 +166,10 @@ impl Table {
             Table::CustomerDemographics => 0,
             Table::DateDim => 0,
             Table::TimeDim => 0,
+            Table::Item => 50,
+            Table::Promotion => 200,
+            Table::WebPage => 250,
+            Table::WebSite => 100,
         }
     }
 
@@ -115,6 +185,10 @@ impl Table {
             Table::CustomerDemographics => 0x1,
             Table::DateDim => 0x3,
             Table::TimeDim => 0x3,
+            Table::Item => 0xB,
+            Table::Promotion => 0x3,
+            Table::WebPage => 0xB,
+            Table::WebSite => 0xB,
         }
     }
 
@@ -199,6 +273,38 @@ impl Table {
                         .expect("TimeDim ScalingInfo creation should not fail")
                 })
             }
+            Table::Item => {
+                static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
+                SCALING.get_or_init(|| {
+                    let row_counts = [0, 9, 51, 102, 132, 150, 180, 201, 231, 251];
+                    ScalingInfo::new(3, ScalingModel::Logarithmic, &row_counts, 0)
+                        .expect("Item ScalingInfo creation should not fail")
+                })
+            }
+            Table::Promotion => {
+                static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
+                SCALING.get_or_init(|| {
+                    let row_counts = [0, 300, 500, 1000, 1300, 1500, 1800, 2000, 2300, 2500];
+                    ScalingInfo::new(0, ScalingModel::Logarithmic, &row_counts, 0)
+                        .expect("Promotion ScalingInfo creation should not fail")
+                })
+            }
+            Table::WebPage => {
+                static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
+                SCALING.get_or_init(|| {
+                    let row_counts = [0, 30, 100, 1020, 1302, 1500, 1800, 2001, 2301, 2502];
+                    ScalingInfo::new(0, ScalingModel::Logarithmic, &row_counts, 0)
+                        .expect("WebPage ScalingInfo creation should not fail")
+                })
+            }
+            Table::WebSite => {
+                static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
+                SCALING.get_or_init(|| {
+                    let row_counts = [0, 15, 21, 12, 21, 27, 33, 39, 42, 48];
+                    ScalingInfo::new(0, ScalingModel::Logarithmic, &row_counts, 0)
+                        .expect("WebSite ScalingInfo creation should not fail")
+                })
+            }
         }
     }
 
@@ -214,6 +320,10 @@ impl Table {
             Table::CustomerDemographics => 0, // TODO: Return CustomerDemographicsColumn::values().len() once CustomerDemographicsColumn is implemented
             Table::DateDim => 0, // TODO: Return DateDimColumn::values().len() once DateDimColumn is implemented
             Table::TimeDim => 0, // TODO: Return TimeDimColumn::values().len() once TimeDimColumn is implemented
+            Table::Item => 0, // TODO: Return ItemColumn::values().len() once ItemColumn is implemented
+            Table::Promotion => PromotionColumn::values().len(),
+            Table::WebPage => 0, // TODO: Return WebPageColumn::values().len() once WebPageColumn is implemented
+            Table::WebSite => WebSiteColumn::values().len(),
         }
     }
 
@@ -229,6 +339,10 @@ impl Table {
             Table::CustomerDemographics => CustomerDemographicsGeneratorColumn::values().len(),
             Table::DateDim => DateDimGeneratorColumn::values().len(),
             Table::TimeDim => TimeDimGeneratorColumn::values().len(),
+            Table::Item => 0, // TODO: Return ItemGeneratorColumn::values().len() once implemented
+            Table::Promotion => PromotionGeneratorColumn::values().len(),
+            Table::WebPage => WebPageGeneratorColumn::values().len(),
+            Table::WebSite => WebSiteGeneratorColumn::values().len(),
         }
     }
 
@@ -270,6 +384,22 @@ impl Table {
             Table::TimeDim => {
                 // TODO: Implement once TimeDimColumn is created
                 None
+            }
+            Table::Item => {
+                // TODO: Implement once ItemColumn is created
+                None
+            }
+            Table::Promotion => {
+                let columns = PromotionColumn::values();
+                columns.get(index).map(|col| col as &dyn Column)
+            }
+            Table::WebPage => {
+                // TODO: Implement once WebPageColumn is created
+                None
+            }
+            Table::WebSite => {
+                let columns = WebSiteColumn::values();
+                columns.get(index).map(|col| col as &dyn Column)
             }
         }
     }
@@ -314,6 +444,24 @@ impl Table {
             }
             Table::TimeDim => {
                 let columns = TimeDimGeneratorColumn::values();
+                columns.get(index).map(|col| col as &dyn GeneratorColumn)
+            }
+            Table::Item => {
+                // TODO: Implement once ItemGeneratorColumn is created
+                None
+            }
+            Table::Promotion => {
+                let columns = PromotionGeneratorColumn::values();
+                columns.get(index).map(|col| col as &dyn GeneratorColumn)
+            }
+            Table::WebPage => {
+                static COLUMNS: OnceLock<Vec<WebPageGeneratorColumn>> = OnceLock::new();
+                let columns = COLUMNS.get_or_init(|| WebPageGeneratorColumn::values().to_vec());
+                columns.get(index).map(|col| col as &dyn GeneratorColumn)
+            }
+            Table::WebSite => {
+                static COLUMNS: OnceLock<Vec<WebSiteGeneratorColumn>> = OnceLock::new();
+                let columns = COLUMNS.get_or_init(|| WebSiteGeneratorColumn::values().to_vec());
                 columns.get(index).map(|col| col as &dyn GeneratorColumn)
             }
         }
@@ -376,6 +524,10 @@ impl Table {
             Table::CustomerDemographics,
             Table::DateDim,
             Table::TimeDim,
+            Table::Item,
+            Table::Promotion,
+            Table::WebPage,
+            Table::WebSite,
         ] // TODO: Add other tables as implemented
     }
 
@@ -424,6 +576,10 @@ impl From<Table> for crate::column::Table {
             Table::CustomerDemographics => crate::column::Table::CustomerDemographics,
             Table::DateDim => crate::column::Table::DateDim,
             Table::TimeDim => crate::column::Table::TimeDim,
+            Table::Item => crate::column::Table::Item,
+            Table::Promotion => crate::column::Table::Promotion,
+            Table::WebPage => crate::column::Table::WebPage,
+            Table::WebSite => crate::column::Table::WebSite,
         }
     }
 }
@@ -440,6 +596,10 @@ impl From<crate::column::Table> for Table {
             crate::column::Table::CustomerDemographics => Table::CustomerDemographics,
             crate::column::Table::DateDim => Table::DateDim,
             crate::column::Table::TimeDim => Table::TimeDim,
+            crate::column::Table::Item => Table::Item,
+            crate::column::Table::Promotion => Table::Promotion,
+            crate::column::Table::WebPage => Table::WebPage,
+            crate::column::Table::WebSite => Table::WebSite,
         }
     }
 }

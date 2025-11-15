@@ -162,8 +162,12 @@ impl Address {
 
         let config_table = match table {
             crate::table::Table::CallCenter => crate::config::table::Table::CallCenter,
-            // Add other mappings as needed
-            _ => crate::config::table::Table::CallCenter, // Default fallback
+            crate::table::Table::WebSite => crate::config::table::Table::WebSite,
+            crate::table::Table::Warehouse => crate::config::table::Table::Warehouse,
+            _ => panic!(
+                "Table {:?} not yet supported in Address::make_address_for_column",
+                table
+            ),
         };
         let row_count = scaling.get_row_count(config_table) as i32;
         let city = if table.is_small() {

@@ -2,11 +2,15 @@ pub mod call_center;
 pub mod column_type;
 pub mod column_types;
 pub mod household_demographics;
+pub mod promotion;
+pub mod web_site;
 
 pub use call_center::CallCenterColumn;
 pub use column_type::{ColumnType, ColumnTypeBase};
 pub use column_types::ColumnTypes;
 pub use household_demographics::HouseholdDemographicsColumn;
+pub use promotion::PromotionColumn;
+pub use web_site::WebSiteColumn;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Table {
@@ -19,6 +23,10 @@ pub enum Table {
     CustomerDemographics,
     DateDim,
     TimeDim,
+    Item,
+    Promotion,
+    WebPage,
+    WebSite,
     // TODO(clflushopt): Add remaining tables
 }
 
@@ -35,6 +43,10 @@ impl Table {
             Table::CustomerDemographics => "customer_demographics",
             Table::DateDim => "date_dim",
             Table::TimeDim => "time_dim",
+            Table::Item => "item",
+            Table::Promotion => "promotion",
+            Table::WebPage => "web_page",
+            Table::WebSite => "web_site",
         }
     }
 }

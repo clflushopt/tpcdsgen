@@ -191,6 +191,12 @@ impl RandomValueGenerator {
         text
     }
 
+    /// Generate a random URL (generateRandomUrl)
+    /// This is what the C code does. No joke. It always returns the same value.
+    pub fn generate_random_url(_random_number_stream: &mut dyn RandomNumberStream) -> String {
+        "http://www.foo.com".to_string()
+    }
+
     // Generate random sentence following Java implementation exactly
     fn generate_random_sentence(random_number_stream: &mut dyn RandomNumberStream) -> String {
         use crate::distribution::*;

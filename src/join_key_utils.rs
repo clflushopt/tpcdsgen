@@ -22,9 +22,9 @@ use crate::distribution::catalog_page_distributions::CatalogPageTypesDistributio
 use crate::distribution::hours_distribution::{HoursDistribution, HoursWeights};
 use crate::error::{Result, TpcdsError};
 use crate::generator::GeneratorColumn;
+use crate::pseudo_table_scaling_infos::PseudoTableScalingInfos;
 use crate::random::{RandomNumberStream, RandomValueGenerator};
-// use crate::slowly_changing_dimension_utils;
-// use crate::table::Table as MetadataTable;
+use crate::slowly_changing_dimension_utils;
 use crate::types::Date;
 
 #[allow(dead_code)]
@@ -150,24 +150,30 @@ fn generate_catalog_page_join_key(
 /// - Web-related tables use web join key logic
 /// - Other tables use UNIFORM or UNIFORM_LEAP_YEAR weights
 ///
-/// **NOTE**: Since we can't reliably detect the table type from GeneratorColumn
-/// (column::Table vs config::Table mismatch), we use Sales weights as default.
-/// This matches the most common use case. Web and returns logic will be implemented
-/// when those tables are ported.
+/// Based on JoinKeyUtils.java:generateDateJoinKey (lines 109-142)
 fn generate_date_join_key(
     random_number_stream: &mut dyn RandomNumberStream,
-    _from_column: &dyn GeneratorColumn,
-    _join_count: i64,
+    from_column: &dyn GeneratorColumn,
+    join_count: i64,
     year: i32,
-    _scaling: &Scaling,
+    scaling: &Scaling,
 ) -> Result<i64> {
-    // TODO: Detect table type from from_column to select appropriate weights:
+    use crate::column::Table as ColumnTable;
+
+    // Check if this is a WEB_SITE or WEB_PAGE table by checking the from_column table
+    let from_table = from_column.get_table();
+    if from_table == ColumnTable::WebPage || from_table == ColumnTable::WebSite {
+        // Use web join key logic for WEB_PAGE and WEB_SITE columns
+        return generate_web_join_key(from_column, random_number_stream, join_count, scaling);
+    }
+
+    // TODO: Detect other table types from from_column to select appropriate weights:
     // - STORE_SALES, CATALOG_SALES, WEB_SALES -> Sales/SalesLeapYear
     // - STORE_RETURNS, CATALOG_RETURNS, WEB_RETURNS -> generateDateReturnsJoinKey
-    // - WEB_SITE, WEB_PAGE -> generateWebJoinKey
     // - Default -> Uniform/UniformLeapYear
     //
     // For now, use Sales weights (most common case) with leap year detection
+    // NOTE: WEB_SITE and WEB_PAGE are handled above via generateWebJoinKey
     let weights = if Date::is_leap_year(year) {
         CalendarWeights::SalesLeapYear
     } else {
@@ -250,13 +256,16 @@ fn generate_scd_join_key(
     }
 
     let id_count = scaling.get_id_count(to_table);
-    let key = RandomValueGenerator::generate_uniform_random_key(1, id_count, random_number_stream);
+    let unique_key =
+        RandomValueGenerator::generate_uniform_random_key(1, id_count, random_number_stream);
 
-    // TODO: Port SlowlyChangingDimensionUtils::matchSurrogateKey from Java
-    // For now, just use the key as-is without SCD matching
-    // This will need to be implemented when porting SCD tables
-    // let metadata_table = convert_to_metadata_table(to_table);
-    // key = slowly_changing_dimension_utils::match_surrogate_key(key, julian_date, metadata_table, scaling);
+    // Match the surrogate key based on the julian date for SCD tables
+    let key = slowly_changing_dimension_utils::match_surrogate_key(
+        unique_key,
+        julian_date,
+        to_table,
+        scaling,
+    );
 
     Ok(if key > scaling.get_row_count(to_table) {
         -1
@@ -268,41 +277,81 @@ fn generate_scd_join_key(
 /// Generates a join key for web-related tables (web_site, web_page).
 ///
 /// Web tables have complex date logic involving site creation, open, and close dates.
-#[allow(dead_code)]
+/// Based on JoinKeyUtils.java:generateWebJoinKey (lines 144-175)
 fn generate_web_join_key(
-    _from_column: &dyn GeneratorColumn,
-    _random_number_stream: &mut dyn RandomNumberStream,
-    _join_key: i64,
-    _scaling: &Scaling,
+    from_column: &dyn GeneratorColumn,
+    random_number_stream: &mut dyn RandomNumberStream,
+    join_key: i64,
+    scaling: &Scaling,
 ) -> Result<i64> {
-    // TODO: Port web join key generation when WebSite and WebPage tables are implemented
-    // This requires identifying specific columns by get_global_column_number()
-    // For now, return error as web tables aren't ported yet
-    Err(TpcdsError::new(
-        "Web join keys not yet implemented - needed when porting web_site and web_page tables",
-    ))
+    let global_column_number = from_column.get_global_column_number();
+
+    // WP_CREATION_DATE_SK (global column 371)
+    if global_column_number == 371 {
+        // Page creation has to happen outside of the page window, to assure a constant number of pages,
+        // so it occurs in the gap between site creation and the site's actual activity. For sites that are replaced
+        // in the time span of the data set, this will depend on whether they are the first version or the second
+        let site = (join_key / WEB_PAGES_PER_SITE as i64 + 1) as i32;
+        let web_site_duration = get_web_site_duration(scaling);
+        let min_result = Date::JULIAN_DATE_MINIMUM as i64
+            - ((site as i64 * WEB_DATE_STAGGER) % web_site_duration / 2);
+        return Ok(RandomValueGenerator::generate_uniform_random_int(
+            min_result as i32,
+            Date::JULIAN_DATE_MINIMUM,
+            random_number_stream,
+        ) as i64);
+    }
+
+    // WEB_OPEN_DATE for WebPage (global column 340) or WebSite (global column 452)
+    if global_column_number == 340 || global_column_number == 452 {
+        let web_site_duration = get_web_site_duration(scaling);
+        return Ok(Date::JULIAN_DATE_MINIMUM as i64
+            - ((join_key * WEB_DATE_STAGGER) % web_site_duration / 2));
+    }
+
+    // WEB_CLOSE_DATE for WebPage (global column 341) or WebSite (global column 453)
+    if global_column_number == 341 || global_column_number == 453 {
+        let web_site_duration = get_web_site_duration(scaling);
+        let mut result = Date::JULIAN_DATE_MINIMUM as i64
+            - ((join_key * WEB_DATE_STAGGER) % web_site_duration / 2);
+        result += -1 * web_site_duration; // the -1 here and below are due to undefined values in the C code
+
+        // the site is completely replaced, and this is the first site
+        if is_replaced(join_key) && !is_replacement(join_key) {
+            // the close date of the first site needs to align on a revision boundary
+            result -= -1 * web_site_duration / 2;
+        }
+        return Ok(result);
+    }
+
+    Err(TpcdsError::new(&format!(
+        "Invalid column for web join: global column {}",
+        global_column_number
+    )))
 }
 
-// TODO: Uncomment when web join keys are implemented
-// /// Calculates the duration of a web site based on concurrent sites.
-// fn get_web_site_duration(scaling: &Scaling) -> i64 {
-//     let concurrent_web_sites = PseudoTableScalingInfos::get_concurrent_web_sites();
-//     let row_count = concurrent_web_sites
-//         .get_row_count_for_scale(scaling.get_scale())
-//         .expect("Failed to get row count for concurrent web sites");
-//
-//     (Date::JULIAN_DATE_MAXIMUM as i64 - Date::JULIAN_DATE_MINIMUM as i64) * row_count
-// }
-//
-// /// Checks if a web site is replaced (has an even join key).
-// fn is_replaced(join_key: i64) -> bool {
-//     (join_key % 2) == 0
-// }
-//
-// /// Checks if a web site is a replacement (odd division by 2).
-// fn is_replacement(join_key: i64) -> bool {
-//     (join_key / 2 % 2) != 0
-// }
+/// Calculates the duration of a web site based on concurrent sites.
+/// Based on JoinKeyUtils.java:getWebSiteDuration (lines 177-180)
+fn get_web_site_duration(scaling: &Scaling) -> i64 {
+    let concurrent_web_sites = PseudoTableScalingInfos::get_concurrent_web_sites();
+    let row_count = concurrent_web_sites
+        .get_row_count_for_scale(scaling.get_scale())
+        .expect("Failed to get row count for concurrent web sites");
+
+    (Date::JULIAN_DATE_MAXIMUM as i64 - Date::JULIAN_DATE_MINIMUM as i64) * row_count
+}
+
+/// Checks if a web site is replaced (has an even join key).
+/// Based on JoinKeyUtils.java:isReplaced (lines 182-185)
+fn is_replaced(join_key: i64) -> bool {
+    (join_key % 2) == 0
+}
+
+/// Checks if a web site is a replacement (odd division by 2).
+/// Based on JoinKeyUtils.java:isReplacement (lines 187-190)
+fn is_replacement(join_key: i64) -> bool {
+    (join_key / 2 % 2) != 0
+}
 
 // TODO: Uncomment when SlowlyChangingDimensionUtils::match_surrogate_key is ported
 // /// Helper function to convert config::Table to table::Table for SCD utilities.
@@ -325,24 +374,23 @@ mod tests {
     use super::*;
     use crate::random::RandomNumberStreamImpl;
 
-    // TODO: Uncomment when web functions are implemented
-    // #[test]
-    // fn test_is_replaced() {
-    //     assert!(is_replaced(0));
-    //     assert!(is_replaced(2));
-    //     assert!(is_replaced(4));
-    //     assert!(!is_replaced(1));
-    //     assert!(!is_replaced(3));
-    // }
-    //
-    // #[test]
-    // fn test_is_replacement() {
-    //     assert!(!is_replacement(0)); // 0/2=0, 0%2=0
-    //     assert!(!is_replacement(1)); // 1/2=0, 0%2=0
-    //     assert!(is_replacement(2)); // 2/2=1, 1%2=1
-    //     assert!(is_replacement(3)); // 3/2=1, 1%2=1
-    //     assert!(!is_replacement(4)); // 4/2=2, 2%2=0
-    // }
+    #[test]
+    fn test_is_replaced() {
+        assert!(is_replaced(0));
+        assert!(is_replaced(2));
+        assert!(is_replaced(4));
+        assert!(!is_replaced(1));
+        assert!(!is_replaced(3));
+    }
+
+    #[test]
+    fn test_is_replacement() {
+        assert!(!is_replacement(0)); // 0/2=0, 0%2=0
+        assert!(!is_replacement(1)); // 1/2=0, 0%2=0
+        assert!(is_replacement(2)); // 2/2=1, 1%2=1
+        assert!(is_replacement(3)); // 3/2=1, 1%2=1
+        assert!(!is_replacement(4)); // 4/2=2, 2%2=0
+    }
 
     #[test]
     fn test_generate_time_join_key() {

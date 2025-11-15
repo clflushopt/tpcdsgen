@@ -16,7 +16,7 @@ impl Date {
         month: 1,
         day: 8,
     };
-    pub const JULIAN_TODAYS_DATE: i32 = 2452663; // toJulianDays(TODAYS_DATE)
+    pub const JULIAN_TODAYS_DATE: i32 = 2452648; // toJulianDays(TODAYS_DATE) = 2003-01-08
     pub const CURRENT_QUARTER: i32 = 1;
     pub const CURRENT_WEEK: i32 = 2;
 
