@@ -79,9 +79,29 @@ find_ported_tables() {
             local table_name="${basename#generate_}"
 
             # Skip custom variants
-            if [[ "$table_name" != *"_custom" ]]; then
-                tables+=("$table_name")
+            if [[ "$table_name" == *"_custom" ]]; then
+                continue
             fi
+
+            # Skip dbgen_version (contains timestamps, will never match)
+            if [[ "$table_name" == "dbgen_version" ]]; then
+                continue
+            fi
+
+            tables+=("$table_name")
+
+            # Add returns tables when parent sales generator exists
+            case "$table_name" in
+                catalog_sales)
+                    tables+=("catalog_returns")
+                    ;;
+                store_sales)
+                    tables+=("store_returns")
+                    ;;
+                web_sales)
+                    tables+=("web_returns")
+                    ;;
+            esac
         fi
     done
 
