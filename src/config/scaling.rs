@@ -1,4 +1,6 @@
 use crate::config::Table;
+use crate::distribution::calendar_distribution::{CalendarDistribution, CalendarWeights};
+use crate::types::Date;
 
 #[derive(Debug, Clone)]
 pub struct Scaling {
@@ -37,14 +39,54 @@ impl Scaling {
         }
     }
 
+    /// Get row count for a specific date for date-based tables.
+    ///
+    /// For sales tables (STORE_SALES, CATALOG_SALES, WEB_SALES), this calculates
+    /// how many rows to generate for a given julian date using the calendar
+    /// distribution weights.
+    ///
+    /// Based on Scaling.getRowCountForDate in Java.
+    pub fn get_row_count_for_date(&self, table: Table, julian_date: i64) -> i64 {
+        let row_count = match table {
+            Table::StoreSales | Table::CatalogSales | Table::WebSales => self.get_row_count(table),
+            Table::Inventory => {
+                self.get_row_count(Table::Warehouse) * self.get_id_count(Table::Item)
+            }
+            _ => panic!("Invalid table for date scaling: {:?}", table),
+        };
+
+        // Convert julian date to a Date
+        let date = Date::from_julian_days(julian_date as i32);
+
+        // Get the appropriate weights based on year (leap year or not)
+        let weights = if Date::is_leap_year(date.year()) {
+            CalendarWeights::SalesLeapYear
+        } else {
+            CalendarWeights::Sales
+        };
+
+        // Calculate row count for this date using calendar distribution
+        // The formula: rowCount = (rowCount * dayWeight + calendarTotal/2) / calendarTotal
+        // This distributes the total row count across dates based on weights
+        let calendar_total = CalendarDistribution::get_max_weight(weights) as i64 * 5; // 5 years of data
+        let day_index = CalendarDistribution::get_index_for_date(&date);
+        let day_weight = CalendarDistribution::get_weight_for_day_number(day_index, weights) as i64;
+
+        let mut result = row_count * day_weight;
+        result += calendar_total / 2; // rounding
+        result /= calendar_total;
+
+        result
+    }
+
     /// Basic row counts per table.
     fn get_base_row_count(&self, table: Table) -> i64 {
         match table {
             // TODO(clflushopt): Derive from scaling implementation later on.
             Table::CallCenter => 6,
             Table::CatalogPage => 11718,
-            Table::CatalogReturns => 144,
-            Table::CatalogSales => 1441548,
+            Table::CatalogReturns => 160000, // Same as CatalogSales orders (returns are ~10% of sales)
+            Table::CatalogSales => 160000,   // Number of ORDERS, not line items (16 * 10^4)
             Table::Customer => 100000,
             Table::CustomerAddress => 50000,
             Table::CustomerDemographics => 1920800,
@@ -52,18 +94,18 @@ impl Scaling {
             Table::HouseholdDemographics => 7200,
             Table::IncomeBand => 20,
             Table::Inventory => 11745000,
-            Table::Item => 17999,
+            Table::Item => 18000,
             Table::Promotion => 300,
             Table::Reason => 35,
             Table::ShipMode => 20,
             Table::Store => 12,
-            Table::StoreReturns => 287514,
-            Table::StoreSales => 2879987,
+            Table::StoreReturns => 240000, // Same as StoreSales orders (returns are ~10% of sales)
+            Table::StoreSales => 240000,   // Number of ORDERS, not line items (24 * 10^4)
             Table::TimeDim => 86400,
             Table::Warehouse => 5,
             Table::WebPage => 60,
-            Table::WebReturns => 71763,
-            Table::WebSales => 719384,
+            Table::WebReturns => 60000, // Same as WebSales orders (returns are ~10% of sales)
+            Table::WebSales => 60000,   // Number of ORDERS, not line items (60 * 10^3)
             Table::WebSite => 30,
             Table::DbgenVersion => 1,
 

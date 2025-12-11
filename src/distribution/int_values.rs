@@ -206,6 +206,26 @@ impl IntValuesDistribution {
         let actual_index = (index as usize) % values.len();
         values[actual_index]
     }
+
+    /// Pick a random index from the specified weight list
+    pub fn pick_random_index(
+        &self,
+        weight_list_index: usize,
+        stream: &mut dyn RandomNumberStream,
+    ) -> Result<usize> {
+        if weight_list_index >= self.weights_lists.len() {
+            return Err(TpcdsError::new(&format!(
+                "Weight list index {} out of range, max is {}",
+                weight_list_index,
+                self.weights_lists.len().saturating_sub(1)
+            )));
+        }
+
+        DistributionUtils::pick_random_index_from_weights(
+            &self.weights_lists[weight_list_index],
+            stream,
+        )
+    }
 }
 
 impl Distribution<i32> for IntValuesDistribution {

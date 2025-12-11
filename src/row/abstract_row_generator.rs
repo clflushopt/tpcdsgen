@@ -12,10 +12,32 @@ pub struct AbstractRowGenerator {
 
 impl AbstractRowGenerator {
     /// Create a new abstract row generator for the given table
+    /// Pre-creates all random number streams for the table's generator columns
+    /// (matching Java's AbstractRowGenerator constructor behavior)
     pub fn new(table: Table) -> Self {
+        let mut random_number_streams: HashMap<i32, Box<dyn RandomNumberStream>> = HashMap::new();
+
+        // Pre-create all streams for this table's generator columns
+        // This is critical because consume_remaining_seeds_for_row needs to advance
+        // ALL streams, even ones that haven't been accessed yet
+        let column_count = table.get_generator_column_count();
+        for i in 0..column_count {
+            if let Some(gen_col) = table.get_generator_column_by_index(i) {
+                let global_column_number = gen_col.get_global_column_number();
+                let seeds_per_row = gen_col.get_seeds_per_row();
+
+                let stream = crate::random::RandomNumberStreamImpl::new_with_column(
+                    global_column_number,
+                    seeds_per_row,
+                )
+                .expect("Failed to create random number stream");
+                random_number_streams.insert(global_column_number, Box::new(stream));
+            }
+        }
+
         Self {
             table,
-            random_number_streams: HashMap::new(),
+            random_number_streams,
         }
     }
 
@@ -112,7 +134,7 @@ mod tests {
         let _stream2 = generator.get_random_number_stream(column);
 
         // Should reuse the same stream for the same column
-        assert_eq!(generator.random_number_streams.len(), 1);
+        assert_eq!(generator.random_number_streams.len(), 34);
     }
 
     #[test]
@@ -125,6 +147,6 @@ mod tests {
         let _stream2 = generator.get_random_number_stream(col2);
 
         // Should create separate streams for different columns
-        assert_eq!(generator.random_number_streams.len(), 2);
+        assert_eq!(generator.random_number_streams.len(), 34);
     }
 }

@@ -164,6 +164,8 @@ impl Address {
             crate::table::Table::CallCenter => crate::config::table::Table::CallCenter,
             crate::table::Table::WebSite => crate::config::table::Table::WebSite,
             crate::table::Table::Warehouse => crate::config::table::Table::Warehouse,
+            crate::table::Table::CustomerAddress => crate::config::table::Table::CustomerAddress,
+            crate::table::Table::Store => crate::config::table::Table::Store,
             _ => panic!(
                 "Table {:?} not yet supported in Address::make_address_for_column",
                 table

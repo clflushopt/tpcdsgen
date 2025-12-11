@@ -152,6 +152,44 @@ impl CalendarDistribution {
         let value_ref = pick_random_value(&dist.days_of_year, weights_list, stream)?;
         Ok(*value_ref)
     }
+
+    /// Get the 0-based index into the calendar distribution for a given date.
+    ///
+    /// Based on CalendarDistribution.getIndexForDate in Java.
+    pub fn get_index_for_date(date: &crate::types::Date) -> i32 {
+        let leap_year_index = if crate::types::Date::is_leap_year(date.year()) {
+            1
+        } else {
+            0
+        };
+        Self::DAYS_BEFORE_MONTH[leap_year_index][(date.month() - 1) as usize] + date.day() - 1
+    }
+
+    /// Get the weight for a specific day number using the specified weights.
+    ///
+    /// Based on CalendarDistribution.getWeightForDayNumber in Java.
+    /// This reverses the cumulative weights to get the raw (individual day) weight,
+    /// matching Java's DistributionUtils.getWeightForIndex behavior.
+    pub fn get_weight_for_day_number(day_number: i32, weights: CalendarWeights) -> i32 {
+        let dist = Self::get_instance();
+        let weights_list = &dist.weights_lists[weights as usize];
+        // Reverse the accumulation to get raw weight (like Java's getWeightForIndex)
+        if day_number == 0 {
+            weights_list[0]
+        } else {
+            weights_list[day_number as usize] - weights_list[(day_number - 1) as usize]
+        }
+    }
+
+    /// Get the maximum weight for the specified weights distribution.
+    ///
+    /// Based on CalendarDistribution.getMaxWeight in Java.
+    /// The max weight is the last element in the cumulative weights list.
+    pub fn get_max_weight(weights: CalendarWeights) -> i32 {
+        let dist = Self::get_instance();
+        let weights_list = &dist.weights_lists[weights as usize];
+        *weights_list.last().unwrap_or(&0)
+    }
 }
 
 #[cfg(test)]

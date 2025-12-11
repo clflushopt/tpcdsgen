@@ -1,3 +1,4 @@
+use crate::random::{RandomNumberStream, RandomValueGenerator};
 use crate::types::Decimal;
 
 #[derive(Debug, Clone)]
@@ -225,6 +226,229 @@ impl PricingLimits {
     pub fn get_max_wholesale_cost(&self) -> Decimal {
         self.max_wholesale_cost
     }
+}
+
+/// Generate pricing for sales table (store_sales, catalog_sales, web_sales)
+/// This is the Rust equivalent of Java's Pricing.generatePricingForSalesTable
+pub fn generate_pricing_for_sales_table(
+    limits: &PricingLimits,
+    stream: &mut dyn RandomNumberStream,
+) -> Pricing {
+    let quantity = RandomValueGenerator::generate_uniform_random_int(
+        Pricing::QUANTITY_MIN,
+        limits.get_max_quantity_sold(),
+        stream,
+    );
+    let decimal_quantity = Decimal::from_integer(quantity);
+    let wholesale_cost = RandomValueGenerator::generate_uniform_random_decimal(
+        Decimal::new(100, 2).unwrap(), // 1.00
+        limits.get_max_wholesale_cost(),
+        stream,
+    );
+    let ext_wholesale_cost = Decimal::multiply(decimal_quantity, wholesale_cost);
+
+    let mut markup = RandomValueGenerator::generate_uniform_random_decimal(
+        Pricing::markup_min(),
+        limits.get_max_markup(),
+        stream,
+    );
+    markup = Decimal::add2(markup, Decimal::ONE);
+    let list_price = Decimal::multiply(wholesale_cost, markup);
+
+    let mut discount = Decimal::negate(RandomValueGenerator::generate_uniform_random_decimal(
+        Pricing::discount_min(),
+        limits.get_max_discount(),
+        stream,
+    ));
+    discount = Decimal::add2(discount, Decimal::ONE);
+    let sales_price = Decimal::multiply(list_price, discount);
+    let ext_list_price = Decimal::multiply(list_price, decimal_quantity);
+    let ext_sales_price = Decimal::multiply(sales_price, decimal_quantity);
+    let ext_discount_amount = Decimal::subtract(ext_list_price, ext_sales_price);
+
+    let coupon =
+        RandomValueGenerator::generate_uniform_random_decimal(Decimal::ZERO, Decimal::ONE, stream);
+    let coupon_usage = RandomValueGenerator::generate_uniform_random_int(1, 100, stream);
+    let coupon_amount = if coupon_usage <= 20 {
+        // 20% of sales employ a coupon
+        Decimal::multiply(ext_sales_price, coupon)
+    } else {
+        Decimal::ZERO
+    };
+
+    let net_paid = Decimal::subtract(ext_sales_price, coupon_amount);
+
+    let shipping = RandomValueGenerator::generate_uniform_random_decimal(
+        Decimal::ZERO,
+        Decimal::ONE_HALF,
+        stream,
+    );
+    let ship_cost = Decimal::multiply(list_price, shipping);
+    let ext_ship_cost = Decimal::multiply(ship_cost, decimal_quantity);
+    let net_paid_including_shipping = Decimal::add2(net_paid, ext_ship_cost);
+    let tax_percent = RandomValueGenerator::generate_uniform_random_decimal(
+        Decimal::ZERO,
+        Decimal::NINE_PERCENT,
+        stream,
+    );
+    let ext_tax = Decimal::multiply(net_paid, tax_percent);
+    let net_paid_including_tax = Decimal::add2(net_paid, ext_tax);
+    let net_paid_including_shipping_and_tax = Decimal::add2(net_paid_including_shipping, ext_tax);
+    let net_profit = Decimal::subtract(net_paid, ext_wholesale_cost);
+
+    // only relevant for returns
+    let refunded_cash = Decimal::ZERO;
+    let reversed_charge = Decimal::ZERO;
+    let store_credit = Decimal::ZERO;
+    let fee = Decimal::ZERO;
+    let net_loss = Decimal::ZERO;
+
+    Pricing::new(
+        wholesale_cost,
+        list_price,
+        sales_price,
+        quantity,
+        ext_discount_amount,
+        ext_sales_price,
+        ext_wholesale_cost,
+        ext_list_price,
+        tax_percent,
+        ext_tax,
+        coupon_amount,
+        ship_cost,
+        ext_ship_cost,
+        net_paid,
+        net_paid_including_tax,
+        net_paid_including_shipping,
+        net_paid_including_shipping_and_tax,
+        net_profit,
+        refunded_cash,
+        reversed_charge,
+        store_credit,
+        fee,
+        net_loss,
+    )
+}
+
+/// Predefined pricing limits for store_sales
+pub fn get_store_sales_pricing_limits() -> PricingLimits {
+    PricingLimits::new(100, Decimal::ONE, Decimal::ONE, Decimal::ONE_HUNDRED)
+}
+
+/// Predefined pricing limits for web_sales
+pub fn get_web_sales_pricing_limits() -> PricingLimits {
+    PricingLimits::new(
+        100,
+        Decimal::new(200, 2).unwrap(), // 2.00
+        Decimal::ONE,
+        Decimal::ONE_HUNDRED,
+    )
+}
+
+/// Predefined pricing limits for catalog_sales
+pub fn get_catalog_sales_pricing_limits() -> PricingLimits {
+    // CS_QUANTITY_MAX = 100, CS_MARKUP_MAX = 2.00, CS_DISCOUNT_MAX = 1.00, CS_WHOLESALE_MAX = 100.00
+    PricingLimits::new(
+        100,
+        Decimal::new(200, 2).unwrap(), // 2.00
+        Decimal::ONE,
+        Decimal::ONE_HUNDRED,
+    )
+}
+
+/// Generate pricing for returns table (store_returns, catalog_returns, web_returns)
+/// This is the Rust equivalent of Java's Pricing.generatePricingForReturnsTable
+pub fn generate_pricing_for_returns_table(
+    stream: &mut dyn RandomNumberStream,
+    quantity: i32,
+    base_pricing: &Pricing,
+) -> Pricing {
+    let wholesale_cost = base_pricing.get_wholesale_cost();
+    let list_price = base_pricing.get_list_price();
+    let sales_price = base_pricing.get_sales_price();
+    let tax_percent = base_pricing.get_tax_percent();
+    let ext_discount_amount = base_pricing.get_ext_discount_amount();
+    let coupon_amount = base_pricing.get_coupon_amount();
+
+    let decimal_quantity = Decimal::from_integer(quantity);
+    let ext_wholesale_cost = Decimal::multiply(decimal_quantity, wholesale_cost);
+    let ext_list_price = Decimal::multiply(list_price, decimal_quantity);
+    let ext_sales_price = Decimal::multiply(sales_price, decimal_quantity);
+    let net_paid = ext_sales_price;
+
+    let shipping = RandomValueGenerator::generate_uniform_random_decimal(
+        Decimal::ZERO,
+        Decimal::ONE_HALF,
+        stream,
+    );
+    let ship_cost = Decimal::multiply(list_price, shipping);
+    let ext_ship_cost = Decimal::multiply(ship_cost, decimal_quantity);
+    let net_paid_including_shipping = Decimal::add2(net_paid, ext_ship_cost);
+    let ext_tax = Decimal::multiply(net_paid, tax_percent);
+    let net_paid_including_tax = Decimal::add2(net_paid, ext_tax);
+    let net_paid_including_shipping_and_tax = Decimal::add2(net_paid_including_shipping, ext_tax);
+    let net_profit = Decimal::subtract(net_paid, ext_wholesale_cost);
+
+    // See to it that the returned amounts add up to the total returned
+    // Allocate some of return to cash
+    let cash_percentage = Decimal::from_integer(RandomValueGenerator::generate_uniform_random_int(
+        0, 100, stream,
+    ));
+    let refunded_cash = Decimal::multiply(
+        Decimal::divide(cash_percentage, Decimal::ONE_HUNDRED),
+        net_paid,
+    );
+
+    // Allocate some to reversed charges
+    let credit_percent = Decimal::from_integer(RandomValueGenerator::generate_uniform_random_int(
+        1, 100, stream,
+    ));
+    let credit_percent = Decimal::divide(credit_percent, Decimal::ONE_HUNDRED);
+    let paid_minus_refunded = Decimal::subtract(net_paid, refunded_cash);
+    let reversed_charge = Decimal::multiply(credit_percent, paid_minus_refunded);
+
+    // The rest is store credit
+    let store_credit = Decimal::subtract(net_paid, reversed_charge);
+    let store_credit = Decimal::subtract(store_credit, refunded_cash);
+
+    // Pick a fee for the return
+    let fee = RandomValueGenerator::generate_uniform_random_decimal(
+        Decimal::ONE_HALF,
+        Decimal::ONE_HUNDRED,
+        stream,
+    );
+
+    // And calculate the net effect
+    let net_loss = Decimal::subtract(net_paid_including_shipping_and_tax, store_credit);
+    let net_loss = Decimal::subtract(net_loss, refunded_cash);
+    let net_loss = Decimal::subtract(net_loss, reversed_charge);
+    let net_loss = Decimal::add2(net_loss, fee);
+
+    Pricing::new(
+        wholesale_cost,
+        list_price,
+        sales_price,
+        quantity,
+        ext_discount_amount,
+        ext_sales_price,
+        ext_wholesale_cost,
+        ext_list_price,
+        tax_percent,
+        ext_tax,
+        coupon_amount,
+        ship_cost,
+        ext_ship_cost,
+        net_paid,
+        net_paid_including_tax,
+        net_paid_including_shipping,
+        net_paid_including_shipping_and_tax,
+        net_profit,
+        refunded_cash,
+        reversed_charge,
+        store_credit,
+        fee,
+        net_loss,
+    )
 }
 
 #[cfg(test)]
