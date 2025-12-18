@@ -44,6 +44,7 @@ struct OrderInfo {
 }
 
 impl OrderInfo {
+    #[allow(clippy::too_many_arguments)]
     fn new(
         ss_sold_store_sk: i64,
         ss_sold_time_sk: i64,

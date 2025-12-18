@@ -86,7 +86,7 @@ impl CatalogSalesRowGenerator {
         CatalogSalesRowGenerator {
             abstract_generator: AbstractRowGenerator::new(Table::CatalogSales),
             item_permutation: None,
-            julian_date: Date::JULIAN_DATA_START_DATE as i64,
+            julian_date: Date::JULIAN_DATA_START_DATE,
             next_date_index: 0,
             remaining_line_items: 0,
             order_info: OrderInfo::default(),
@@ -298,7 +298,7 @@ impl RowGenerator for CatalogSalesRowGenerator {
             self.item_permutation = Some(make_permutation(item_count, stream));
 
             // Initialize date tracking
-            self.julian_date = Date::JULIAN_DATA_START_DATE as i64;
+            self.julian_date = Date::JULIAN_DATA_START_DATE;
             self.next_date_index = scaling
                 .get_row_count_for_date(crate::config::Table::CatalogSales, self.julian_date)
                 + 1;

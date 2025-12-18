@@ -73,7 +73,7 @@ impl CatalogPageRowGenerator {
                 let offset = catalog_interval * duration;
                 ("bi-annual", duration, offset)
             }
-            2 | 3 | 4 | 5 => {
+            2..=5 => {
                 // quarterly (Q1-Q4)
                 let duration = 91;
                 let offset = (catalog_interval - 2) * duration;

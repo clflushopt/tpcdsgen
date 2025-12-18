@@ -211,7 +211,7 @@ impl TableRow for StoreRow {
             self.get_int_or_null(self.address.get_street_number(), &WStoreAddressStreetNum),
             self.get_string_or_null(&self.address.get_street_name(), &WStoreAddressStreetName1),
             self.get_string_or_null(self.address.get_street_type(), &WStoreAddressStreetType),
-            self.get_string_or_null(&self.address.get_suite_number(), &WStoreAddressSuiteNum),
+            self.get_string_or_null(self.address.get_suite_number(), &WStoreAddressSuiteNum),
             self.get_string_or_null(self.address.get_city(), &WStoreAddressCity),
             self.get_string_or_null(
                 self.address.get_county().unwrap_or(""),
