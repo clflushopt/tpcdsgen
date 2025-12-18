@@ -84,38 +84,12 @@ EOF
     exit 0
 }
 
-<<<<<<< Updated upstream
-# Get generator name for table (handles returns tables)
-get_generator_for_table() {
-    local table=$1
-    case "$table" in
-        catalog_returns)
-            echo "catalog_sales"
-            ;;
-        store_returns)
-            echo "store_sales"
-            ;;
-        web_returns)
-            echo "web_sales"
-            ;;
-        *)
-            echo "$table"
-            ;;
-    esac
-}
-
-# Find Rust binary for table
-=======
 # Find Rust binary for table (handles returns tables via parent generator)
->>>>>>> Stashed changes
 find_rust_binary() {
     local table=$1
     local generator
     generator=$(get_generator_for_table "$table")
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
     local binary="$PROJECT_ROOT/target/debug/generate_$generator"
 
     if [[ -f "$binary" ]]; then
@@ -139,10 +113,7 @@ generate_rust_table() {
     local output_file=$2
     local binary
     local generator
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
     generator=$(get_generator_for_table "$table")
 
     if ! binary=$(find_rust_binary "$table"); then
