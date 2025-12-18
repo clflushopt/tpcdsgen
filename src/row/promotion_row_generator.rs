@@ -95,11 +95,15 @@ impl RowGenerator for PromotionRowGenerator {
         let p_cost = Decimal::new(100000, 2)?;
         let p_response_target = 1;
 
+        // generate_word doesn't use random numbers - it deterministically creates from seed
+        // We still need to consume the stream to maintain RNG state
+        let _promo_name_stream = self
+            .abstract_row_generator
+            .get_random_number_stream(&PromotionGeneratorColumn::PPromoName);
         let p_promo_name = RandomValueGenerator::generate_word(
-            row_number as i32,
+            row_number,
             PROMO_NAME_LENGTH,
-            self.abstract_row_generator
-                .get_random_number_stream(&PromotionGeneratorColumn::PPromoName),
+            crate::distribution::get_syllables_distribution(),
         );
 
         // Generate channel flags using a single random int (0-511)

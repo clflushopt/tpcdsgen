@@ -31,9 +31,7 @@ use crate::types::Date;
 const WEB_PAGES_PER_SITE: i32 = 123;
 #[allow(dead_code)]
 const WEB_DATE_STAGGER: i64 = 17;
-#[allow(dead_code)]
 const CS_MIN_SHIP_DELAY: i32 = 2;
-#[allow(dead_code)]
 const CS_MAX_SHIP_DELAY: i32 = 90;
 const CATALOGS_PER_YEAR: i32 = 18;
 
@@ -76,7 +74,7 @@ pub fn generate_join_key(
             );
             generate_date_join_key(random_number_stream, from_column, join_count, year, scaling)
         }
-        Table::TimeDim => generate_time_join_key(random_number_stream),
+        Table::TimeDim => generate_time_join_key(from_column, random_number_stream),
         _ => {
             if to_table.keeps_history() {
                 generate_scd_join_key(to_table, random_number_stream, join_count, scaling)
@@ -146,7 +144,7 @@ fn generate_catalog_page_join_key(
 ///
 /// Different table types use different date selection strategies:
 /// - Sales tables use SALES or SALES_LEAP_YEAR weights
-/// - Returns tables use date returns logic (with lag)
+/// - Returns tables use date returns logic (with lag from sale date)
 /// - Web-related tables use web join key logic
 /// - Other tables use UNIFORM or UNIFORM_LEAP_YEAR weights
 ///
@@ -160,20 +158,24 @@ fn generate_date_join_key(
 ) -> Result<i64> {
     use crate::column::Table as ColumnTable;
 
-    // Check if this is a WEB_SITE or WEB_PAGE table by checking the from_column table
     let from_table = from_column.get_table();
+
+    // Check if this is a WEB_SITE or WEB_PAGE table
     if from_table == ColumnTable::WebPage || from_table == ColumnTable::WebSite {
-        // Use web join key logic for WEB_PAGE and WEB_SITE columns
         return generate_web_join_key(from_column, random_number_stream, join_count, scaling);
     }
 
-    // TODO: Detect other table types from from_column to select appropriate weights:
-    // - STORE_SALES, CATALOG_SALES, WEB_SALES -> Sales/SalesLeapYear
-    // - STORE_RETURNS, CATALOG_RETURNS, WEB_RETURNS -> generateDateReturnsJoinKey
-    // - Default -> Uniform/UniformLeapYear
-    //
-    // For now, use Sales weights (most common case) with leap year detection
-    // NOTE: WEB_SITE and WEB_PAGE are handled above via generateWebJoinKey
+    // Returns tables: date is computed as sale_date + lag
+    // Based on JoinKeyUtils.java:generateDateReturnsJoinKey (lines 192-211)
+    if from_table == ColumnTable::StoreReturns
+        || from_table == ColumnTable::CatalogReturns
+        || from_table == ColumnTable::WebReturns
+    {
+        return generate_date_returns_join_key(from_table, random_number_stream, join_count);
+    }
+
+    // Sales tables: use SALES weights
+    // Default: use SALES weights (most common case)
     let weights = if Date::is_leap_year(year) {
         CalendarWeights::SalesLeapYear
     } else {
@@ -189,30 +191,33 @@ fn generate_date_join_key(
     })
 }
 
-// NOTE: This function is currently unused due to column::Table vs config::Table mismatch
-// It will be used once distribution functions are ported
-// /// Generates a date join key for returns tables.
-// ///
-// /// Returns have a lag between the sale date and return date.
-// fn _generate_date_returns_join_key(
-//     from_table: Table,
-//     random_number_stream: &mut dyn RandomNumberStream,
-//     join_count: i64,
-// ) -> Result<i64> {
-//     let (min, max) = match from_table {
-//         Table::StoreReturns | Table::CatalogReturns => (CS_MIN_SHIP_DELAY, CS_MAX_SHIP_DELAY),
-//         Table::WebReturns => (1, 120),
-//         _ => {
-//             return Err(TpcdsError::new(&format!(
-//                 "Invalid table for date returns join: {:?}",
-//                 from_table
-//             )))
-//         }
-//     };
-//
-//     let lag = RandomValueGenerator::generate_uniform_random_int(min * 2, max * 2, random_number_stream);
-//     Ok(join_count + lag as i64)
-// }
+/// Generates a date join key for returns tables.
+///
+/// Returns have a lag between the sale date and return date.
+/// The lag is calculated as: random(min*2, max*2) days after the sale.
+///
+/// Based on JoinKeyUtils.java:generateDateReturnsJoinKey (lines 192-211)
+fn generate_date_returns_join_key(
+    from_table: crate::column::Table,
+    random_number_stream: &mut dyn RandomNumberStream,
+    join_count: i64,  // This is the sale date (julian days)
+) -> Result<i64> {
+    use crate::column::Table as ColumnTable;
+
+    let (min, max) = match from_table {
+        ColumnTable::StoreReturns | ColumnTable::CatalogReturns => (CS_MIN_SHIP_DELAY, CS_MAX_SHIP_DELAY),
+        ColumnTable::WebReturns => (1, 120), // Web returns have 1-120 day ship lag
+        _ => {
+            return Err(TpcdsError::new(&format!(
+                "Invalid table for date returns join: {:?}",
+                from_table
+            )))
+        }
+    };
+
+    let lag = RandomValueGenerator::generate_uniform_random_int(min * 2, max * 2, random_number_stream);
+    Ok(join_count + lag as i64)
+}
 
 /// Generates a join key to the time_dim table.
 ///
@@ -223,16 +228,23 @@ fn generate_date_join_key(
 ///
 /// Returns seconds since midnight (0 to 86399).
 ///
-/// **NOTE**: Since we can't reliably detect the table type from GeneratorColumn,
-/// we use STORE weights as default (most common case for sales tables).
-fn generate_time_join_key(random_number_stream: &mut dyn RandomNumberStream) -> Result<i64> {
-    // TODO: Detect table type from from_column to select appropriate weights:
-    // - STORE_SALES, STORE_RETURNS -> Store
-    // - CATALOG_SALES, WEB_SALES, CATALOG_RETURNS, WEB_RETURNS -> CatalogAndWeb
-    // - Default -> Uniform
-    //
-    // For now, use Store weights (common case for physical store operations)
-    let weights = HoursWeights::Store;
+/// Based on JoinKeyUtils.java:generateTimeJoinKey (lines 213-235)
+fn generate_time_join_key(
+    from_column: &dyn GeneratorColumn,
+    random_number_stream: &mut dyn RandomNumberStream,
+) -> Result<i64> {
+    use crate::column::Table as ColumnTable;
+
+    let from_table = from_column.get_table();
+
+    let weights = match from_table {
+        ColumnTable::StoreSales | ColumnTable::StoreReturns => HoursWeights::Store,
+        ColumnTable::CatalogSales
+        | ColumnTable::CatalogReturns
+        | ColumnTable::WebSales
+        | ColumnTable::WebReturns => HoursWeights::CatalogAndWeb,
+        _ => HoursWeights::Uniform,
+    };
 
     let hour = HoursDistribution::pick_random_hour(weights, random_number_stream)?;
     let seconds = RandomValueGenerator::generate_uniform_random_int(0, 3599, random_number_stream);
@@ -394,8 +406,10 @@ mod tests {
 
     #[test]
     fn test_generate_time_join_key() {
+        use crate::generator::StoreSalesGeneratorColumn;
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
-        let result = generate_time_join_key(&mut stream).unwrap();
+        let column = StoreSalesGeneratorColumn::SsSoldTimeSk;
+        let result = generate_time_join_key(&column, &mut stream).unwrap();
 
         // Time keys should be in range [0, 86400) seconds in a day
         assert!(
@@ -406,11 +420,13 @@ mod tests {
 
     #[test]
     fn test_generate_time_join_key_deterministic() {
+        use crate::generator::StoreSalesGeneratorColumn;
         let mut stream1 = RandomNumberStreamImpl::new(1).unwrap();
         let mut stream2 = RandomNumberStreamImpl::new(1).unwrap();
+        let column = StoreSalesGeneratorColumn::SsSoldTimeSk;
 
-        let result1 = generate_time_join_key(&mut stream1).unwrap();
-        let result2 = generate_time_join_key(&mut stream2).unwrap();
+        let result1 = generate_time_join_key(&column, &mut stream1).unwrap();
+        let result2 = generate_time_join_key(&column, &mut stream2).unwrap();
 
         assert_eq!(result1, result2, "Same seed should produce same time key");
     }

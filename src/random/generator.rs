@@ -197,6 +197,28 @@ impl RandomValueGenerator {
         "http://www.foo.com".to_string()
     }
 
+    /// Generate a random email address (generateRandomEmail)
+    pub fn generate_random_email(
+        first: &str,
+        last: &str,
+        random_number_stream: &mut dyn RandomNumberStream,
+    ) -> String {
+        use crate::distribution::TopDomainsDistribution;
+
+        let domain = TopDomainsDistribution::pick_random_top_domain(random_number_stream)
+            .unwrap_or_else(|_| "com".to_string());
+        let company_length =
+            Self::generate_uniform_random_int(10, 20, random_number_stream) as usize;
+        let company = Self::generate_random_charset(Self::ALPHA_NUMERIC, 1, 20, random_number_stream);
+        let company = if company.len() < company_length {
+            company
+        } else {
+            company[..company_length].to_string()
+        };
+
+        format!("{}.{}@{}.{}", first, last, company, domain)
+    }
+
     // Generate random sentence following Java implementation exactly
     fn generate_random_sentence(random_number_stream: &mut dyn RandomNumberStream) -> String {
         use crate::distribution::*;
@@ -233,24 +255,23 @@ impl RandomValueGenerator {
         verbiage
     }
 
-    // Generate word based on seed and syllables distribution (exact Java implementation)
+    /// Generate word based on seed and syllables distribution (exact Java implementation)
+    /// Takes the distribution as parameter to support both SYLLABLES_DISTRIBUTION and
+    /// BRAND_SYLLABLES_DISTRIBUTION
     pub fn generate_word(
-        seed: i32,
+        seed: i64,
         max_chars: i32,
-        _random_number_stream: &mut dyn RandomNumberStream,
+        distribution: &crate::distribution::FileBasedStringValuesDistribution,
     ) -> String {
-        use crate::distribution::get_syllables_distribution;
-
-        let distribution = get_syllables_distribution();
-        let size = distribution.get_size();
+        let size = distribution.get_size() as i64;
         let mut word = String::new();
-        let mut seed = seed as i64;
+        let mut seed = seed;
 
         while seed > 0 {
             let syllable = distribution
-                .get_value_at_index(0, (seed % size as i64) as usize)
+                .get_value_at_index(0, (seed % size) as usize)
                 .unwrap_or("syl");
-            seed /= size as i64;
+            seed /= size;
 
             if (word.len() + syllable.len()) <= max_chars as usize {
                 word.push_str(syllable);

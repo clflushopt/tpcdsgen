@@ -316,13 +316,15 @@ impl CallCenterRowGenerator {
         }
         field_change_flag >>= 1;
 
-        let division_name_stream = self
+        // Generate word doesn't use random numbers - it deterministically creates from seed
+        // We still need to consume the stream to maintain RNG state
+        let _division_name_stream = self
             .abstract_generator
             .get_random_number_stream(&CallCenterGeneratorColumn::CcDivisionName);
         let mut cc_division_name = RandomValueGenerator::generate_word(
-            cc_division_id,
+            cc_division_id as i64,
             WIDTH_CC_DIVISION_NAME,
-            division_name_stream,
+            crate::distribution::get_syllables_distribution(),
         );
         if let Some(ref prev_row) = self.previous_row {
             cc_division_name = get_value_for_slowly_changing_dimension(
@@ -334,11 +336,14 @@ impl CallCenterRowGenerator {
         }
         field_change_flag >>= 1;
 
-        let company_name_stream = self
+        let _company_name_stream = self
             .abstract_generator
             .get_random_number_stream(&CallCenterGeneratorColumn::CcCompanyName);
-        let mut cc_company_name =
-            RandomValueGenerator::generate_word(cc_company, 10, company_name_stream);
+        let mut cc_company_name = RandomValueGenerator::generate_word(
+            cc_company as i64,
+            10,
+            crate::distribution::get_syllables_distribution(),
+        );
         if let Some(ref prev_row) = self.previous_row {
             cc_company_name = get_value_for_slowly_changing_dimension(
                 field_change_flag,

@@ -233,11 +233,15 @@ impl RowGenerator for WebSiteRowGenerator {
         field_change_flags >>= 1;
 
         // Generate web_company_name
+        // generate_word doesn't use random numbers - it deterministically creates from seed
+        // We still need to consume the stream to maintain RNG state
+        let _company_name_stream = self
+            .abstract_generator
+            .get_random_number_stream(&WebSiteGeneratorColumn::WebCompanyName);
         let mut web_company_name = RandomValueGenerator::generate_word(
-            web_company_id,
+            web_company_id as i64,
             100,
-            self.abstract_generator
-                .get_random_number_stream(&WebSiteGeneratorColumn::WebCompanyName),
+            crate::distribution::get_syllables_distribution(),
         );
         if let Some(ref prev) = self.previous_row {
             web_company_name = get_value_for_slowly_changing_dimension(

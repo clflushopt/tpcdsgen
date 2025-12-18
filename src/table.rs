@@ -1,13 +1,18 @@
 use crate::column::{
-    CallCenterColumn, Column, HouseholdDemographicsColumn, PromotionColumn, WebSiteColumn,
+    CallCenterColumn, Column, CustomerAddressColumn, CustomerColumn, DbgenVersionColumn,
+    HouseholdDemographicsColumn, InventoryColumn, PromotionColumn, WebSiteColumn,
 };
 use crate::error::Result;
 use crate::generator::{
-    CallCenterGeneratorColumn, CustomerDemographicsGeneratorColumn, DateDimGeneratorColumn,
-    GeneratorColumn, HouseholdDemographicsGeneratorColumn, IncomeBandGeneratorColumn,
+    CallCenterGeneratorColumn, CatalogPageGeneratorColumn, CatalogReturnsGeneratorColumn,
+    CatalogSalesGeneratorColumn, CustomerAddressGeneratorColumn,
+    CustomerDemographicsGeneratorColumn, CustomerGeneratorColumn, DateDimGeneratorColumn,
+    DbgenVersionGeneratorColumn, GeneratorColumn, HouseholdDemographicsGeneratorColumn,
+    IncomeBandGeneratorColumn, InventoryGeneratorColumn, ItemGeneratorColumn,
     PromotionGeneratorColumn, ReasonGeneratorColumn, ShipModeGeneratorColumn,
+    StoreGeneratorColumn, StoreReturnsGeneratorColumn, StoreSalesGeneratorColumn,
     TimeDimGeneratorColumn, WarehouseGeneratorColumn, WebPageGeneratorColumn,
-    WebSiteGeneratorColumn,
+    WebReturnsGeneratorColumn, WebSalesGeneratorColumn, WebSiteGeneratorColumn,
 };
 use crate::scaling_info::{ScalingInfo, ScalingModel};
 use crate::table_flags::{TableFlags, TableFlagsBuilder};
@@ -17,18 +22,32 @@ use std::sync::OnceLock;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Table {
     CallCenter,
+    CatalogPage,
+    CatalogReturns,
+    CatalogSales,
     Warehouse,
     ShipMode,
     Reason,
     IncomeBand,
     HouseholdDemographics,
     CustomerDemographics,
+    CustomerAddress,
+    Customer,
     DateDim,
     TimeDim,
-    Item, // Stub for promotion join key - not fully implemented yet
+    Item,
     Promotion,
+    Store,
+    StoreReturns,
+    StoreSales,
     WebPage,
+    WebReturns,
+    WebSales,
     WebSite,
+    DbgenVersion,
+    Inventory,
+    // Source tables (for SCD key computation)
+    SStore,
     // TODO: Add other tables as they are implemented
 }
 
@@ -37,18 +56,31 @@ impl Table {
     pub fn get_name(&self) -> &'static str {
         match self {
             Table::CallCenter => "call_center",
+            Table::CatalogPage => "catalog_page",
+            Table::CatalogReturns => "catalog_returns",
+            Table::CatalogSales => "catalog_sales",
             Table::Warehouse => "warehouse",
             Table::ShipMode => "ship_mode",
             Table::Reason => "reason",
             Table::IncomeBand => "income_band",
             Table::HouseholdDemographics => "household_demographics",
             Table::CustomerDemographics => "customer_demographics",
+            Table::CustomerAddress => "customer_address",
+            Table::Customer => "customer",
             Table::DateDim => "date_dim",
             Table::TimeDim => "time_dim",
             Table::Item => "item",
             Table::Promotion => "promotion",
+            Table::Store => "store",
+            Table::StoreReturns => "store_returns",
+            Table::StoreSales => "store_sales",
             Table::WebPage => "web_page",
+            Table::WebReturns => "web_returns",
+            Table::WebSales => "web_sales",
             Table::WebSite => "web_site",
+            Table::DbgenVersion => "dbgen_version",
+            Table::Inventory => "inventory",
+            Table::SStore => "s_store",
         }
     }
 
@@ -59,30 +91,32 @@ impl Table {
         match self {
             // Java enum order (from Table.java):
             Table::CallCenter => 0,
-            // CATALOG_PAGE => 1,
-            // CATALOG_RETURNS => 2,
-            // CATALOG_SALES => 3,
-            // CUSTOMER => 4,
-            // CUSTOMER_ADDRESS => 5,
+            Table::CatalogPage => 1,
+            Table::CatalogReturns => 2,
+            Table::CatalogSales => 3,
+            Table::Customer => 4,
+            Table::CustomerAddress => 5,
             Table::CustomerDemographics => 6,
             Table::DateDim => 7,
             Table::HouseholdDemographics => 8,
             Table::IncomeBand => 9,
-            // INVENTORY => 10,
+            Table::Inventory => 10,
             Table::Item => 11,
             Table::Promotion => 12,
             Table::Reason => 13,
             Table::ShipMode => 14,
-            // STORE => 15,
-            // STORE_RETURNS => 16,
-            // STORE_SALES => 17,
+            Table::Store => 15,
+            Table::StoreReturns => 16,
+            Table::StoreSales => 17,
             Table::TimeDim => 18,
             Table::Warehouse => 19,
             Table::WebPage => 20,
-            // WEB_RETURNS => 21,
-            // WEB_SALES => 22,
+            Table::WebReturns => 21,
+            Table::WebSales => 22,
             Table::WebSite => 23,
-            // DBGEN_VERSION => 24,
+            Table::DbgenVersion => 24,
+            // Source tables (after the 25 base tables)
+            Table::SStore => 49,
         }
     }
 
@@ -97,6 +131,18 @@ impl Table {
                         .set_keeps_history()
                         .build()
                 })
+            }
+            Table::CatalogPage => {
+                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
+                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
+            }
+            Table::CatalogReturns => {
+                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
+                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
+            }
+            Table::CatalogSales => {
+                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
+                FLAGS.get_or_init(|| TableFlagsBuilder::new().set_is_date_based().build())
             }
             Table::Warehouse => {
                 static FLAGS: OnceLock<TableFlags> = OnceLock::new();
@@ -122,6 +168,14 @@ impl Table {
                 static FLAGS: OnceLock<TableFlags> = OnceLock::new();
                 FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
             }
+            Table::CustomerAddress => {
+                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
+                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
+            }
+            Table::Customer => {
+                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
+                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
+            }
             Table::DateDim => {
                 static FLAGS: OnceLock<TableFlags> = OnceLock::new();
                 FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
@@ -138,9 +192,34 @@ impl Table {
                 static FLAGS: OnceLock<TableFlags> = OnceLock::new();
                 FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
             }
+            Table::Store => {
+                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
+                FLAGS.get_or_init(|| {
+                    TableFlagsBuilder::new()
+                        .set_keeps_history()
+                        .set_is_small()
+                        .build()
+                })
+            }
+            Table::StoreReturns => {
+                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
+                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
+            }
+            Table::StoreSales => {
+                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
+                FLAGS.get_or_init(|| TableFlagsBuilder::new().set_is_date_based().build())
+            }
             Table::WebPage => {
                 static FLAGS: OnceLock<TableFlags> = OnceLock::new();
                 FLAGS.get_or_init(|| TableFlagsBuilder::new().set_keeps_history().build())
+            }
+            Table::WebReturns => {
+                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
+                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
+            }
+            Table::WebSales => {
+                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
+                FLAGS.get_or_init(|| TableFlagsBuilder::new().set_is_date_based().build())
             }
             Table::WebSite => {
                 static FLAGS: OnceLock<TableFlags> = OnceLock::new();
@@ -151,6 +230,18 @@ impl Table {
                         .build()
                 })
             }
+            Table::DbgenVersion => {
+                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
+                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
+            }
+            Table::Inventory => {
+                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
+                FLAGS.get_or_init(|| TableFlagsBuilder::new().set_is_date_based().build())
+            }
+            Table::SStore => {
+                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
+                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
+            }
         }
     }
 
@@ -158,18 +249,31 @@ impl Table {
     pub fn get_null_basis_points(&self) -> i32 {
         match self {
             Table::CallCenter => 100,
+            Table::CatalogPage => 200,
+            Table::CatalogReturns => 400,
+            Table::CatalogSales => 100,
             Table::Warehouse => 100,
             Table::ShipMode => 100,
             Table::Reason => 100,
             Table::IncomeBand => 0,
             Table::HouseholdDemographics => 0,
             Table::CustomerDemographics => 0,
+            Table::CustomerAddress => 600,
+            Table::Customer => 700,
             Table::DateDim => 0,
             Table::TimeDim => 0,
             Table::Item => 50,
             Table::Promotion => 200,
+            Table::Store => 100,
+            Table::StoreReturns => 700,
+            Table::StoreSales => 900,
             Table::WebPage => 250,
+            Table::WebReturns => 900,
+            Table::WebSales => 5,
             Table::WebSite => 100,
+            Table::DbgenVersion => 0,
+            Table::Inventory => 1000,
+            Table::SStore => 0,
         }
     }
 
@@ -177,18 +281,31 @@ impl Table {
     pub fn get_not_null_bit_map(&self) -> i64 {
         match self {
             Table::CallCenter => 0xB,
+            Table::CatalogPage => 0x3,
+            Table::CatalogReturns => 0x10007,
+            Table::CatalogSales => 0x28000,
             Table::Warehouse => 0x3,
             Table::ShipMode => 0x3,
             Table::Reason => 0x3,
             Table::IncomeBand => 0x1,
             Table::HouseholdDemographics => 0x1,
             Table::CustomerDemographics => 0x1,
+            Table::CustomerAddress => 0x3,
+            Table::Customer => 0x13,
             Table::DateDim => 0x3,
             Table::TimeDim => 0x3,
             Table::Item => 0xB,
             Table::Promotion => 0x3,
+            Table::Store => 0xB,
+            Table::StoreReturns => 0x204,
+            Table::StoreSales => 0x204,
             Table::WebPage => 0xB,
+            Table::WebReturns => 0x2004,
+            Table::WebSales => 0x20008,
             Table::WebSite => 0xB,
+            Table::DbgenVersion => 0x0,
+            Table::Inventory => 0x07,
+            Table::SStore => 0x0,
         }
     }
 
@@ -201,6 +318,30 @@ impl Table {
                     let row_counts = [0, 3, 12, 15, 18, 21, 24, 27, 30, 30];
                     ScalingInfo::new(0, ScalingModel::Logarithmic, &row_counts, 0)
                         .expect("CallCenter ScalingInfo creation should not fail")
+                })
+            }
+            Table::CatalogPage => {
+                static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
+                SCALING.get_or_init(|| {
+                    let row_counts = [0, 11718, 12000, 20400, 26000, 30000, 36000, 40000, 46000, 50000];
+                    ScalingInfo::new(0, ScalingModel::Static, &row_counts, 0)
+                        .expect("CatalogPage ScalingInfo creation should not fail")
+                })
+            }
+            Table::CatalogReturns => {
+                static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
+                SCALING.get_or_init(|| {
+                    let row_counts = [0, 16, 160, 1600, 4800, 16000, 48000, 160000, 480000, 1600000];
+                    ScalingInfo::new(4, ScalingModel::Linear, &row_counts, 0)
+                        .expect("CatalogReturns ScalingInfo creation should not fail")
+                })
+            }
+            Table::CatalogSales => {
+                static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
+                SCALING.get_or_init(|| {
+                    let row_counts = [0, 16, 160, 1600, 4800, 16000, 48000, 160000, 480000, 1600000];
+                    ScalingInfo::new(4, ScalingModel::Linear, &row_counts, 0)
+                        .expect("CatalogSales ScalingInfo creation should not fail")
                 })
             }
             Table::Warehouse => {
@@ -253,6 +394,26 @@ impl Table {
                         .expect("CustomerDemographics ScalingInfo creation should not fail")
                 })
             }
+            Table::CustomerAddress => {
+                static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
+                SCALING.get_or_init(|| {
+                    let row_counts = [
+                        0, 50, 250, 1000, 2500, 6000, 15000, 32500, 40000, 50000,
+                    ];
+                    ScalingInfo::new(3, ScalingModel::Logarithmic, &row_counts, 0)
+                        .expect("CustomerAddress ScalingInfo creation should not fail")
+                })
+            }
+            Table::Customer => {
+                static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
+                SCALING.get_or_init(|| {
+                    let row_counts = [
+                        0, 100, 500, 2000, 5000, 12000, 30000, 65000, 80000, 100000,
+                    ];
+                    ScalingInfo::new(3, ScalingModel::Logarithmic, &row_counts, 0)
+                        .expect("Customer ScalingInfo creation should not fail")
+                })
+            }
             Table::DateDim => {
                 static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
                 SCALING.get_or_init(|| {
@@ -289,12 +450,54 @@ impl Table {
                         .expect("Promotion ScalingInfo creation should not fail")
                 })
             }
+            Table::Store => {
+                static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
+                SCALING.get_or_init(|| {
+                    let row_counts = [0, 6, 51, 201, 402, 501, 675, 750, 852, 951];
+                    ScalingInfo::new(0, ScalingModel::Logarithmic, &row_counts, 0)
+                        .expect("Store ScalingInfo creation should not fail")
+                })
+            }
+            Table::StoreReturns => {
+                // StoreReturns is generated as part of StoreSales (10% return rate)
+                // Its row count is derived from StoreSales, not independently scaled
+                static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
+                SCALING.get_or_init(|| {
+                    let row_counts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                    ScalingInfo::new(0, ScalingModel::Static, &row_counts, 0)
+                        .expect("StoreReturns ScalingInfo creation should not fail")
+                })
+            }
+            Table::StoreSales => {
+                static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
+                SCALING.get_or_init(|| {
+                    let row_counts = [0, 24, 240, 2400, 7200, 24000, 72000, 240000, 720000, 2400000];
+                    ScalingInfo::new(4, ScalingModel::Linear, &row_counts, 0)
+                        .expect("StoreSales ScalingInfo creation should not fail")
+                })
+            }
             Table::WebPage => {
                 static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
                 SCALING.get_or_init(|| {
                     let row_counts = [0, 30, 100, 1020, 1302, 1500, 1800, 2001, 2301, 2502];
                     ScalingInfo::new(0, ScalingModel::Logarithmic, &row_counts, 0)
                         .expect("WebPage ScalingInfo creation should not fail")
+                })
+            }
+            Table::WebReturns => {
+                static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
+                SCALING.get_or_init(|| {
+                    let row_counts = [0, 60, 600, 6000, 18000, 60000, 180000, 600000, 1800000, 6000000];
+                    ScalingInfo::new(3, ScalingModel::Linear, &row_counts, 0)
+                        .expect("WebReturns ScalingInfo creation should not fail")
+                })
+            }
+            Table::WebSales => {
+                static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
+                SCALING.get_or_init(|| {
+                    let row_counts = [0, 60, 600, 6000, 18000, 60000, 180000, 600000, 1800000, 6000000];
+                    ScalingInfo::new(3, ScalingModel::Linear, &row_counts, 0)
+                        .expect("WebSales ScalingInfo creation should not fail")
                 })
             }
             Table::WebSite => {
@@ -305,6 +508,33 @@ impl Table {
                         .expect("WebSite ScalingInfo creation should not fail")
                 })
             }
+            Table::DbgenVersion => {
+                static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
+                SCALING.get_or_init(|| {
+                    let row_counts = [0, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+                    ScalingInfo::new(0, ScalingModel::Static, &row_counts, 0)
+                        .expect("DbgenVersion ScalingInfo creation should not fail")
+                })
+            }
+            Table::Inventory => {
+                // Inventory row count = item_id_count × warehouse_count × weeks
+                // This is dynamically computed in the generator, these are placeholder values
+                static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
+                SCALING.get_or_init(|| {
+                    let row_counts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                    ScalingInfo::new(0, ScalingModel::Static, &row_counts, 0)
+                        .expect("Inventory ScalingInfo creation should not fail")
+                })
+            }
+            Table::SStore => {
+                // Source table - no scaling info, use static 0
+                static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
+                SCALING.get_or_init(|| {
+                    let row_counts = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+                    ScalingInfo::new(0, ScalingModel::Static, &row_counts, 0)
+                        .expect("SStore ScalingInfo creation should not fail")
+                })
+            }
         }
     }
 
@@ -312,18 +542,31 @@ impl Table {
     pub fn get_column_count(&self) -> usize {
         match self {
             Table::CallCenter => CallCenterColumn::values().len(),
+            Table::CatalogPage => 9, // CatalogPageColumn has 9 columns
+            Table::CatalogReturns => 27, // CatalogReturnsColumn has 27 columns
+            Table::CatalogSales => 34, // CatalogSalesColumn has 34 columns
             Table::Warehouse => 0, // TODO: Return WarehouseColumn::values().len() once WarehouseColumn is implemented
             Table::ShipMode => 0, // TODO: Return ShipModeColumn::values().len() once ShipModeColumn is implemented
             Table::Reason => 0, // TODO: Return ReasonColumn::values().len() once ReasonColumn is implemented
             Table::IncomeBand => 0, // TODO: Return IncomeBandColumn::values().len() once IncomeBandColumn is implemented
             Table::HouseholdDemographics => HouseholdDemographicsColumn::values().len(),
             Table::CustomerDemographics => 0, // TODO: Return CustomerDemographicsColumn::values().len() once CustomerDemographicsColumn is implemented
+            Table::CustomerAddress => CustomerAddressColumn::values().len(),
+            Table::Customer => CustomerColumn::values().len(),
             Table::DateDim => 0, // TODO: Return DateDimColumn::values().len() once DateDimColumn is implemented
             Table::TimeDim => 0, // TODO: Return TimeDimColumn::values().len() once TimeDimColumn is implemented
-            Table::Item => 0, // TODO: Return ItemColumn::values().len() once ItemColumn is implemented
+            Table::Item => 22, // ItemColumn has 22 columns (I_ITEM_SK to I_PRODUCT_NAME)
             Table::Promotion => PromotionColumn::values().len(),
+            Table::Store => 29, // StoreColumn has 29 columns
+            Table::StoreReturns => 20, // StoreReturnsColumn has 20 columns
+            Table::StoreSales => 23, // StoreSalesColumn has 23 columns
             Table::WebPage => 0, // TODO: Return WebPageColumn::values().len() once WebPageColumn is implemented
+            Table::WebReturns => 24, // WebReturnsColumn has 24 columns
+            Table::WebSales => 34, // WebSalesColumn has 34 columns
             Table::WebSite => WebSiteColumn::values().len(),
+            Table::DbgenVersion => DbgenVersionColumn::values().len(),
+            Table::Inventory => InventoryColumn::values().len(),
+            Table::SStore => 0, // Source table
         }
     }
 
@@ -331,18 +574,31 @@ impl Table {
     pub fn get_generator_column_count(&self) -> usize {
         match self {
             Table::CallCenter => CallCenterGeneratorColumn::values().len(),
+            Table::CatalogPage => CatalogPageGeneratorColumn::all_variants().len(),
+            Table::CatalogReturns => CatalogReturnsGeneratorColumn::all_variants().len(),
+            Table::CatalogSales => CatalogSalesGeneratorColumn::all_variants().len(),
             Table::Warehouse => WarehouseGeneratorColumn::values().len(),
             Table::ShipMode => ShipModeGeneratorColumn::values().len(),
             Table::Reason => ReasonGeneratorColumn::values().len(),
             Table::IncomeBand => IncomeBandGeneratorColumn::values().len(),
             Table::HouseholdDemographics => HouseholdDemographicsGeneratorColumn::values().len(),
             Table::CustomerDemographics => CustomerDemographicsGeneratorColumn::values().len(),
+            Table::CustomerAddress => CustomerAddressGeneratorColumn::values().len(),
+            Table::Customer => CustomerGeneratorColumn::values().len(),
             Table::DateDim => DateDimGeneratorColumn::values().len(),
             Table::TimeDim => TimeDimGeneratorColumn::values().len(),
-            Table::Item => 0, // TODO: Return ItemGeneratorColumn::values().len() once implemented
+            Table::Item => ItemGeneratorColumn::all_columns().len(),
             Table::Promotion => PromotionGeneratorColumn::values().len(),
+            Table::Store => StoreGeneratorColumn::all_columns().len(),
+            Table::StoreReturns => StoreReturnsGeneratorColumn::all_variants().len(),
+            Table::StoreSales => StoreSalesGeneratorColumn::all_variants().len(),
             Table::WebPage => WebPageGeneratorColumn::values().len(),
+            Table::WebReturns => WebReturnsGeneratorColumn::all_variants().len(),
+            Table::WebSales => WebSalesGeneratorColumn::all_variants().len(),
             Table::WebSite => WebSiteGeneratorColumn::values().len(),
+            Table::DbgenVersion => DbgenVersionGeneratorColumn::values().len(),
+            Table::Inventory => InventoryGeneratorColumn::all_variants().len(),
+            Table::SStore => 0, // Source table
         }
     }
 
@@ -352,6 +608,18 @@ impl Table {
             Table::CallCenter => {
                 let columns = CallCenterColumn::values();
                 columns.get(index).map(|col| col as &dyn Column)
+            }
+            Table::CatalogPage => {
+                // TODO: Implement once CatalogPageColumn is created
+                None
+            }
+            Table::CatalogReturns => {
+                // TODO: Implement once CatalogReturnsColumn is created
+                None
+            }
+            Table::CatalogSales => {
+                // TODO: Implement once CatalogSalesColumn is created
+                None
             }
             Table::Warehouse => {
                 // TODO: Implement once WarehouseColumn is created
@@ -377,6 +645,14 @@ impl Table {
                 // TODO: Implement once CustomerDemographicsColumn is created
                 None
             }
+            Table::CustomerAddress => {
+                let columns = CustomerAddressColumn::values();
+                columns.get(index).map(|col| col as &dyn Column)
+            }
+            Table::Customer => {
+                let columns = CustomerColumn::values();
+                columns.get(index).map(|col| col as &dyn Column)
+            }
             Table::DateDim => {
                 // TODO: Implement once DateDimColumn is created
                 None
@@ -393,14 +669,43 @@ impl Table {
                 let columns = PromotionColumn::values();
                 columns.get(index).map(|col| col as &dyn Column)
             }
+            Table::Store => {
+                // TODO: Implement once StoreColumn is created
+                None
+            }
+            Table::StoreReturns => {
+                // TODO: Implement once StoreReturnsColumn is created
+                None
+            }
+            Table::StoreSales => {
+                // TODO: Implement once StoreSalesColumn is created
+                None
+            }
             Table::WebPage => {
                 // TODO: Implement once WebPageColumn is created
+                None
+            }
+            Table::WebReturns => {
+                // TODO: Implement once WebReturnsColumn is created
+                None
+            }
+            Table::WebSales => {
+                // TODO: Implement once WebSalesColumn is created
                 None
             }
             Table::WebSite => {
                 let columns = WebSiteColumn::values();
                 columns.get(index).map(|col| col as &dyn Column)
             }
+            Table::DbgenVersion => {
+                let columns = DbgenVersionColumn::values();
+                columns.get(index).map(|col| col as &dyn Column)
+            }
+            Table::Inventory => {
+                let columns = InventoryColumn::values();
+                columns.get(index).map(|col| col as &dyn Column)
+            }
+            Table::SStore => None, // Source table
         }
     }
 
@@ -412,6 +717,18 @@ impl Table {
         match self {
             Table::CallCenter => {
                 let columns = CallCenterGeneratorColumn::values();
+                columns.get(index).map(|col| col as &dyn GeneratorColumn)
+            }
+            Table::CatalogPage => {
+                let columns = CatalogPageGeneratorColumn::all_variants();
+                columns.get(index).map(|col| col as &dyn GeneratorColumn)
+            }
+            Table::CatalogReturns => {
+                let columns = CatalogReturnsGeneratorColumn::all_variants();
+                columns.get(index).map(|col| col as &dyn GeneratorColumn)
+            }
+            Table::CatalogSales => {
+                let columns = CatalogSalesGeneratorColumn::all_variants();
                 columns.get(index).map(|col| col as &dyn GeneratorColumn)
             }
             Table::Warehouse => {
@@ -438,6 +755,14 @@ impl Table {
                 let columns = CustomerDemographicsGeneratorColumn::values();
                 columns.get(index).map(|col| col as &dyn GeneratorColumn)
             }
+            Table::CustomerAddress => {
+                let columns = CustomerAddressGeneratorColumn::values();
+                columns.get(index).map(|col| col as &dyn GeneratorColumn)
+            }
+            Table::Customer => {
+                let columns = CustomerGeneratorColumn::values();
+                columns.get(index).map(|col| col as &dyn GeneratorColumn)
+            }
             Table::DateDim => {
                 let columns = DateDimGeneratorColumn::values();
                 columns.get(index).map(|col| col as &dyn GeneratorColumn)
@@ -447,11 +772,23 @@ impl Table {
                 columns.get(index).map(|col| col as &dyn GeneratorColumn)
             }
             Table::Item => {
-                // TODO: Implement once ItemGeneratorColumn is created
-                None
+                let columns = ItemGeneratorColumn::all_columns();
+                columns.get(index).map(|col| col as &dyn GeneratorColumn)
             }
             Table::Promotion => {
                 let columns = PromotionGeneratorColumn::values();
+                columns.get(index).map(|col| col as &dyn GeneratorColumn)
+            }
+            Table::Store => {
+                let columns = StoreGeneratorColumn::all_columns();
+                columns.get(index).map(|col| col as &dyn GeneratorColumn)
+            }
+            Table::StoreReturns => {
+                let columns = StoreReturnsGeneratorColumn::all_variants();
+                columns.get(index).map(|col| col as &dyn GeneratorColumn)
+            }
+            Table::StoreSales => {
+                let columns = StoreSalesGeneratorColumn::all_variants();
                 columns.get(index).map(|col| col as &dyn GeneratorColumn)
             }
             Table::WebPage => {
@@ -459,11 +796,28 @@ impl Table {
                 let columns = COLUMNS.get_or_init(|| WebPageGeneratorColumn::values().to_vec());
                 columns.get(index).map(|col| col as &dyn GeneratorColumn)
             }
+            Table::WebReturns => {
+                let columns = WebReturnsGeneratorColumn::all_variants();
+                columns.get(index).map(|col| col as &dyn GeneratorColumn)
+            }
+            Table::WebSales => {
+                let columns = WebSalesGeneratorColumn::all_variants();
+                columns.get(index).map(|col| col as &dyn GeneratorColumn)
+            }
             Table::WebSite => {
                 static COLUMNS: OnceLock<Vec<WebSiteGeneratorColumn>> = OnceLock::new();
                 let columns = COLUMNS.get_or_init(|| WebSiteGeneratorColumn::values().to_vec());
                 columns.get(index).map(|col| col as &dyn GeneratorColumn)
             }
+            Table::DbgenVersion => {
+                let columns = DbgenVersionGeneratorColumn::values();
+                columns.get(index).map(|col| col as &dyn GeneratorColumn)
+            }
+            Table::Inventory => {
+                let columns = InventoryGeneratorColumn::all_variants();
+                columns.get(index).map(|col| col as &dyn GeneratorColumn)
+            }
+            Table::SStore => None, // Source table
         }
     }
 
@@ -522,10 +876,13 @@ impl Table {
             Table::IncomeBand,
             Table::HouseholdDemographics,
             Table::CustomerDemographics,
+            Table::CustomerAddress,
+            Table::Customer,
             Table::DateDim,
             Table::TimeDim,
             Table::Item,
             Table::Promotion,
+            Table::Store,
             Table::WebPage,
             Table::WebSite,
         ] // TODO: Add other tables as implemented
@@ -568,18 +925,31 @@ impl From<Table> for crate::column::Table {
     fn from(table: Table) -> Self {
         match table {
             Table::CallCenter => crate::column::Table::CallCenter,
+            Table::CatalogPage => crate::column::Table::CatalogPage,
+            Table::CatalogReturns => crate::column::Table::CatalogReturns,
+            Table::CatalogSales => crate::column::Table::CatalogSales,
             Table::Warehouse => crate::column::Table::Warehouse,
             Table::ShipMode => crate::column::Table::ShipMode,
             Table::Reason => crate::column::Table::Reason,
             Table::IncomeBand => crate::column::Table::IncomeBand,
             Table::HouseholdDemographics => crate::column::Table::HouseholdDemographics,
             Table::CustomerDemographics => crate::column::Table::CustomerDemographics,
+            Table::CustomerAddress => crate::column::Table::CustomerAddress,
+            Table::Customer => crate::column::Table::Customer,
             Table::DateDim => crate::column::Table::DateDim,
             Table::TimeDim => crate::column::Table::TimeDim,
             Table::Item => crate::column::Table::Item,
             Table::Promotion => crate::column::Table::Promotion,
+            Table::Store => crate::column::Table::Store,
+            Table::StoreReturns => crate::column::Table::StoreReturns,
+            Table::StoreSales => crate::column::Table::StoreSales,
             Table::WebPage => crate::column::Table::WebPage,
+            Table::WebReturns => crate::column::Table::WebReturns,
+            Table::WebSales => crate::column::Table::WebSales,
             Table::WebSite => crate::column::Table::WebSite,
+            Table::DbgenVersion => crate::column::Table::DbgenVersion,
+            Table::Inventory => crate::column::Table::Inventory,
+            Table::SStore => crate::column::Table::SStore,
         }
     }
 }
@@ -588,18 +958,31 @@ impl From<crate::column::Table> for Table {
     fn from(table: crate::column::Table) -> Self {
         match table {
             crate::column::Table::CallCenter => Table::CallCenter,
+            crate::column::Table::CatalogPage => Table::CatalogPage,
+            crate::column::Table::CatalogReturns => Table::CatalogReturns,
+            crate::column::Table::CatalogSales => Table::CatalogSales,
             crate::column::Table::Warehouse => Table::Warehouse,
             crate::column::Table::ShipMode => Table::ShipMode,
             crate::column::Table::Reason => Table::Reason,
             crate::column::Table::IncomeBand => Table::IncomeBand,
             crate::column::Table::HouseholdDemographics => Table::HouseholdDemographics,
             crate::column::Table::CustomerDemographics => Table::CustomerDemographics,
+            crate::column::Table::CustomerAddress => Table::CustomerAddress,
+            crate::column::Table::Customer => Table::Customer,
             crate::column::Table::DateDim => Table::DateDim,
             crate::column::Table::TimeDim => Table::TimeDim,
             crate::column::Table::Item => Table::Item,
             crate::column::Table::Promotion => Table::Promotion,
+            crate::column::Table::Store => Table::Store,
+            crate::column::Table::StoreReturns => Table::StoreReturns,
+            crate::column::Table::StoreSales => Table::StoreSales,
             crate::column::Table::WebPage => Table::WebPage,
+            crate::column::Table::WebReturns => Table::WebReturns,
+            crate::column::Table::WebSales => Table::WebSales,
             crate::column::Table::WebSite => Table::WebSite,
+            crate::column::Table::DbgenVersion => Table::DbgenVersion,
+            crate::column::Table::Inventory => Table::Inventory,
+            crate::column::Table::SStore => Table::SStore,
         }
     }
 }

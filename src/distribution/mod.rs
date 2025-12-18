@@ -9,6 +9,7 @@ pub mod file_loader;
 pub mod fips_county_distribution;
 pub mod hours_distribution;
 pub mod int_values;
+pub mod items_distributions;
 pub mod location_types_distribution;
 pub mod names_distributions;
 pub mod return_reasons_distribution;
@@ -39,5 +40,6 @@ pub use string_values_distribution::StringValuesDistribution as FileBasedStringV
 pub use top_domains_distribution::TopDomainsDistribution;
 pub use utils::{Distribution, DistributionUtils, WeightsBuilder};
 pub use web_page_use_distribution::WebPageUseDistribution;
+pub use items_distributions::*;
 
 // TODO(clflushopt): Include files in the module instead of reading them at runtime ?
