@@ -21,32 +21,32 @@ use crate::generator::GeneratorColumn;
 /// Global column numbers 383-408
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum WebReturnsGeneratorColumn {
-    WrReturnedDateSk,       // 383
-    WrReturnedTimeSk,       // 384
-    WrItemSk,               // 385
-    WrRefundedCustomerSk,   // 386
-    WrRefundedCdemoSk,      // 387
-    WrRefundedHdemoSk,      // 388
-    WrRefundedAddrSk,       // 389
-    WrReturningCustomerSk,  // 390
-    WrReturningCdemoSk,     // 391
-    WrReturningHdemoSk,     // 392
-    WrReturningAddrSk,      // 393
-    WrWebPageSk,            // 394
-    WrReasonSk,             // 395
-    WrOrderNumber,          // 396
-    WrPricingQuantity,      // 397
-    WrPricingNetPaid,       // 398
-    WrPricingExtTax,        // 399
-    WrPricingNetPaidIncTax, // 400
-    WrPricingFee,           // 401
-    WrPricingExtShipCost,   // 402
-    WrPricingRefundedCash,  // 403
-    WrPricingReversedCharge,// 404
-    WrPricingStoreCredit,   // 405
-    WrPricingNetLoss,       // 406
-    WrPricing,              // 407
-    WrNulls,                // 408
+    WrReturnedDateSk,        // 383
+    WrReturnedTimeSk,        // 384
+    WrItemSk,                // 385
+    WrRefundedCustomerSk,    // 386
+    WrRefundedCdemoSk,       // 387
+    WrRefundedHdemoSk,       // 388
+    WrRefundedAddrSk,        // 389
+    WrReturningCustomerSk,   // 390
+    WrReturningCdemoSk,      // 391
+    WrReturningHdemoSk,      // 392
+    WrReturningAddrSk,       // 393
+    WrWebPageSk,             // 394
+    WrReasonSk,              // 395
+    WrOrderNumber,           // 396
+    WrPricingQuantity,       // 397
+    WrPricingNetPaid,        // 398
+    WrPricingExtTax,         // 399
+    WrPricingNetPaidIncTax,  // 400
+    WrPricingFee,            // 401
+    WrPricingExtShipCost,    // 402
+    WrPricingRefundedCash,   // 403
+    WrPricingReversedCharge, // 404
+    WrPricingStoreCredit,    // 405
+    WrPricingNetLoss,        // 406
+    WrPricing,               // 407
+    WrNulls,                 // 408
 }
 
 impl GeneratorColumn for WebReturnsGeneratorColumn {

@@ -103,13 +103,16 @@ impl CatalogSalesRowGenerator {
         // Move to a new date if the row number is ahead of the nextDateIndex
         while row_number > self.next_date_index {
             self.julian_date += 1;
-            self.next_date_index += scaling.get_row_count_for_date(crate::config::Table::CatalogSales, self.julian_date);
+            self.next_date_index += scaling
+                .get_row_count_for_date(crate::config::Table::CatalogSales, self.julian_date);
         }
 
         let cs_sold_date_sk = self.julian_date;
 
         // cs_sold_time_sk uses cs_call_center_sk from previous order (like Java)
-        let stream = self.abstract_generator.get_random_number_stream(&CsSoldTimeSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CsSoldTimeSk);
         let cs_sold_time_sk = generate_join_key(
             &CsSoldTimeSk,
             stream,
@@ -118,7 +121,9 @@ impl CatalogSalesRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&CsCallCenterSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CsCallCenterSk);
         let cs_call_center_sk = if cs_sold_date_sk == -1 {
             -1
         } else {
@@ -131,7 +136,9 @@ impl CatalogSalesRowGenerator {
             )?
         };
 
-        let stream = self.abstract_generator.get_random_number_stream(&CsBillCustomerSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CsBillCustomerSk);
         let cs_bill_customer_sk = generate_join_key(
             &CsBillCustomerSk,
             stream,
@@ -140,7 +147,9 @@ impl CatalogSalesRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&CsBillCdemoSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CsBillCdemoSk);
         let cs_bill_cdemo_sk = generate_join_key(
             &CsBillCdemoSk,
             stream,
@@ -149,7 +158,9 @@ impl CatalogSalesRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&CsBillHdemoSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CsBillHdemoSk);
         let cs_bill_hdemo_sk = generate_join_key(
             &CsBillHdemoSk,
             stream,
@@ -158,7 +169,9 @@ impl CatalogSalesRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&CsBillAddrSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CsBillAddrSk);
         let cs_bill_addr_sk = generate_join_key(
             &CsBillAddrSk,
             stream,
@@ -168,13 +181,17 @@ impl CatalogSalesRowGenerator {
         )?;
 
         // Most orders are for the ordering customer, some are gifts (10%)
-        let stream = self.abstract_generator.get_random_number_stream(&CsShipCustomerSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CsShipCustomerSk);
         let gift_percentage = RandomValueGenerator::generate_uniform_random_int(0, 99, stream);
 
         let (cs_ship_customer_sk, cs_ship_cdemo_sk, cs_ship_hdemo_sk, cs_ship_addr_sk) =
             if gift_percentage <= GIFT_PERCENTAGE {
                 // Gift order - ship to different customer
-                let stream = self.abstract_generator.get_random_number_stream(&CsShipCustomerSk);
+                let stream = self
+                    .abstract_generator
+                    .get_random_number_stream(&CsShipCustomerSk);
                 let ship_customer = generate_join_key(
                     &CsShipCustomerSk,
                     stream,
@@ -183,7 +200,9 @@ impl CatalogSalesRowGenerator {
                     scaling,
                 )?;
 
-                let stream = self.abstract_generator.get_random_number_stream(&CsShipCdemoSk);
+                let stream = self
+                    .abstract_generator
+                    .get_random_number_stream(&CsShipCdemoSk);
                 let ship_cdemo = generate_join_key(
                     &CsShipCdemoSk,
                     stream,
@@ -192,7 +211,9 @@ impl CatalogSalesRowGenerator {
                     scaling,
                 )?;
 
-                let stream = self.abstract_generator.get_random_number_stream(&CsShipHdemoSk);
+                let stream = self
+                    .abstract_generator
+                    .get_random_number_stream(&CsShipHdemoSk);
                 let ship_hdemo = generate_join_key(
                     &CsShipHdemoSk,
                     stream,
@@ -201,7 +222,9 @@ impl CatalogSalesRowGenerator {
                     scaling,
                 )?;
 
-                let stream = self.abstract_generator.get_random_number_stream(&CsShipAddrSk);
+                let stream = self
+                    .abstract_generator
+                    .get_random_number_stream(&CsShipAddrSk);
                 let ship_addr = generate_join_key(
                     &CsShipAddrSk,
                     stream,
@@ -213,7 +236,12 @@ impl CatalogSalesRowGenerator {
                 (ship_customer, ship_cdemo, ship_hdemo, ship_addr)
             } else {
                 // Same as bill customer
-                (cs_bill_customer_sk, cs_bill_cdemo_sk, cs_bill_hdemo_sk, cs_bill_addr_sk)
+                (
+                    cs_bill_customer_sk,
+                    cs_bill_cdemo_sk,
+                    cs_bill_hdemo_sk,
+                    cs_bill_addr_sk,
+                )
             };
 
         let cs_order_number = row_number;
@@ -240,7 +268,8 @@ impl CatalogSalesRowGenerator {
 
     /// Consume remaining seeds for the child (catalog_returns) generator.
     pub fn consume_child_seeds(&mut self) {
-        self.catalog_returns_generator.consume_remaining_seeds_for_row();
+        self.catalog_returns_generator
+            .consume_remaining_seeds_for_row();
     }
 }
 
@@ -270,21 +299,24 @@ impl RowGenerator for CatalogSalesRowGenerator {
 
             // Initialize date tracking
             self.julian_date = Date::JULIAN_DATA_START_DATE as i64;
-            self.next_date_index = scaling.get_row_count_for_date(crate::config::Table::CatalogSales, self.julian_date) + 1;
+            self.next_date_index = scaling
+                .get_row_count_for_date(crate::config::Table::CatalogSales, self.julian_date)
+                + 1;
         }
 
         // Start a new order if we've finished the previous one
         if self.remaining_line_items == 0 {
             self.order_info = self.generate_order_info(row_number, session)?;
 
-            let stream = self.abstract_generator.get_random_number_stream(&CsSoldItemSk);
-            self.ticket_item_base = RandomValueGenerator::generate_uniform_random_int(
-                1,
-                item_count as i32,
-                stream,
-            );
+            let stream = self
+                .abstract_generator
+                .get_random_number_stream(&CsSoldItemSk);
+            self.ticket_item_base =
+                RandomValueGenerator::generate_uniform_random_int(1, item_count as i32, stream);
 
-            let stream = self.abstract_generator.get_random_number_stream(&CsOrderNumber);
+            let stream = self
+                .abstract_generator
+                .get_random_number_stream(&CsOrderNumber);
             self.remaining_line_items =
                 RandomValueGenerator::generate_uniform_random_int(4, 14, stream);
         }
@@ -294,7 +326,9 @@ impl RowGenerator for CatalogSalesRowGenerator {
         let null_bit_map = create_null_bit_map(Table::CatalogSales, stream);
 
         // Orders are shipped some number of days after they are ordered
-        let stream = self.abstract_generator.get_random_number_stream(&CsShipDateSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CsShipDateSk);
         let shipping_lag = RandomValueGenerator::generate_uniform_random_int(
             CS_MIN_SHIP_DELAY,
             CS_MAX_SHIP_DELAY,
@@ -324,7 +358,9 @@ impl RowGenerator for CatalogSalesRowGenerator {
         );
 
         // Catalog page needs to be from a catalog active at the time of the sale
-        let stream = self.abstract_generator.get_random_number_stream(&CsCatalogPageSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CsCatalogPageSk);
         let cs_catalog_page_sk = if self.order_info.cs_sold_date_sk == -1 {
             -1
         } else {
@@ -338,7 +374,9 @@ impl RowGenerator for CatalogSalesRowGenerator {
         };
 
         // Generate ship mode
-        let stream = self.abstract_generator.get_random_number_stream(&CsShipModeSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CsShipModeSk);
         let cs_ship_mode_sk = generate_join_key(
             &CsShipModeSk,
             stream,
@@ -348,7 +386,9 @@ impl RowGenerator for CatalogSalesRowGenerator {
         )?;
 
         // Generate warehouse
-        let stream = self.abstract_generator.get_random_number_stream(&CsWarehouseSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CsWarehouseSk);
         let cs_warehouse_sk = generate_join_key(
             &CsWarehouseSk,
             stream,
@@ -369,7 +409,8 @@ impl RowGenerator for CatalogSalesRowGenerator {
 
         // Generate pricing
         let stream = self.abstract_generator.get_random_number_stream(&CsPricing);
-        let cs_pricing = generate_pricing_for_sales_table(&get_catalog_sales_pricing_limits(), stream);
+        let cs_pricing =
+            generate_pricing_for_sales_table(&get_catalog_sales_pricing_limits(), stream);
 
         let catalog_sales_row = CatalogSalesRow::new(
             null_bit_map,
@@ -398,7 +439,9 @@ impl RowGenerator for CatalogSalesRowGenerator {
         generated_rows.push(Box::new(catalog_sales_row.clone()));
 
         // Check if this sale gets returned (10% return rate)
-        let stream = self.abstract_generator.get_random_number_stream(&CrIsReturned);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CrIsReturned);
         let random_int = RandomValueGenerator::generate_uniform_random_int(0, 99, stream);
 
         // Generate return row if applicable

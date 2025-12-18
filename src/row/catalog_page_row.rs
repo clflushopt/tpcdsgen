@@ -65,7 +65,11 @@ impl CatalogPageRow {
         (self.null_bit_map & (1 << bit_position)) != 0
     }
 
-    fn get_string_or_null_for_key(&self, value: i64, column: &CatalogPageGeneratorColumn) -> String {
+    fn get_string_or_null_for_key(
+        &self,
+        value: i64,
+        column: &CatalogPageGeneratorColumn,
+    ) -> String {
         if self.is_null(column) || value < 0 {
             String::new()
         } else {

@@ -54,10 +54,7 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     }
 
     writer.flush()?;
-    println!(
-        "Generated store data written to: {}",
-        output_path.display()
-    );
+    println!("Generated store data written to: {}", output_path.display());
     println!("File contains {} rows", num_rows);
 
     Ok(())

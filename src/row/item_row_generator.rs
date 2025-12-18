@@ -71,11 +71,18 @@ impl ItemRowGenerator {
         let i_item_sk = row_number;
 
         // Generate manager ID range
-        let stream = self.abstract_generator.get_random_number_stream(&IManagerId);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&IManagerId);
         let (manager_min, manager_max) = pick_random_manager_id_range(IdWeights::Unified, stream)?;
-        let stream = self.abstract_generator.get_random_number_stream(&IManagerId);
-        let i_manager_id =
-            RandomValueGenerator::generate_uniform_random_key(manager_min as i64, manager_max as i64, stream);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&IManagerId);
+        let i_manager_id = RandomValueGenerator::generate_uniform_random_key(
+            manager_min as i64,
+            manager_max as i64,
+            stream,
+        );
 
         // Compute SCD key
         let scd_key = compute_scd_key(Table::Item, row_number);
@@ -103,15 +110,21 @@ impl ItemRowGenerator {
         field_change_flags >>= 1;
 
         // Generate current price - There is a bug in C code that always chooses new record
-        let stream = self.abstract_generator.get_random_number_stream(&ICurrentPrice);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&ICurrentPrice);
         let (price_min, price_max) = pick_random_current_price_range(stream)?;
-        let stream = self.abstract_generator.get_random_number_stream(&ICurrentPrice);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&ICurrentPrice);
         let i_current_price =
             RandomValueGenerator::generate_uniform_random_decimal(price_min, price_max, stream);
         field_change_flags >>= 1;
 
         // Generate wholesale cost
-        let stream = self.abstract_generator.get_random_number_stream(&IWholesaleCost);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&IWholesaleCost);
         let markdown = RandomValueGenerator::generate_uniform_random_decimal(
             min_item_markdown_pct(),
             max_item_markdown_pct(),
@@ -187,15 +200,17 @@ impl ItemRowGenerator {
         field_change_flags >>= 1;
 
         // Generate manufact ID
-        let stream = self.abstract_generator.get_random_number_stream(&IManufactId);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&IManufactId);
         let (manufact_min, manufact_max) =
             pick_random_manufact_id_range(IdWeights::Unified, stream)?;
-        let stream = self.abstract_generator.get_random_number_stream(&IManufactId);
-        let mut i_manufact_id = RandomValueGenerator::generate_uniform_random_int(
-            manufact_min,
-            manufact_max,
-            stream,
-        ) as i64;
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&IManufactId);
+        let mut i_manufact_id =
+            RandomValueGenerator::generate_uniform_random_int(manufact_min, manufact_max, stream)
+                as i64;
         if let Some(ref prev_row) = self.previous_row {
             i_manufact_id = get_value_for_slowly_changing_dimension(
                 field_change_flags,
@@ -223,16 +238,22 @@ impl ItemRowGenerator {
         field_change_flags >>= 1;
 
         // Generate formulation
-        let stream = self.abstract_generator.get_random_number_stream(&IFormulation);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&IFormulation);
         let mut i_formulation = RandomValueGenerator::generate_random_charset(
             RandomValueGenerator::DIGITS,
             ROW_SIZE_I_FORMULATION,
             ROW_SIZE_I_FORMULATION,
             stream,
         );
-        let stream = self.abstract_generator.get_random_number_stream(&IFormulation);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&IFormulation);
         let color = pick_random_color(ColorsWeights::Skewed, stream)?;
-        let stream = self.abstract_generator.get_random_number_stream(&IFormulation);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&IFormulation);
         let position = RandomValueGenerator::generate_uniform_random_int(
             0,
             i_formulation.len() as i32 - color.len() as i32 - 1,

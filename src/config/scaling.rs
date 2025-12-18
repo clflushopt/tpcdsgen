@@ -49,7 +49,9 @@ impl Scaling {
     pub fn get_row_count_for_date(&self, table: Table, julian_date: i64) -> i64 {
         let row_count = match table {
             Table::StoreSales | Table::CatalogSales | Table::WebSales => self.get_row_count(table),
-            Table::Inventory => self.get_row_count(Table::Warehouse) * self.get_id_count(Table::Item),
+            Table::Inventory => {
+                self.get_row_count(Table::Warehouse) * self.get_id_count(Table::Item)
+            }
             _ => panic!("Invalid table for date scaling: {:?}", table),
         };
 
@@ -84,7 +86,7 @@ impl Scaling {
             Table::CallCenter => 6,
             Table::CatalogPage => 11718,
             Table::CatalogReturns => 160000, // Same as CatalogSales orders (returns are ~10% of sales)
-            Table::CatalogSales => 160000, // Number of ORDERS, not line items (16 * 10^4)
+            Table::CatalogSales => 160000,   // Number of ORDERS, not line items (16 * 10^4)
             Table::Customer => 100000,
             Table::CustomerAddress => 50000,
             Table::CustomerDemographics => 1920800,
@@ -98,12 +100,12 @@ impl Scaling {
             Table::ShipMode => 20,
             Table::Store => 12,
             Table::StoreReturns => 240000, // Same as StoreSales orders (returns are ~10% of sales)
-            Table::StoreSales => 240000, // Number of ORDERS, not line items (24 * 10^4)
+            Table::StoreSales => 240000,   // Number of ORDERS, not line items (24 * 10^4)
             Table::TimeDim => 86400,
             Table::Warehouse => 5,
             Table::WebPage => 60,
             Table::WebReturns => 60000, // Same as WebSales orders (returns are ~10% of sales)
-            Table::WebSales => 60000, // Number of ORDERS, not line items (60 * 10^3)
+            Table::WebSales => 60000,   // Number of ORDERS, not line items (60 * 10^3)
             Table::WebSite => 30,
             Table::DbgenVersion => 1,
 

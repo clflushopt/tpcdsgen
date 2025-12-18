@@ -90,12 +90,17 @@ impl CatalogReturnsRow {
 
     fn is_null(&self, column: &CatalogReturnsGeneratorColumn) -> bool {
         let column_number = column.get_global_column_number();
-        let first_column = CatalogReturnsGeneratorColumn::CrReturnedDateSk.get_global_column_number();
+        let first_column =
+            CatalogReturnsGeneratorColumn::CrReturnedDateSk.get_global_column_number();
         let bit_position = column_number - first_column;
         (self.null_bit_map & (1 << bit_position)) != 0
     }
 
-    fn get_string_or_null_for_key(&self, value: i64, column: &CatalogReturnsGeneratorColumn) -> String {
+    fn get_string_or_null_for_key(
+        &self,
+        value: i64,
+        column: &CatalogReturnsGeneratorColumn,
+    ) -> String {
         if self.is_null(column) || value < 0 {
             String::new()
         } else {
@@ -103,7 +108,11 @@ impl CatalogReturnsRow {
         }
     }
 
-    fn get_string_or_null<T: ToString>(&self, value: T, column: &CatalogReturnsGeneratorColumn) -> String {
+    fn get_string_or_null<T: ToString>(
+        &self,
+        value: T,
+        column: &CatalogReturnsGeneratorColumn,
+    ) -> String {
         if self.is_null(column) {
             String::new()
         } else {
@@ -137,11 +146,17 @@ impl TableRow for CatalogReturnsRow {
             self.get_string_or_null(self.cr_pricing.get_quantity(), &CrPricingQuantity),
             self.get_string_or_null(self.cr_pricing.get_net_paid(), &CrPricingNetPaid),
             self.get_string_or_null(self.cr_pricing.get_ext_tax(), &CrPricingExtTax),
-            self.get_string_or_null(self.cr_pricing.get_net_paid_including_tax(), &CrPricingNetPaidIncTax),
+            self.get_string_or_null(
+                self.cr_pricing.get_net_paid_including_tax(),
+                &CrPricingNetPaidIncTax,
+            ),
             self.get_string_or_null(self.cr_pricing.get_fee(), &CrPricingFee),
             self.get_string_or_null(self.cr_pricing.get_ext_ship_cost(), &CrPricingExtShipCost),
             self.get_string_or_null(self.cr_pricing.get_refunded_cash(), &CrPricingRefundedCash),
-            self.get_string_or_null(self.cr_pricing.get_reversed_charge(), &CrPricingReversedCharge),
+            self.get_string_or_null(
+                self.cr_pricing.get_reversed_charge(),
+                &CrPricingReversedCharge,
+            ),
             self.get_string_or_null(self.cr_pricing.get_store_credit(), &CrPricingStoreCredit),
             self.get_string_or_null(self.cr_pricing.get_net_loss(), &CrPricingNetLoss),
         ]

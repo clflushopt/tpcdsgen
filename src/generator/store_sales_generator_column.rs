@@ -21,32 +21,32 @@ use crate::generator::GeneratorColumn;
 /// Global column numbers 314-339
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum StoreSalesGeneratorColumn {
-    SsSoldDateSk,           // 314
-    SsSoldTimeSk,           // 315
-    SsSoldItemSk,           // 316
-    SsSoldCustomerSk,       // 317
-    SsSoldCdemoSk,          // 318
-    SsSoldHdemoSk,          // 319
-    SsSoldAddrSk,           // 320
-    SsSoldStoreSk,          // 321
-    SsSoldPromoSk,          // 322
-    SsTicketNumber,         // 323
-    SsPricingQuantity,      // 324
-    SsPricingWholesaleCost, // 325
-    SsPricingListPrice,     // 326
-    SsPricingSalesPrice,    // 327
-    SsPricingCouponAmt,     // 328
-    SsPricingExtSalesPrice, // 329
+    SsSoldDateSk,              // 314
+    SsSoldTimeSk,              // 315
+    SsSoldItemSk,              // 316
+    SsSoldCustomerSk,          // 317
+    SsSoldCdemoSk,             // 318
+    SsSoldHdemoSk,             // 319
+    SsSoldAddrSk,              // 320
+    SsSoldStoreSk,             // 321
+    SsSoldPromoSk,             // 322
+    SsTicketNumber,            // 323
+    SsPricingQuantity,         // 324
+    SsPricingWholesaleCost,    // 325
+    SsPricingListPrice,        // 326
+    SsPricingSalesPrice,       // 327
+    SsPricingCouponAmt,        // 328
+    SsPricingExtSalesPrice,    // 329
     SsPricingExtWholesaleCost, // 330
-    SsPricingExtListPrice,  // 331
-    SsPricingExtTax,        // 332
-    SsPricingNetPaid,       // 333
-    SsPricingNetPaidIncTax, // 334
-    SsPricingNetProfit,     // 335
-    SrIsReturned,           // 336
-    SsPricing,              // 337
-    SsNulls,                // 338
-    SsPermutation,          // 339
+    SsPricingExtListPrice,     // 331
+    SsPricingExtTax,           // 332
+    SsPricingNetPaid,          // 333
+    SsPricingNetPaidIncTax,    // 334
+    SsPricingNetProfit,        // 335
+    SrIsReturned,              // 336
+    SsPricing,                 // 337
+    SsNulls,                   // 338
+    SsPermutation,             // 339
 }
 
 impl GeneratorColumn for StoreSalesGeneratorColumn {

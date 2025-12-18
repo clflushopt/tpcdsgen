@@ -45,7 +45,11 @@ impl CatalogReturnsRowGenerator {
 
     /// Generate a return row from a sales row
     /// This is called by CatalogSalesRowGenerator when a sale is returned
-    pub fn generate_row(&mut self, session: &Session, sales_row: &CatalogSalesRow) -> Result<Box<dyn TableRow>> {
+    pub fn generate_row(
+        &mut self,
+        session: &Session,
+        sales_row: &CatalogSalesRow,
+    ) -> Result<Box<dyn TableRow>> {
         use CatalogReturnsGeneratorColumn::*;
 
         let scaling = session.get_scaling();
@@ -56,7 +60,9 @@ impl CatalogReturnsRowGenerator {
 
         // Some fields are conditionally taken from the sale
         // By default, use bill customer info (which gets refunded)
-        let stream = self.abstract_generator.get_random_number_stream(&CrReturningCustomerSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CrReturningCustomerSk);
         let mut cr_returning_customer_sk = generate_join_key(
             &CrReturningCustomerSk,
             stream,
@@ -65,7 +71,9 @@ impl CatalogReturnsRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&CrReturningCdemoSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CrReturningCdemoSk);
         let mut cr_returning_cdemo_sk = generate_join_key(
             &CrReturningCdemoSk,
             stream,
@@ -74,7 +82,9 @@ impl CatalogReturnsRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&CrReturningHdemoSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CrReturningHdemoSk);
         let cr_returning_hdemo_sk = generate_join_key(
             &CrReturningHdemoSk,
             stream,
@@ -83,7 +93,9 @@ impl CatalogReturnsRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&CrReturningAddrSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CrReturningAddrSk);
         let mut cr_returning_addr_sk = generate_join_key(
             &CrReturningAddrSk,
             stream,
@@ -93,7 +105,9 @@ impl CatalogReturnsRowGenerator {
         )?;
 
         // If the order was a gift (10%), the ship customer is doing the return
-        let stream = self.abstract_generator.get_random_number_stream(&CrReturningCustomerSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CrReturningCustomerSk);
         let random_int = RandomValueGenerator::generate_uniform_random_int(0, 99, stream);
         if random_int < GIFT_PERCENTAGE {
             cr_returning_customer_sk = sales_row.get_cs_ship_customer_sk();
@@ -108,7 +122,11 @@ impl CatalogReturnsRowGenerator {
             sales_pricing.get_quantity()
         } else {
             let stream = self.abstract_generator.get_random_number_stream(&CrPricing);
-            RandomValueGenerator::generate_uniform_random_int(1, sales_pricing.get_quantity(), stream)
+            RandomValueGenerator::generate_uniform_random_int(
+                1,
+                sales_pricing.get_quantity(),
+                stream,
+            )
         };
 
         // Generate return pricing
@@ -116,7 +134,9 @@ impl CatalogReturnsRowGenerator {
         let cr_pricing = generate_pricing_for_returns_table(stream, quantity, sales_pricing);
 
         // Generate returned date (based on ship date + lag)
-        let stream = self.abstract_generator.get_random_number_stream(&CrReturnedDateSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CrReturnedDateSk);
         let cr_returned_date_sk = generate_join_key(
             &CrReturnedDateSk,
             stream,
@@ -126,7 +146,9 @@ impl CatalogReturnsRowGenerator {
         )?;
 
         // Generate returned time
-        let stream = self.abstract_generator.get_random_number_stream(&CrReturnedTimeSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CrReturnedTimeSk);
         let cr_returned_time_sk = generate_join_key(
             &CrReturnedTimeSk,
             stream,
@@ -136,7 +158,9 @@ impl CatalogReturnsRowGenerator {
         )?;
 
         // Generate ship mode
-        let stream = self.abstract_generator.get_random_number_stream(&CrShipModeSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CrShipModeSk);
         let cr_ship_mode_sk = generate_join_key(
             &CrShipModeSk,
             stream,
@@ -146,7 +170,9 @@ impl CatalogReturnsRowGenerator {
         )?;
 
         // Generate warehouse
-        let stream = self.abstract_generator.get_random_number_stream(&CrWarehouseSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CrWarehouseSk);
         let cr_warehouse_sk = generate_join_key(
             &CrWarehouseSk,
             stream,
@@ -156,7 +182,9 @@ impl CatalogReturnsRowGenerator {
         )?;
 
         // Generate reason
-        let stream = self.abstract_generator.get_random_number_stream(&CrReasonSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CrReasonSk);
         let cr_reason_sk = generate_join_key(
             &CrReasonSk,
             stream,
@@ -169,21 +197,21 @@ impl CatalogReturnsRowGenerator {
             null_bit_map,
             cr_returned_date_sk,
             cr_returned_time_sk,
-            sales_row.get_cs_sold_item_sk(),      // cr_item_sk from sales
-            sales_row.get_cs_bill_customer_sk(),  // cr_refunded_customer_sk from sales bill
-            sales_row.get_cs_bill_cdemo_sk(),     // cr_refunded_cdemo_sk from sales bill
-            sales_row.get_cs_bill_hdemo_sk(),     // cr_refunded_hdemo_sk from sales bill
-            sales_row.get_cs_bill_addr_sk(),      // cr_refunded_addr_sk from sales bill
+            sales_row.get_cs_sold_item_sk(), // cr_item_sk from sales
+            sales_row.get_cs_bill_customer_sk(), // cr_refunded_customer_sk from sales bill
+            sales_row.get_cs_bill_cdemo_sk(), // cr_refunded_cdemo_sk from sales bill
+            sales_row.get_cs_bill_hdemo_sk(), // cr_refunded_hdemo_sk from sales bill
+            sales_row.get_cs_bill_addr_sk(), // cr_refunded_addr_sk from sales bill
             cr_returning_customer_sk,
             cr_returning_cdemo_sk,
             cr_returning_hdemo_sk,
             cr_returning_addr_sk,
-            sales_row.get_cs_call_center_sk(),    // cr_call_center_sk from sales
-            sales_row.get_cs_catalog_page_sk(),   // cr_catalog_page_sk from sales
+            sales_row.get_cs_call_center_sk(), // cr_call_center_sk from sales
+            sales_row.get_cs_catalog_page_sk(), // cr_catalog_page_sk from sales
             cr_ship_mode_sk,
             cr_warehouse_sk,
             cr_reason_sk,
-            sales_row.get_cs_order_number(),      // cr_order_number from sales
+            sales_row.get_cs_order_number(), // cr_order_number from sales
             cr_pricing,
         )))
     }

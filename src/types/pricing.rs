@@ -266,11 +266,8 @@ pub fn generate_pricing_for_sales_table(
     let ext_sales_price = Decimal::multiply(sales_price, decimal_quantity);
     let ext_discount_amount = Decimal::subtract(ext_list_price, ext_sales_price);
 
-    let coupon = RandomValueGenerator::generate_uniform_random_decimal(
-        Decimal::ZERO,
-        Decimal::ONE,
-        stream,
-    );
+    let coupon =
+        RandomValueGenerator::generate_uniform_random_decimal(Decimal::ZERO, Decimal::ONE, stream);
     let coupon_usage = RandomValueGenerator::generate_uniform_random_int(1, 100, stream);
     let coupon_amount = if coupon_usage <= 20 {
         // 20% of sales employ a coupon
@@ -394,18 +391,18 @@ pub fn generate_pricing_for_returns_table(
 
     // See to it that the returned amounts add up to the total returned
     // Allocate some of return to cash
-    let cash_percentage = Decimal::from_integer(
-        RandomValueGenerator::generate_uniform_random_int(0, 100, stream),
-    );
+    let cash_percentage = Decimal::from_integer(RandomValueGenerator::generate_uniform_random_int(
+        0, 100, stream,
+    ));
     let refunded_cash = Decimal::multiply(
         Decimal::divide(cash_percentage, Decimal::ONE_HUNDRED),
         net_paid,
     );
 
     // Allocate some to reversed charges
-    let credit_percent = Decimal::from_integer(
-        RandomValueGenerator::generate_uniform_random_int(1, 100, stream),
-    );
+    let credit_percent = Decimal::from_integer(RandomValueGenerator::generate_uniform_random_int(
+        1, 100, stream,
+    ));
     let credit_percent = Decimal::divide(credit_percent, Decimal::ONE_HUNDRED);
     let paid_minus_refunded = Decimal::subtract(net_paid, refunded_cash);
     let reversed_charge = Decimal::multiply(credit_percent, paid_minus_refunded);

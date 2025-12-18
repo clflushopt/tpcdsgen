@@ -145,7 +145,9 @@ pub fn pick_random_size(
     stream: &mut dyn RandomNumberStream,
 ) -> Result<String> {
     let dist = get_sizes_distribution();
-    Ok(dist.pick_random_value(0, size_weights as usize, stream)?.to_string())
+    Ok(dist
+        .pick_random_value(0, size_weights as usize, stream)?
+        .to_string())
 }
 
 /// Pick random color
@@ -154,7 +156,9 @@ pub fn pick_random_color(
     stream: &mut dyn RandomNumberStream,
 ) -> Result<String> {
     let dist = get_colors_distribution();
-    Ok(dist.pick_random_value(0, colors_weights as usize, stream)?.to_string())
+    Ok(dist
+        .pick_random_value(0, colors_weights as usize, stream)?
+        .to_string())
 }
 
 /// Pick random unit
@@ -308,7 +312,10 @@ impl CategoryClassDistribution {
         }
     }
 
-    fn pick_random_category_class(&self, stream: &mut dyn RandomNumberStream) -> Result<CategoryClass> {
+    fn pick_random_category_class(
+        &self,
+        stream: &mut dyn RandomNumberStream,
+    ) -> Result<CategoryClass> {
         let index = crate::distribution::utils::pick_random_index(&self.weights, stream)?;
         Ok(CategoryClass {
             id: (index + 1) as i64,
@@ -363,7 +370,8 @@ struct ItemCurrentPriceDistributionData {
     weights_lists: Vec<Vec<i32>>,
 }
 
-static ITEM_CURRENT_PRICE_DISTRIBUTION: OnceLock<ItemCurrentPriceDistributionData> = OnceLock::new();
+static ITEM_CURRENT_PRICE_DISTRIBUTION: OnceLock<ItemCurrentPriceDistributionData> =
+    OnceLock::new();
 
 fn get_item_current_price_distribution() -> &'static ItemCurrentPriceDistributionData {
     ITEM_CURRENT_PRICE_DISTRIBUTION.get_or_init(|| {
@@ -373,8 +381,9 @@ fn get_item_current_price_distribution() -> &'static ItemCurrentPriceDistributio
         let num_weight_fields = 4;
         let mut mins = Vec::new();
         let mut maxes = Vec::new();
-        let mut weights_builders: Vec<WeightsBuilder> =
-            (0..num_weight_fields).map(|_| WeightsBuilder::new()).collect();
+        let mut weights_builders: Vec<WeightsBuilder> = (0..num_weight_fields)
+            .map(|_| WeightsBuilder::new())
+            .collect();
 
         for (values, weights) in parsed_lines {
             if values.len() != 3 {

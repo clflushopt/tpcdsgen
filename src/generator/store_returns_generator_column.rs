@@ -21,28 +21,28 @@ use crate::generator::GeneratorColumn;
 /// Global column numbers 292-313
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum StoreReturnsGeneratorColumn {
-    SrReturnedDateSk,       // 292
-    SrReturnedTimeSk,       // 293
-    SrItemSk,               // 294
-    SrCustomerSk,           // 295
-    SrCdemoSk,              // 296
-    SrHdemoSk,              // 297
-    SrAddrSk,               // 298
-    SrStoreSk,              // 299
-    SrReasonSk,             // 300
-    SrTicketNumber,         // 301
-    SrPricingQuantity,      // 302
-    SrPricingNetPaid,       // 303
-    SrPricingExtTax,        // 304
-    SrPricingNetPaidIncTax, // 305
-    SrPricingFee,           // 306
-    SrPricingExtShipCost,   // 307
-    SrPricingRefundedCash,  // 308
+    SrReturnedDateSk,        // 292
+    SrReturnedTimeSk,        // 293
+    SrItemSk,                // 294
+    SrCustomerSk,            // 295
+    SrCdemoSk,               // 296
+    SrHdemoSk,               // 297
+    SrAddrSk,                // 298
+    SrStoreSk,               // 299
+    SrReasonSk,              // 300
+    SrTicketNumber,          // 301
+    SrPricingQuantity,       // 302
+    SrPricingNetPaid,        // 303
+    SrPricingExtTax,         // 304
+    SrPricingNetPaidIncTax,  // 305
+    SrPricingFee,            // 306
+    SrPricingExtShipCost,    // 307
+    SrPricingRefundedCash,   // 308
     SrPricingReversedCharge, // 309
-    SrPricingStoreCredit,   // 310
-    SrPricingNetLoss,       // 311
-    SrPricing,              // 312
-    SrNulls,                // 313
+    SrPricingStoreCredit,    // 310
+    SrPricingNetLoss,        // 311
+    SrPricing,               // 312
+    SrNulls,                 // 313
 }
 
 impl GeneratorColumn for StoreReturnsGeneratorColumn {

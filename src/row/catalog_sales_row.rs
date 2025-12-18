@@ -151,7 +151,11 @@ impl CatalogSalesRow {
         (self.null_bit_map & (1 << bit_position)) != 0
     }
 
-    fn get_string_or_null_for_key(&self, value: i64, column: &CatalogSalesGeneratorColumn) -> String {
+    fn get_string_or_null_for_key(
+        &self,
+        value: i64,
+        column: &CatalogSalesGeneratorColumn,
+    ) -> String {
         if self.is_null(column) || value < 0 {
             String::new()
         } else {
@@ -159,7 +163,11 @@ impl CatalogSalesRow {
         }
     }
 
-    fn get_string_or_null<T: ToString>(&self, value: T, column: &CatalogSalesGeneratorColumn) -> String {
+    fn get_string_or_null<T: ToString>(
+        &self,
+        value: T,
+        column: &CatalogSalesGeneratorColumn,
+    ) -> String {
         if self.is_null(column) {
             String::new()
         } else {
@@ -192,20 +200,41 @@ impl TableRow for CatalogSalesRow {
             self.get_string_or_null_for_key(self.cs_promo_sk, &CsPromoSk),
             self.get_string_or_null(self.cs_order_number, &CsOrderNumber),
             self.get_string_or_null(self.cs_pricing.get_quantity(), &CsPricingQuantity),
-            self.get_string_or_null(self.cs_pricing.get_wholesale_cost(), &CsPricingWholesaleCost),
+            self.get_string_or_null(
+                self.cs_pricing.get_wholesale_cost(),
+                &CsPricingWholesaleCost,
+            ),
             self.get_string_or_null(self.cs_pricing.get_list_price(), &CsPricingListPrice),
             self.get_string_or_null(self.cs_pricing.get_sales_price(), &CsPricingSalesPrice),
-            self.get_string_or_null(self.cs_pricing.get_ext_discount_amount(), &CsPricingExtDiscountAmount),
-            self.get_string_or_null(self.cs_pricing.get_ext_sales_price(), &CsPricingExtSalesPrice),
-            self.get_string_or_null(self.cs_pricing.get_ext_wholesale_cost(), &CsPricingExtWholesaleCost),
+            self.get_string_or_null(
+                self.cs_pricing.get_ext_discount_amount(),
+                &CsPricingExtDiscountAmount,
+            ),
+            self.get_string_or_null(
+                self.cs_pricing.get_ext_sales_price(),
+                &CsPricingExtSalesPrice,
+            ),
+            self.get_string_or_null(
+                self.cs_pricing.get_ext_wholesale_cost(),
+                &CsPricingExtWholesaleCost,
+            ),
             self.get_string_or_null(self.cs_pricing.get_ext_list_price(), &CsPricingExtListPrice),
             self.get_string_or_null(self.cs_pricing.get_ext_tax(), &CsPricingExtTax),
             self.get_string_or_null(self.cs_pricing.get_coupon_amount(), &CsPricingCouponAmt),
             self.get_string_or_null(self.cs_pricing.get_ext_ship_cost(), &CsPricingExtShipCost),
             self.get_string_or_null(self.cs_pricing.get_net_paid(), &CsPricingNetPaid),
-            self.get_string_or_null(self.cs_pricing.get_net_paid_including_tax(), &CsPricingNetPaidIncTax),
-            self.get_string_or_null(self.cs_pricing.get_net_paid_including_shipping(), &CsPricingNetPaidIncShip),
-            self.get_string_or_null(self.cs_pricing.get_net_paid_including_shipping_and_tax(), &CsPricingNetPaidIncShipTax),
+            self.get_string_or_null(
+                self.cs_pricing.get_net_paid_including_tax(),
+                &CsPricingNetPaidIncTax,
+            ),
+            self.get_string_or_null(
+                self.cs_pricing.get_net_paid_including_shipping(),
+                &CsPricingNetPaidIncShip,
+            ),
+            self.get_string_or_null(
+                self.cs_pricing.get_net_paid_including_shipping_and_tax(),
+                &CsPricingNetPaidIncShipTax,
+            ),
             self.get_string_or_null(self.cs_pricing.get_net_profit(), &CsPricingNetProfit),
         ]
     }

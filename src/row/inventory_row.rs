@@ -71,8 +71,14 @@ impl TableRow for InventoryRow {
         vec![
             self.get_string_or_null_for_key(self.inv_date_sk, InventoryGeneratorColumn::InvDateSk),
             self.get_string_or_null_for_key(self.inv_item_sk, InventoryGeneratorColumn::InvItemSk),
-            self.get_string_or_null_for_key(self.inv_warehouse_sk, InventoryGeneratorColumn::InvWarehouseSk),
-            self.get_string_or_null(self.inv_quantity_on_hand, InventoryGeneratorColumn::InvQuantityOnHand),
+            self.get_string_or_null_for_key(
+                self.inv_warehouse_sk,
+                InventoryGeneratorColumn::InvWarehouseSk,
+            ),
+            self.get_string_or_null(
+                self.inv_quantity_on_hand,
+                InventoryGeneratorColumn::InvQuantityOnHand,
+            ),
         ]
     }
 }

@@ -88,19 +88,19 @@ impl TableRow for CustomerAddressRow {
     fn get_values(&self) -> Vec<String> {
         // Column positions match Java CustomerAddressColumn ordinals (0-12)
         vec![
-            self.get_string_or_null_for_key(self.ca_addr_sk, 0),              // CA_ADDRESS_SK
-            self.get_string_or_null(&self.ca_addr_id, 1),                     // CA_ADDRESS_ID
+            self.get_string_or_null_for_key(self.ca_addr_sk, 0), // CA_ADDRESS_SK
+            self.get_string_or_null(&self.ca_addr_id, 1),        // CA_ADDRESS_ID
             self.get_string_or_null(self.ca_address.get_street_number(), 2), // CA_STREET_NUMBER
-            self.get_string_or_null(self.ca_address.get_street_name(), 3),   // CA_STREET_NAME
-            self.get_string_or_null(self.ca_address.get_street_type(), 4),   // CA_STREET_TYPE
-            self.get_string_or_null(self.ca_address.get_suite_number(), 5),  // CA_SUITE_NUMBER
-            self.get_string_or_null(self.ca_address.get_city(), 6),          // CA_CITY
+            self.get_string_or_null(self.ca_address.get_street_name(), 3), // CA_STREET_NAME
+            self.get_string_or_null(self.ca_address.get_street_type(), 4), // CA_STREET_TYPE
+            self.get_string_or_null(self.ca_address.get_suite_number(), 5), // CA_SUITE_NUMBER
+            self.get_string_or_null(self.ca_address.get_city(), 6), // CA_CITY
             self.get_string_or_null(self.ca_address.get_county().unwrap_or(""), 7), // CA_COUNTY
-            self.get_string_or_null(self.ca_address.get_state(), 8),         // CA_STATE
+            self.get_string_or_null(self.ca_address.get_state(), 8), // CA_STATE
             self.get_string_or_null(format!("{:05}", self.ca_address.get_zip()), 9), // CA_ZIP
-            self.get_string_or_null(self.ca_address.get_country(), 10),      // CA_COUNTRY
-            self.get_string_or_null(self.ca_address.get_gmt_offset(), 11),   // CA_GMT_OFFSET
-            self.get_string_or_null(&self.ca_location_type, 12),             // CA_LOCATION_TYPE
+            self.get_string_or_null(self.ca_address.get_country(), 10), // CA_COUNTRY
+            self.get_string_or_null(self.ca_address.get_gmt_offset(), 11), // CA_GMT_OFFSET
+            self.get_string_or_null(&self.ca_location_type, 12), // CA_LOCATION_TYPE
         ]
     }
 }

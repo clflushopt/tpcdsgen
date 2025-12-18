@@ -15,9 +15,7 @@
 //! Store row generator (Slowly Changing Dimension)
 
 use crate::config::Session;
-use crate::distribution::{
-    CallCenterDistributions, FirstNamesWeights, NamesDistributions,
-};
+use crate::distribution::{CallCenterDistributions, FirstNamesWeights, NamesDistributions};
 use crate::error::Result;
 use crate::generator::StoreGeneratorColumn;
 use crate::nulls::create_null_bit_map;
@@ -59,7 +57,9 @@ impl StoreRowGenerator {
         use StoreGeneratorColumn::*;
 
         // Generate null bit map first
-        let stream = self.abstract_generator.get_random_number_stream(&WStoreNulls);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WStoreNulls);
         let null_bit_map = create_null_bit_map(Table::Store, stream);
 
         let store_sk = row_number;
@@ -76,9 +76,13 @@ impl StoreRowGenerator {
         let mut field_change_flags = stream.next_random() as i32;
 
         // Generate closed date
-        let stream = self.abstract_generator.get_random_number_stream(&WStoreClosedDateId);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WStoreClosedDateId);
         let percentage = RandomValueGenerator::generate_uniform_random_int(1, 100, stream);
-        let stream = self.abstract_generator.get_random_number_stream(&WStoreClosedDateId);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WStoreClosedDateId);
         let days_open = RandomValueGenerator::generate_uniform_random_int(
             STORE_MIN_DAYS_OPEN,
             STORE_MAX_DAYS_OPEN,
@@ -116,7 +120,9 @@ impl StoreRowGenerator {
         field_change_flags >>= 1;
 
         // Generate employees
-        let stream = self.abstract_generator.get_random_number_stream(&WStoreEmployees);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WStoreEmployees);
         let mut employees = RandomValueGenerator::generate_uniform_random_int(200, 300, stream);
         if let Some(ref prev_row) = self.previous_row {
             employees = get_value_for_slowly_changing_dimension(
@@ -129,7 +135,9 @@ impl StoreRowGenerator {
         field_change_flags >>= 1;
 
         // Generate floor space
-        let stream = self.abstract_generator.get_random_number_stream(&WStoreFloorSpace);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WStoreFloorSpace);
         let mut floor_space =
             RandomValueGenerator::generate_uniform_random_int(5000000, 10000000, stream);
         if let Some(ref prev_row) = self.previous_row {
@@ -143,7 +151,9 @@ impl StoreRowGenerator {
         field_change_flags >>= 1;
 
         // Generate hours
-        let stream = self.abstract_generator.get_random_number_stream(&WStoreHours);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WStoreHours);
         let hours = CallCenterDistributions::pick_random_call_center_hours(stream)?.to_string();
         field_change_flags >>= 1;
 
@@ -153,9 +163,13 @@ impl StoreRowGenerator {
         } else {
             FirstNamesWeights::GeneralFrequency
         };
-        let stream = self.abstract_generator.get_random_number_stream(&WStoreManager);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WStoreManager);
         let first_name = NamesDistributions::pick_random_first_name(weights, stream)?;
-        let stream = self.abstract_generator.get_random_number_stream(&WStoreManager);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WStoreManager);
         let last_name = NamesDistributions::pick_random_last_name(stream)?;
         let mut store_manager = format!("{} {}", first_name, last_name);
         if let Some(ref prev_row) = self.previous_row {
@@ -169,7 +183,9 @@ impl StoreRowGenerator {
         field_change_flags >>= 1;
 
         // Generate market ID
-        let stream = self.abstract_generator.get_random_number_stream(&WStoreMarketId);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WStoreMarketId);
         let mut market_id = RandomValueGenerator::generate_uniform_random_int(1, 10, stream);
         if let Some(ref prev_row) = self.previous_row {
             market_id = get_value_for_slowly_changing_dimension(
@@ -182,7 +198,9 @@ impl StoreRowGenerator {
         field_change_flags >>= 1;
 
         // Generate tax percentage
-        let stream = self.abstract_generator.get_random_number_stream(&WStoreTaxPercentage);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WStoreTaxPercentage);
         let mut d_tax_percentage = RandomValueGenerator::generate_uniform_random_decimal(
             store_min_tax_percentage(),
             store_max_tax_percentage(),
@@ -203,9 +221,14 @@ impl StoreRowGenerator {
         field_change_flags >>= 1;
 
         // Generate market description
-        let stream = self.abstract_generator.get_random_number_stream(&WStoreMarketDesc);
-        let mut market_desc =
-            RandomValueGenerator::generate_random_text(STORE_DESC_MIN, ROW_SIZE_S_MARKET_DESC, stream);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WStoreMarketDesc);
+        let mut market_desc = RandomValueGenerator::generate_random_text(
+            STORE_DESC_MIN,
+            ROW_SIZE_S_MARKET_DESC,
+            stream,
+        );
         if let Some(ref prev_row) = self.previous_row {
             market_desc = get_value_for_slowly_changing_dimension(
                 field_change_flags,
@@ -217,9 +240,13 @@ impl StoreRowGenerator {
         field_change_flags >>= 1;
 
         // Generate market manager
-        let stream = self.abstract_generator.get_random_number_stream(&WStoreMarketManager);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WStoreMarketManager);
         let first_name = NamesDistributions::pick_random_first_name(weights, stream)?;
-        let stream = self.abstract_generator.get_random_number_stream(&WStoreMarketManager);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WStoreMarketManager);
         let last_name = NamesDistributions::pick_random_last_name(stream)?;
         let mut market_manager = format!("{} {}", first_name, last_name);
         if let Some(ref prev_row) = self.previous_row {
@@ -244,8 +271,11 @@ impl StoreRowGenerator {
         field_change_flags >>= 1; // companyName
 
         // Generate address - many fields don't get updated due to C bug
-        let stream = self.abstract_generator.get_random_number_stream(&WStoreAddress);
-        let mut address = Address::make_address_for_column(Table::Store, stream, session.get_scaling())?;
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WStoreAddress);
+        let mut address =
+            Address::make_address_for_column(Table::Store, stream, session.get_scaling())?;
         field_change_flags >>= 1; // city
         field_change_flags >>= 1; // county
 

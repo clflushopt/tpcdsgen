@@ -88,7 +88,8 @@ impl CustomerRow {
 
     /// Check if a column is null based on the null bit map
     fn is_null(&self, column: CustomerGeneratorColumn) -> bool {
-        let position = column.get_global_column_number() - CustomerGeneratorColumn::CCustomerSk.get_global_column_number();
+        let position = column.get_global_column_number()
+            - CustomerGeneratorColumn::CCustomerSk.get_global_column_number();
         (self.null_bit_map & (1 << position)) != 0
     }
 
@@ -120,7 +121,11 @@ impl CustomerRow {
     }
 
     /// Get string or null for boolean fields (Y/N format)
-    fn get_string_or_null_for_boolean(&self, value: bool, column: CustomerGeneratorColumn) -> String {
+    fn get_string_or_null_for_boolean(
+        &self,
+        value: bool,
+        column: CustomerGeneratorColumn,
+    ) -> String {
         if self.is_null(column) {
             String::new()
         } else if value {

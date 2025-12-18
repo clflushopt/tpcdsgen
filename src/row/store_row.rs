@@ -213,11 +213,17 @@ impl TableRow for StoreRow {
             self.get_string_or_null(self.address.get_street_type(), &WStoreAddressStreetType),
             self.get_string_or_null(&self.address.get_suite_number(), &WStoreAddressSuiteNum),
             self.get_string_or_null(self.address.get_city(), &WStoreAddressCity),
-            self.get_string_or_null(self.address.get_county().unwrap_or(""), &WStoreAddressCounty),
+            self.get_string_or_null(
+                self.address.get_county().unwrap_or(""),
+                &WStoreAddressCounty,
+            ),
             self.get_string_or_null(self.address.get_state(), &WStoreAddressState),
             self.get_string_or_null(&format!("{:05}", self.address.get_zip()), &WStoreAddressZip),
             self.get_string_or_null(self.address.get_country(), &WStoreAddressCountry),
-            self.get_string_or_null(&self.address.get_gmt_offset().to_string(), &WStoreAddressGmtOffset),
+            self.get_string_or_null(
+                &self.address.get_gmt_offset().to_string(),
+                &WStoreAddressGmtOffset,
+            ),
             self.get_decimal_or_null(&self.d_tax_percentage, &WStoreTaxPercentage),
         ]
     }

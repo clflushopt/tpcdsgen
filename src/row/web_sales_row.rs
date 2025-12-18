@@ -128,7 +128,8 @@ impl WebSalesRow {
     }
 
     fn is_null(&self, column: WebSalesGeneratorColumn) -> bool {
-        let bit_position = column.get_global_column_number() - WebSalesGeneratorColumn::WsSoldDateSk.get_global_column_number();
+        let bit_position = column.get_global_column_number()
+            - WebSalesGeneratorColumn::WsSoldDateSk.get_global_column_number();
         (self.null_bit_map & (1 << bit_position)) != 0
     }
 
@@ -140,7 +141,11 @@ impl WebSalesRow {
         }
     }
 
-    fn get_string_or_null<T: std::fmt::Display>(&self, value: T, column: WebSalesGeneratorColumn) -> String {
+    fn get_string_or_null<T: std::fmt::Display>(
+        &self,
+        value: T,
+        column: WebSalesGeneratorColumn,
+    ) -> String {
         if self.is_null(column) {
             String::new()
         } else {
@@ -175,17 +180,35 @@ impl TableRow for WebSalesRow {
             self.get_string_or_null(self.ws_pricing.get_wholesale_cost(), WsPricingWholesaleCost),
             self.get_string_or_null(self.ws_pricing.get_list_price(), WsPricingListPrice),
             self.get_string_or_null(self.ws_pricing.get_sales_price(), WsPricingSalesPrice),
-            self.get_string_or_null(self.ws_pricing.get_ext_discount_amount(), WsPricingExtDiscountAmt),
-            self.get_string_or_null(self.ws_pricing.get_ext_sales_price(), WsPricingExtSalesPrice),
-            self.get_string_or_null(self.ws_pricing.get_ext_wholesale_cost(), WsPricingExtWholesaleCost),
+            self.get_string_or_null(
+                self.ws_pricing.get_ext_discount_amount(),
+                WsPricingExtDiscountAmt,
+            ),
+            self.get_string_or_null(
+                self.ws_pricing.get_ext_sales_price(),
+                WsPricingExtSalesPrice,
+            ),
+            self.get_string_or_null(
+                self.ws_pricing.get_ext_wholesale_cost(),
+                WsPricingExtWholesaleCost,
+            ),
             self.get_string_or_null(self.ws_pricing.get_ext_list_price(), WsPricingExtListPrice),
             self.get_string_or_null(self.ws_pricing.get_ext_tax(), WsPricingExtTax),
             self.get_string_or_null(self.ws_pricing.get_coupon_amount(), WsPricingCouponAmt),
             self.get_string_or_null(self.ws_pricing.get_ext_ship_cost(), WsPricingExtShipCost),
             self.get_string_or_null(self.ws_pricing.get_net_paid(), WsPricingNetPaid),
-            self.get_string_or_null(self.ws_pricing.get_net_paid_including_tax(), WsPricingNetPaidIncTax),
-            self.get_string_or_null(self.ws_pricing.get_net_paid_including_shipping(), WsPricingNetPaidIncShip),
-            self.get_string_or_null(self.ws_pricing.get_net_paid_including_shipping_and_tax(), WsPricingNetPaidIncShipTax),
+            self.get_string_or_null(
+                self.ws_pricing.get_net_paid_including_tax(),
+                WsPricingNetPaidIncTax,
+            ),
+            self.get_string_or_null(
+                self.ws_pricing.get_net_paid_including_shipping(),
+                WsPricingNetPaidIncShip,
+            ),
+            self.get_string_or_null(
+                self.ws_pricing.get_net_paid_including_shipping_and_tax(),
+                WsPricingNetPaidIncShipTax,
+            ),
             self.get_string_or_null(self.ws_pricing.get_net_profit(), WsPricingNetProfit),
         ]
     }

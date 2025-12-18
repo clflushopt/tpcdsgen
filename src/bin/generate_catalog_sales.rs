@@ -72,7 +72,10 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
             catalog_returns_count += 1;
 
             if catalog_returns_count <= 3 {
-                println!("Catalog Returns Row {}: {}", catalog_returns_count, csv_line);
+                println!(
+                    "Catalog Returns Row {}: {}",
+                    catalog_returns_count, csv_line
+                );
             }
         }
 

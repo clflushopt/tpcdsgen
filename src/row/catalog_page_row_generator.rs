@@ -38,7 +38,11 @@ impl CatalogPageRowGenerator {
         }
     }
 
-    fn generate_catalog_page_row(&mut self, row_number: i64, session: &Session) -> Result<CatalogPageRow> {
+    fn generate_catalog_page_row(
+        &mut self,
+        row_number: i64,
+        session: &Session,
+    ) -> Result<CatalogPageRow> {
         use CatalogPageGeneratorColumn::*;
 
         let cp_catalog_page_sk = row_number;
@@ -52,7 +56,9 @@ impl CatalogPageRowGenerator {
         let cp_catalog_page_id = crate::business_key_generator::make_business_key(row_number);
 
         // Calculate catalog page numbers
-        let row_count = session.get_scaling().get_row_count(crate::config::table::Table::CatalogPage);
+        let row_count = session
+            .get_scaling()
+            .get_row_count(crate::config::table::Table::CatalogPage);
         let catalog_page_max = ((row_count / CATALOGS_PER_YEAR as i64) as i32)
             / (Date::DATE_MAXIMUM.year() - Date::DATE_MINIMUM.year() + 2);
         let cp_catalog_number = ((row_number - 1) / catalog_page_max as i64 + 1) as i32;
@@ -88,7 +94,9 @@ impl CatalogPageRowGenerator {
         let cp_end_date_id = cp_start_date_id + duration as i64 - 1;
 
         // Generate description
-        let stream = self.abstract_generator.get_random_number_stream(&CpDescription);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&CpDescription);
         let cp_description = RandomValueGenerator::generate_random_text(
             WIDTH_CP_DESCRIPTION / 2,
             WIDTH_CP_DESCRIPTION - 1,

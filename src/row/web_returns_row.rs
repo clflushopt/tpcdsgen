@@ -80,7 +80,8 @@ impl WebReturnsRow {
     }
 
     fn is_null(&self, column: WebReturnsGeneratorColumn) -> bool {
-        let bit_position = column.get_global_column_number() - WebReturnsGeneratorColumn::WrReturnedDateSk.get_global_column_number();
+        let bit_position = column.get_global_column_number()
+            - WebReturnsGeneratorColumn::WrReturnedDateSk.get_global_column_number();
         (self.null_bit_map & (1 << bit_position)) != 0
     }
 
@@ -92,7 +93,11 @@ impl WebReturnsRow {
         }
     }
 
-    fn get_string_or_null<T: std::fmt::Display>(&self, value: T, column: WebReturnsGeneratorColumn) -> String {
+    fn get_string_or_null<T: std::fmt::Display>(
+        &self,
+        value: T,
+        column: WebReturnsGeneratorColumn,
+    ) -> String {
         if self.is_null(column) {
             String::new()
         } else {
@@ -122,11 +127,17 @@ impl TableRow for WebReturnsRow {
             self.get_string_or_null(self.wr_pricing.get_quantity(), WrPricingQuantity),
             self.get_string_or_null(self.wr_pricing.get_net_paid(), WrPricingNetPaid),
             self.get_string_or_null(self.wr_pricing.get_ext_tax(), WrPricingExtTax),
-            self.get_string_or_null(self.wr_pricing.get_net_paid_including_tax(), WrPricingNetPaidIncTax),
+            self.get_string_or_null(
+                self.wr_pricing.get_net_paid_including_tax(),
+                WrPricingNetPaidIncTax,
+            ),
             self.get_string_or_null(self.wr_pricing.get_fee(), WrPricingFee),
             self.get_string_or_null(self.wr_pricing.get_ext_ship_cost(), WrPricingExtShipCost),
             self.get_string_or_null(self.wr_pricing.get_refunded_cash(), WrPricingRefundedCash),
-            self.get_string_or_null(self.wr_pricing.get_reversed_charge(), WrPricingReversedCharge),
+            self.get_string_or_null(
+                self.wr_pricing.get_reversed_charge(),
+                WrPricingReversedCharge,
+            ),
             self.get_string_or_null(self.wr_pricing.get_store_credit(), WrPricingStoreCredit),
             self.get_string_or_null(self.wr_pricing.get_net_loss(), WrPricingNetLoss),
         ]

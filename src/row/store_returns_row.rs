@@ -67,11 +67,7 @@ impl StoreReturnsRow {
         }
     }
 
-    fn get_string_or_null_for_key(
-        &self,
-        key: i64,
-        column: StoreReturnsGeneratorColumn,
-    ) -> String {
+    fn get_string_or_null_for_key(&self, key: i64, column: StoreReturnsGeneratorColumn) -> String {
         if key == -1 || self.is_null_at(column) {
             String::new()
         } else {
@@ -157,29 +153,29 @@ mod tests {
 
     fn create_test_pricing() -> Pricing {
         Pricing::new(
-            Decimal::new(1000, 2).unwrap(),  // wholesale_cost: 10.00
-            Decimal::new(1500, 2).unwrap(),  // list_price: 15.00
-            Decimal::new(1200, 2).unwrap(),  // sales_price: 12.00
-            5,                               // quantity
-            Decimal::new(300, 2).unwrap(),   // ext_discount_amount: 3.00
-            Decimal::new(6000, 2).unwrap(),  // ext_sales_price: 60.00
-            Decimal::new(5000, 2).unwrap(),  // ext_wholesale_cost: 50.00
-            Decimal::new(7500, 2).unwrap(),  // ext_list_price: 75.00
-            Decimal::new(8, 2).unwrap(),     // tax_percent: 0.08
-            Decimal::new(480, 2).unwrap(),   // ext_tax: 4.80
-            Decimal::new(100, 2).unwrap(),   // coupon_amount: 1.00
-            Decimal::new(200, 2).unwrap(),   // ship_cost: 2.00
-            Decimal::new(1000, 2).unwrap(),  // ext_ship_cost: 10.00
-            Decimal::new(5900, 2).unwrap(),  // net_paid: 59.00
-            Decimal::new(6380, 2).unwrap(),  // net_paid_including_tax: 63.80
-            Decimal::new(6900, 2).unwrap(),  // net_paid_including_shipping: 69.00
-            Decimal::new(7380, 2).unwrap(),  // net_paid_including_shipping_and_tax: 73.80
-            Decimal::new(900, 2).unwrap(),   // net_profit: 9.00
-            Decimal::new(2000, 2).unwrap(),  // refunded_cash: 20.00
-            Decimal::new(1000, 2).unwrap(),  // reversed_charge: 10.00
-            Decimal::new(2900, 2).unwrap(),  // store_credit: 29.00
-            Decimal::new(500, 2).unwrap(),   // fee: 5.00
-            Decimal::new(1580, 2).unwrap(),  // net_loss: 15.80
+            Decimal::new(1000, 2).unwrap(), // wholesale_cost: 10.00
+            Decimal::new(1500, 2).unwrap(), // list_price: 15.00
+            Decimal::new(1200, 2).unwrap(), // sales_price: 12.00
+            5,                              // quantity
+            Decimal::new(300, 2).unwrap(),  // ext_discount_amount: 3.00
+            Decimal::new(6000, 2).unwrap(), // ext_sales_price: 60.00
+            Decimal::new(5000, 2).unwrap(), // ext_wholesale_cost: 50.00
+            Decimal::new(7500, 2).unwrap(), // ext_list_price: 75.00
+            Decimal::new(8, 2).unwrap(),    // tax_percent: 0.08
+            Decimal::new(480, 2).unwrap(),  // ext_tax: 4.80
+            Decimal::new(100, 2).unwrap(),  // coupon_amount: 1.00
+            Decimal::new(200, 2).unwrap(),  // ship_cost: 2.00
+            Decimal::new(1000, 2).unwrap(), // ext_ship_cost: 10.00
+            Decimal::new(5900, 2).unwrap(), // net_paid: 59.00
+            Decimal::new(6380, 2).unwrap(), // net_paid_including_tax: 63.80
+            Decimal::new(6900, 2).unwrap(), // net_paid_including_shipping: 69.00
+            Decimal::new(7380, 2).unwrap(), // net_paid_including_shipping_and_tax: 73.80
+            Decimal::new(900, 2).unwrap(),  // net_profit: 9.00
+            Decimal::new(2000, 2).unwrap(), // refunded_cash: 20.00
+            Decimal::new(1000, 2).unwrap(), // reversed_charge: 10.00
+            Decimal::new(2900, 2).unwrap(), // store_credit: 29.00
+            Decimal::new(500, 2).unwrap(),  // fee: 5.00
+            Decimal::new(1580, 2).unwrap(), // net_loss: 15.80
         )
     }
 
@@ -203,8 +199,8 @@ mod tests {
 
         let values = row.get_values();
         assert_eq!(values.len(), 20);
-        assert_eq!(values[0], "2451545");  // sr_returned_date_sk
-        assert_eq!(values[9], "1");         // sr_ticket_number
+        assert_eq!(values[0], "2451545"); // sr_returned_date_sk
+        assert_eq!(values[9], "1"); // sr_ticket_number
     }
 
     #[test]
@@ -212,22 +208,12 @@ mod tests {
         let pricing = create_test_pricing();
         // Set bit for sr_returned_time_sk (position 1)
         let row = StoreReturnsRow::new(
-            0b10,    // null_bit_map - second bit set
-            2451545,
-            36000,
-            1,
-            100,
-            200,
-            300,
-            400,
-            500,
-            600,
-            1,
-            pricing,
+            0b10, // null_bit_map - second bit set
+            2451545, 36000, 1, 100, 200, 300, 400, 500, 600, 1, pricing,
         );
 
         let values = row.get_values();
-        assert_eq!(values[0], "2451545");  // not null
-        assert_eq!(values[1], "");          // null (bit 1 set)
+        assert_eq!(values[0], "2451545"); // not null
+        assert_eq!(values[1], ""); // null (bit 1 set)
     }
 }

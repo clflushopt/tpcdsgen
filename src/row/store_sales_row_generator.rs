@@ -106,7 +106,9 @@ impl StoreSalesRowGenerator {
 
         let scaling = session.get_scaling();
 
-        let stream = self.abstract_generator.get_random_number_stream(&SsSoldStoreSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&SsSoldStoreSk);
         let ss_sold_store_sk = generate_join_key(
             &SsSoldStoreSk,
             stream,
@@ -115,7 +117,9 @@ impl StoreSalesRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&SsSoldTimeSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&SsSoldTimeSk);
         let ss_sold_time_sk = generate_join_key(
             &SsSoldTimeSk,
             stream,
@@ -124,7 +128,9 @@ impl StoreSalesRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&SsSoldDateSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&SsSoldDateSk);
         let ss_sold_date_sk = generate_join_key(
             &SsSoldDateSk,
             stream,
@@ -133,7 +139,9 @@ impl StoreSalesRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&SsSoldCustomerSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&SsSoldCustomerSk);
         let ss_sold_customer_sk = generate_join_key(
             &SsSoldCustomerSk,
             stream,
@@ -142,7 +150,9 @@ impl StoreSalesRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&SsSoldCdemoSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&SsSoldCdemoSk);
         let ss_sold_cdemo_sk = generate_join_key(
             &SsSoldCdemoSk,
             stream,
@@ -151,7 +161,9 @@ impl StoreSalesRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&SsSoldHdemoSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&SsSoldHdemoSk);
         let ss_sold_hdemo_sk = generate_join_key(
             &SsSoldHdemoSk,
             stream,
@@ -160,7 +172,9 @@ impl StoreSalesRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&SsSoldAddrSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&SsSoldAddrSk);
         let ss_sold_addr_sk = generate_join_key(
             &SsSoldAddrSk,
             stream,
@@ -198,7 +212,8 @@ impl StoreSalesRowGenerator {
     /// Consume remaining seeds for the child (store_returns) generator.
     /// This should be called when shouldEndRow() is true, like Java's Results.rowStop()
     pub fn consume_child_seeds(&mut self) {
-        self.store_returns_generator.consume_remaining_seeds_for_row();
+        self.store_returns_generator
+            .consume_remaining_seeds_for_row();
     }
 }
 
@@ -217,7 +232,9 @@ impl RowGenerator for StoreSalesRowGenerator {
 
         // Initialize item permutation if needed
         if self.item_permutation.is_none() {
-            let stream = self.abstract_generator.get_random_number_stream(&SsPermutation);
+            let stream = self
+                .abstract_generator
+                .get_random_number_stream(&SsPermutation);
             self.item_permutation = Some(make_permutation(item_count, stream));
         }
 
@@ -225,16 +242,17 @@ impl RowGenerator for StoreSalesRowGenerator {
         if self.remaining_line_items == 0 {
             self.order_info = self.generate_order_info(row_number, session)?;
 
-            let stream = self.abstract_generator.get_random_number_stream(&SsTicketNumber);
+            let stream = self
+                .abstract_generator
+                .get_random_number_stream(&SsTicketNumber);
             self.remaining_line_items =
                 RandomValueGenerator::generate_uniform_random_int(8, 16, stream);
 
-            let stream = self.abstract_generator.get_random_number_stream(&SsSoldItemSk);
-            self.item_index = RandomValueGenerator::generate_uniform_random_int(
-                1,
-                item_count as i32,
-                stream,
-            );
+            let stream = self
+                .abstract_generator
+                .get_random_number_stream(&SsSoldItemSk);
+            self.item_index =
+                RandomValueGenerator::generate_uniform_random_int(1, item_count as i32, stream);
         }
 
         // Generate null bit map
@@ -259,7 +277,9 @@ impl RowGenerator for StoreSalesRowGenerator {
         );
 
         // Generate promo sk
-        let stream = self.abstract_generator.get_random_number_stream(&SsSoldPromoSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&SsSoldPromoSk);
         let ss_sold_promo_sk = generate_join_key(
             &SsSoldPromoSk,
             stream,
@@ -270,7 +290,8 @@ impl RowGenerator for StoreSalesRowGenerator {
 
         // Generate pricing
         let stream = self.abstract_generator.get_random_number_stream(&SsPricing);
-        let ss_pricing = generate_pricing_for_sales_table(&get_store_sales_pricing_limits(), stream);
+        let ss_pricing =
+            generate_pricing_for_sales_table(&get_store_sales_pricing_limits(), stream);
 
         let store_sales_row = StoreSalesRow::new(
             null_bit_map,
@@ -291,7 +312,9 @@ impl RowGenerator for StoreSalesRowGenerator {
         generated_rows.push(Box::new(store_sales_row.clone()));
 
         // Check if this sale gets returned (10% return rate)
-        let stream = self.abstract_generator.get_random_number_stream(&SrIsReturned);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&SrIsReturned);
         let random_int = RandomValueGenerator::generate_uniform_random_int(0, 99, stream);
 
         // Generate return row if applicable

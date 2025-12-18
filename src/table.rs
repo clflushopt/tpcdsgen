@@ -9,10 +9,10 @@ use crate::generator::{
     CustomerDemographicsGeneratorColumn, CustomerGeneratorColumn, DateDimGeneratorColumn,
     DbgenVersionGeneratorColumn, GeneratorColumn, HouseholdDemographicsGeneratorColumn,
     IncomeBandGeneratorColumn, InventoryGeneratorColumn, ItemGeneratorColumn,
-    PromotionGeneratorColumn, ReasonGeneratorColumn, ShipModeGeneratorColumn,
-    StoreGeneratorColumn, StoreReturnsGeneratorColumn, StoreSalesGeneratorColumn,
-    TimeDimGeneratorColumn, WarehouseGeneratorColumn, WebPageGeneratorColumn,
-    WebReturnsGeneratorColumn, WebSalesGeneratorColumn, WebSiteGeneratorColumn,
+    PromotionGeneratorColumn, ReasonGeneratorColumn, ShipModeGeneratorColumn, StoreGeneratorColumn,
+    StoreReturnsGeneratorColumn, StoreSalesGeneratorColumn, TimeDimGeneratorColumn,
+    WarehouseGeneratorColumn, WebPageGeneratorColumn, WebReturnsGeneratorColumn,
+    WebSalesGeneratorColumn, WebSiteGeneratorColumn,
 };
 use crate::scaling_info::{ScalingInfo, ScalingModel};
 use crate::table_flags::{TableFlags, TableFlagsBuilder};
@@ -323,7 +323,9 @@ impl Table {
             Table::CatalogPage => {
                 static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
                 SCALING.get_or_init(|| {
-                    let row_counts = [0, 11718, 12000, 20400, 26000, 30000, 36000, 40000, 46000, 50000];
+                    let row_counts = [
+                        0, 11718, 12000, 20400, 26000, 30000, 36000, 40000, 46000, 50000,
+                    ];
                     ScalingInfo::new(0, ScalingModel::Static, &row_counts, 0)
                         .expect("CatalogPage ScalingInfo creation should not fail")
                 })
@@ -331,7 +333,9 @@ impl Table {
             Table::CatalogReturns => {
                 static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
                 SCALING.get_or_init(|| {
-                    let row_counts = [0, 16, 160, 1600, 4800, 16000, 48000, 160000, 480000, 1600000];
+                    let row_counts = [
+                        0, 16, 160, 1600, 4800, 16000, 48000, 160000, 480000, 1600000,
+                    ];
                     ScalingInfo::new(4, ScalingModel::Linear, &row_counts, 0)
                         .expect("CatalogReturns ScalingInfo creation should not fail")
                 })
@@ -339,7 +343,9 @@ impl Table {
             Table::CatalogSales => {
                 static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
                 SCALING.get_or_init(|| {
-                    let row_counts = [0, 16, 160, 1600, 4800, 16000, 48000, 160000, 480000, 1600000];
+                    let row_counts = [
+                        0, 16, 160, 1600, 4800, 16000, 48000, 160000, 480000, 1600000,
+                    ];
                     ScalingInfo::new(4, ScalingModel::Linear, &row_counts, 0)
                         .expect("CatalogSales ScalingInfo creation should not fail")
                 })
@@ -397,9 +403,7 @@ impl Table {
             Table::CustomerAddress => {
                 static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
                 SCALING.get_or_init(|| {
-                    let row_counts = [
-                        0, 50, 250, 1000, 2500, 6000, 15000, 32500, 40000, 50000,
-                    ];
+                    let row_counts = [0, 50, 250, 1000, 2500, 6000, 15000, 32500, 40000, 50000];
                     ScalingInfo::new(3, ScalingModel::Logarithmic, &row_counts, 0)
                         .expect("CustomerAddress ScalingInfo creation should not fail")
                 })
@@ -407,9 +411,7 @@ impl Table {
             Table::Customer => {
                 static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
                 SCALING.get_or_init(|| {
-                    let row_counts = [
-                        0, 100, 500, 2000, 5000, 12000, 30000, 65000, 80000, 100000,
-                    ];
+                    let row_counts = [0, 100, 500, 2000, 5000, 12000, 30000, 65000, 80000, 100000];
                     ScalingInfo::new(3, ScalingModel::Logarithmic, &row_counts, 0)
                         .expect("Customer ScalingInfo creation should not fail")
                 })
@@ -471,7 +473,9 @@ impl Table {
             Table::StoreSales => {
                 static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
                 SCALING.get_or_init(|| {
-                    let row_counts = [0, 24, 240, 2400, 7200, 24000, 72000, 240000, 720000, 2400000];
+                    let row_counts = [
+                        0, 24, 240, 2400, 7200, 24000, 72000, 240000, 720000, 2400000,
+                    ];
                     ScalingInfo::new(4, ScalingModel::Linear, &row_counts, 0)
                         .expect("StoreSales ScalingInfo creation should not fail")
                 })
@@ -487,7 +491,9 @@ impl Table {
             Table::WebReturns => {
                 static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
                 SCALING.get_or_init(|| {
-                    let row_counts = [0, 60, 600, 6000, 18000, 60000, 180000, 600000, 1800000, 6000000];
+                    let row_counts = [
+                        0, 60, 600, 6000, 18000, 60000, 180000, 600000, 1800000, 6000000,
+                    ];
                     ScalingInfo::new(3, ScalingModel::Linear, &row_counts, 0)
                         .expect("WebReturns ScalingInfo creation should not fail")
                 })
@@ -495,7 +501,9 @@ impl Table {
             Table::WebSales => {
                 static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
                 SCALING.get_or_init(|| {
-                    let row_counts = [0, 60, 600, 6000, 18000, 60000, 180000, 600000, 1800000, 6000000];
+                    let row_counts = [
+                        0, 60, 600, 6000, 18000, 60000, 180000, 600000, 1800000, 6000000,
+                    ];
                     ScalingInfo::new(3, ScalingModel::Linear, &row_counts, 0)
                         .expect("WebSales ScalingInfo creation should not fail")
                 })
@@ -542,9 +550,9 @@ impl Table {
     pub fn get_column_count(&self) -> usize {
         match self {
             Table::CallCenter => CallCenterColumn::values().len(),
-            Table::CatalogPage => 9, // CatalogPageColumn has 9 columns
+            Table::CatalogPage => 9,     // CatalogPageColumn has 9 columns
             Table::CatalogReturns => 27, // CatalogReturnsColumn has 27 columns
-            Table::CatalogSales => 34, // CatalogSalesColumn has 34 columns
+            Table::CatalogSales => 34,   // CatalogSalesColumn has 34 columns
             Table::Warehouse => 0, // TODO: Return WarehouseColumn::values().len() once WarehouseColumn is implemented
             Table::ShipMode => 0, // TODO: Return ShipModeColumn::values().len() once ShipModeColumn is implemented
             Table::Reason => 0, // TODO: Return ReasonColumn::values().len() once ReasonColumn is implemented
@@ -555,11 +563,11 @@ impl Table {
             Table::Customer => CustomerColumn::values().len(),
             Table::DateDim => 0, // TODO: Return DateDimColumn::values().len() once DateDimColumn is implemented
             Table::TimeDim => 0, // TODO: Return TimeDimColumn::values().len() once TimeDimColumn is implemented
-            Table::Item => 22, // ItemColumn has 22 columns (I_ITEM_SK to I_PRODUCT_NAME)
+            Table::Item => 22,   // ItemColumn has 22 columns (I_ITEM_SK to I_PRODUCT_NAME)
             Table::Promotion => PromotionColumn::values().len(),
-            Table::Store => 29, // StoreColumn has 29 columns
+            Table::Store => 29,        // StoreColumn has 29 columns
             Table::StoreReturns => 20, // StoreReturnsColumn has 20 columns
-            Table::StoreSales => 23, // StoreSalesColumn has 23 columns
+            Table::StoreSales => 23,   // StoreSalesColumn has 23 columns
             Table::WebPage => 0, // TODO: Return WebPageColumn::values().len() once WebPageColumn is implemented
             Table::WebReturns => 24, // WebReturnsColumn has 24 columns
             Table::WebSales => 34, // WebSalesColumn has 34 columns

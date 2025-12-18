@@ -94,7 +94,9 @@ impl WebSalesRowGenerator {
         let scaling = session.get_scaling();
 
         // Web sales uses generate_join_key for date (not date-based iteration like catalog_sales)
-        let stream = self.abstract_generator.get_random_number_stream(&WsSoldDateSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WsSoldDateSk);
         let ws_sold_date_sk = generate_join_key(
             &WsSoldDateSk,
             stream,
@@ -103,7 +105,9 @@ impl WebSalesRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&WsSoldTimeSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WsSoldTimeSk);
         let ws_sold_time_sk = generate_join_key(
             &WsSoldTimeSk,
             stream,
@@ -112,7 +116,9 @@ impl WebSalesRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&WsBillCustomerSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WsBillCustomerSk);
         let ws_bill_customer_sk = generate_join_key(
             &WsBillCustomerSk,
             stream,
@@ -121,7 +127,9 @@ impl WebSalesRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&WsBillCdemoSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WsBillCdemoSk);
         let ws_bill_cdemo_sk = generate_join_key(
             &WsBillCdemoSk,
             stream,
@@ -130,7 +138,9 @@ impl WebSalesRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&WsBillHdemoSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WsBillHdemoSk);
         let ws_bill_hdemo_sk = generate_join_key(
             &WsBillHdemoSk,
             stream,
@@ -139,7 +149,9 @@ impl WebSalesRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&WsBillAddrSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WsBillAddrSk);
         let ws_bill_addr_sk = generate_join_key(
             &WsBillAddrSk,
             stream,
@@ -156,12 +168,16 @@ impl WebSalesRowGenerator {
         let mut ws_ship_hdemo_sk = ws_bill_hdemo_sk;
         let mut ws_ship_addr_sk = ws_bill_addr_sk;
 
-        let stream = self.abstract_generator.get_random_number_stream(&WsShipCustomerSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WsShipCustomerSk);
         let random_int = RandomValueGenerator::generate_uniform_random_int(0, 99, stream);
 
         // Java: if (randomInt > GIFT_PERCENTAGE)
         if random_int > GIFT_PERCENTAGE {
-            let stream = self.abstract_generator.get_random_number_stream(&WsShipCustomerSk);
+            let stream = self
+                .abstract_generator
+                .get_random_number_stream(&WsShipCustomerSk);
             ws_ship_customer_sk = generate_join_key(
                 &WsShipCustomerSk,
                 stream,
@@ -170,7 +186,9 @@ impl WebSalesRowGenerator {
                 scaling,
             )?;
 
-            let stream = self.abstract_generator.get_random_number_stream(&WsShipCdemoSk);
+            let stream = self
+                .abstract_generator
+                .get_random_number_stream(&WsShipCdemoSk);
             ws_ship_cdemo_sk = generate_join_key(
                 &WsShipCdemoSk,
                 stream,
@@ -179,7 +197,9 @@ impl WebSalesRowGenerator {
                 scaling,
             )?;
 
-            let stream = self.abstract_generator.get_random_number_stream(&WsShipHdemoSk);
+            let stream = self
+                .abstract_generator
+                .get_random_number_stream(&WsShipHdemoSk);
             ws_ship_hdemo_sk = generate_join_key(
                 &WsShipHdemoSk,
                 stream,
@@ -188,7 +208,9 @@ impl WebSalesRowGenerator {
                 scaling,
             )?;
 
-            let stream = self.abstract_generator.get_random_number_stream(&WsShipAddrSk);
+            let stream = self
+                .abstract_generator
+                .get_random_number_stream(&WsShipAddrSk);
             ws_ship_addr_sk = generate_join_key(
                 &WsShipAddrSk,
                 stream,
@@ -246,7 +268,9 @@ impl RowGenerator for WebSalesRowGenerator {
 
         // Initialize item permutation if needed
         if self.item_permutation.is_none() {
-            let stream = self.abstract_generator.get_random_number_stream(&WsPermutation);
+            let stream = self
+                .abstract_generator
+                .get_random_number_stream(&WsPermutation);
             self.item_permutation = Some(make_permutation(item_count, stream));
         }
 
@@ -255,14 +279,13 @@ impl RowGenerator for WebSalesRowGenerator {
             self.order_info = self.generate_order_info(row_number, session)?;
 
             let stream = self.abstract_generator.get_random_number_stream(&WsItemSk);
-            self.item_index = RandomValueGenerator::generate_uniform_random_int(
-                1,
-                item_count as i32,
-                stream,
-            );
+            self.item_index =
+                RandomValueGenerator::generate_uniform_random_int(1, item_count as i32, stream);
 
             // WebSales has 8-16 line items per order (vs 4-14 for CatalogSales)
-            let stream = self.abstract_generator.get_random_number_stream(&WsOrderNumber);
+            let stream = self
+                .abstract_generator
+                .get_random_number_stream(&WsOrderNumber);
             self.remaining_line_items =
                 RandomValueGenerator::generate_uniform_random_int(8, 16, stream);
         }
@@ -272,7 +295,9 @@ impl RowGenerator for WebSalesRowGenerator {
         let null_bit_map = create_null_bit_map(Table::WebSales, stream);
 
         // Orders are shipped some number of days after they are ordered (1-120 days)
-        let stream = self.abstract_generator.get_random_number_stream(&WsShipDateSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WsShipDateSk);
         let ship_lag = RandomValueGenerator::generate_uniform_random_int(1, 120, stream);
         let ws_ship_date_sk = self.order_info.ws_sold_date_sk + ship_lag as i64;
 
@@ -293,7 +318,9 @@ impl RowGenerator for WebSalesRowGenerator {
         );
 
         // The web page needs to be valid for the sale date
-        let stream = self.abstract_generator.get_random_number_stream(&WsWebPageSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WsWebPageSk);
         let ws_web_page_sk = generate_join_key(
             &WsWebPageSk,
             stream,
@@ -302,7 +329,9 @@ impl RowGenerator for WebSalesRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&WsWebSiteSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WsWebSiteSk);
         let ws_web_site_sk = generate_join_key(
             &WsWebSiteSk,
             stream,
@@ -312,7 +341,9 @@ impl RowGenerator for WebSalesRowGenerator {
         )?;
 
         // Generate ship mode
-        let stream = self.abstract_generator.get_random_number_stream(&WsShipModeSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WsShipModeSk);
         let ws_ship_mode_sk = generate_join_key(
             &WsShipModeSk,
             stream,
@@ -322,7 +353,9 @@ impl RowGenerator for WebSalesRowGenerator {
         )?;
 
         // Generate warehouse
-        let stream = self.abstract_generator.get_random_number_stream(&WsWarehouseSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WsWarehouseSk);
         let ws_warehouse_sk = generate_join_key(
             &WsWarehouseSk,
             stream,
@@ -372,7 +405,9 @@ impl RowGenerator for WebSalesRowGenerator {
         generated_rows.push(Box::new(web_sales_row.clone()));
 
         // Check if this sale gets returned (10% return rate)
-        let stream = self.abstract_generator.get_random_number_stream(&WrIsReturned);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WrIsReturned);
         let random_int = RandomValueGenerator::generate_uniform_random_int(0, 99, stream);
 
         // Generate return row if applicable

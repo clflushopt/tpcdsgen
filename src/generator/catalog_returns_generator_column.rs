@@ -21,35 +21,35 @@ use crate::generator::GeneratorColumn;
 /// Global column numbers 46-74
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CatalogReturnsGeneratorColumn {
-    CrReturnedDateSk,         // 46
-    CrReturnedTimeSk,         // 47
-    CrItemSk,                 // 48
-    CrRefundedCustomerSk,     // 49
-    CrRefundedCdemoSk,        // 50
-    CrRefundedHdemoSk,        // 51
-    CrRefundedAddrSk,         // 52
-    CrReturningCustomerSk,    // 53
-    CrReturningCdemoSk,       // 54
-    CrReturningHdemoSk,       // 55
-    CrReturningAddrSk,        // 56
-    CrCallCenterSk,           // 57
-    CrCatalogPageSk,          // 58
-    CrShipModeSk,             // 59
-    CrWarehouseSk,            // 60
-    CrReasonSk,               // 61
-    CrOrderNumber,            // 62
-    CrPricingQuantity,        // 63
-    CrPricingNetPaid,         // 64
-    CrPricingExtTax,          // 65
-    CrPricingNetPaidIncTax,   // 66
-    CrPricingFee,             // 67
-    CrPricingExtShipCost,     // 68
-    CrPricingRefundedCash,    // 69
-    CrPricingReversedCharge,  // 70
-    CrPricingStoreCredit,     // 71
-    CrPricingNetLoss,         // 72
-    CrNulls,                  // 73
-    CrPricing,                // 74
+    CrReturnedDateSk,        // 46
+    CrReturnedTimeSk,        // 47
+    CrItemSk,                // 48
+    CrRefundedCustomerSk,    // 49
+    CrRefundedCdemoSk,       // 50
+    CrRefundedHdemoSk,       // 51
+    CrRefundedAddrSk,        // 52
+    CrReturningCustomerSk,   // 53
+    CrReturningCdemoSk,      // 54
+    CrReturningHdemoSk,      // 55
+    CrReturningAddrSk,       // 56
+    CrCallCenterSk,          // 57
+    CrCatalogPageSk,         // 58
+    CrShipModeSk,            // 59
+    CrWarehouseSk,           // 60
+    CrReasonSk,              // 61
+    CrOrderNumber,           // 62
+    CrPricingQuantity,       // 63
+    CrPricingNetPaid,        // 64
+    CrPricingExtTax,         // 65
+    CrPricingNetPaidIncTax,  // 66
+    CrPricingFee,            // 67
+    CrPricingExtShipCost,    // 68
+    CrPricingRefundedCash,   // 69
+    CrPricingReversedCharge, // 70
+    CrPricingStoreCredit,    // 71
+    CrPricingNetLoss,        // 72
+    CrNulls,                 // 73
+    CrPricing,               // 74
 }
 
 impl GeneratorColumn for CatalogReturnsGeneratorColumn {

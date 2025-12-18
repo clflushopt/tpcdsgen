@@ -200,12 +200,14 @@ fn generate_date_join_key(
 fn generate_date_returns_join_key(
     from_table: crate::column::Table,
     random_number_stream: &mut dyn RandomNumberStream,
-    join_count: i64,  // This is the sale date (julian days)
+    join_count: i64, // This is the sale date (julian days)
 ) -> Result<i64> {
     use crate::column::Table as ColumnTable;
 
     let (min, max) = match from_table {
-        ColumnTable::StoreReturns | ColumnTable::CatalogReturns => (CS_MIN_SHIP_DELAY, CS_MAX_SHIP_DELAY),
+        ColumnTable::StoreReturns | ColumnTable::CatalogReturns => {
+            (CS_MIN_SHIP_DELAY, CS_MAX_SHIP_DELAY)
+        }
         ColumnTable::WebReturns => (1, 120), // Web returns have 1-120 day ship lag
         _ => {
             return Err(TpcdsError::new(&format!(
@@ -215,7 +217,8 @@ fn generate_date_returns_join_key(
         }
     };
 
-    let lag = RandomValueGenerator::generate_uniform_random_int(min * 2, max * 2, random_number_stream);
+    let lag =
+        RandomValueGenerator::generate_uniform_random_int(min * 2, max * 2, random_number_stream);
     Ok(join_count + lag as i64)
 }
 

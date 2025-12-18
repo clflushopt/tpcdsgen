@@ -42,7 +42,11 @@ impl StoreReturnsRowGenerator {
 
     /// Generate a return row from a sales row
     /// This is called by StoreSalesRowGenerator when a sale is returned
-    pub fn generate_row(&mut self, session: &Session, sales_row: &StoreSalesRow) -> Result<Box<dyn TableRow>> {
+    pub fn generate_row(
+        &mut self,
+        session: &Session,
+        sales_row: &StoreSalesRow,
+    ) -> Result<Box<dyn TableRow>> {
         use StoreReturnsGeneratorColumn::*;
 
         let scaling = session.get_scaling();
@@ -56,7 +60,9 @@ impl StoreReturnsRowGenerator {
         let sr_item_sk = sales_row.get_ss_sold_item_sk();
 
         // Some fields are conditionally taken from the sale (80% same customer)
-        let stream = self.abstract_generator.get_random_number_stream(&SrCustomerSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&SrCustomerSk);
         let mut sr_customer_sk = generate_join_key(
             &SrCustomerSk,
             stream,
@@ -64,14 +70,18 @@ impl StoreReturnsRowGenerator {
             1,
             scaling,
         )?;
-        let stream = self.abstract_generator.get_random_number_stream(&SrTicketNumber);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&SrTicketNumber);
         let random_int = RandomValueGenerator::generate_uniform_random_int(1, 100, stream);
         if random_int < SR_SAME_CUSTOMER {
             sr_customer_sk = sales_row.get_ss_sold_customer_sk();
         }
 
         // The rest of the columns are generated for this specific return
-        let stream = self.abstract_generator.get_random_number_stream(&SrReturnedDateSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&SrReturnedDateSk);
         let sr_returned_date_sk = generate_join_key(
             &SrReturnedDateSk,
             stream,
@@ -81,12 +91,12 @@ impl StoreReturnsRowGenerator {
         )?;
 
         // Return time is between 8am and 5pm (8*3600-1 to 17*3600-1 seconds)
-        let stream = self.abstract_generator.get_random_number_stream(&SrReturnedTimeSk);
-        let sr_returned_time_sk = RandomValueGenerator::generate_uniform_random_int(
-            8 * 3600 - 1,
-            17 * 3600 - 1,
-            stream,
-        ) as i64;
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&SrReturnedTimeSk);
+        let sr_returned_time_sk =
+            RandomValueGenerator::generate_uniform_random_int(8 * 3600 - 1, 17 * 3600 - 1, stream)
+                as i64;
 
         let stream = self.abstract_generator.get_random_number_stream(&SrCdemoSk);
         let sr_cdemo_sk = generate_join_key(
@@ -116,15 +126,12 @@ impl StoreReturnsRowGenerator {
         )?;
 
         let stream = self.abstract_generator.get_random_number_stream(&SrStoreSk);
-        let sr_store_sk = generate_join_key(
-            &SrStoreSk,
-            stream,
-            crate::config::Table::Store,
-            1,
-            scaling,
-        )?;
+        let sr_store_sk =
+            generate_join_key(&SrStoreSk, stream, crate::config::Table::Store, 1, scaling)?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&SrReasonSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&SrReasonSk);
         let sr_reason_sk = generate_join_key(
             &SrReasonSk,
             stream,

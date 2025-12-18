@@ -36,7 +36,8 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let warehouse_count = scaling.get_row_count(tpcdsgen::config::Table::Warehouse);
 
     // Calculate number of weeks in the date range
-    let n_days = tpcdsgen::types::Date::JULIAN_DATE_MAXIMUM - tpcdsgen::types::Date::JULIAN_DATE_MINIMUM;
+    let n_days =
+        tpcdsgen::types::Date::JULIAN_DATE_MAXIMUM - tpcdsgen::types::Date::JULIAN_DATE_MINIMUM;
     let n_weeks = (n_days + 7) / 7; // Round up
 
     let num_rows = item_count * warehouse_count * n_weeks as i64;
@@ -67,7 +68,12 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 
         // Progress update every 100k rows
         if row_number % 100000 == 0 {
-            println!("Progress: {} / {} rows ({}%)", row_number, num_rows, row_number * 100 / num_rows);
+            println!(
+                "Progress: {} / {} rows ({}%)",
+                row_number,
+                num_rows,
+                row_number * 100 / num_rows
+            );
         }
     }
 

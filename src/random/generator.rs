@@ -209,7 +209,8 @@ impl RandomValueGenerator {
             .unwrap_or_else(|_| "com".to_string());
         let company_length =
             Self::generate_uniform_random_int(10, 20, random_number_stream) as usize;
-        let company = Self::generate_random_charset(Self::ALPHA_NUMERIC, 1, 20, random_number_stream);
+        let company =
+            Self::generate_random_charset(Self::ALPHA_NUMERIC, 1, 20, random_number_stream);
         let company = if company.len() < company_length {
             company
         } else {

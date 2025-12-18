@@ -57,7 +57,9 @@ impl WebReturnsRowGenerator {
         let wr_web_page_sk = sales_row.get_ws_web_page_sk();
 
         // Remaining fields are specific to this return
-        let stream = self.abstract_generator.get_random_number_stream(&WrReturnedDateSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WrReturnedDateSk);
         let wr_returned_date_sk = generate_join_key(
             &WrReturnedDateSk,
             stream,
@@ -66,7 +68,9 @@ impl WebReturnsRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&WrReturnedTimeSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WrReturnedTimeSk);
         let wr_returned_time_sk = generate_join_key(
             &WrReturnedTimeSk,
             stream,
@@ -77,7 +81,9 @@ impl WebReturnsRowGenerator {
 
         // Items are usually returned to the people they were shipped to, but sometimes not
         // Generate new values first
-        let stream = self.abstract_generator.get_random_number_stream(&WrRefundedCustomerSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WrRefundedCustomerSk);
         let mut wr_refunded_customer_sk = generate_join_key(
             &WrRefundedCustomerSk,
             stream,
@@ -86,7 +92,9 @@ impl WebReturnsRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&WrRefundedCdemoSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WrRefundedCdemoSk);
         let mut wr_refunded_cdemo_sk = generate_join_key(
             &WrRefundedCdemoSk,
             stream,
@@ -95,7 +103,9 @@ impl WebReturnsRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&WrRefundedHdemoSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WrRefundedHdemoSk);
         let mut wr_refunded_hdemo_sk = generate_join_key(
             &WrRefundedHdemoSk,
             stream,
@@ -104,7 +114,9 @@ impl WebReturnsRowGenerator {
             scaling,
         )?;
 
-        let stream = self.abstract_generator.get_random_number_stream(&WrRefundedAddrSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WrRefundedAddrSk);
         let mut wr_refunded_addr_sk = generate_join_key(
             &WrRefundedAddrSk,
             stream,
@@ -114,7 +126,9 @@ impl WebReturnsRowGenerator {
         )?;
 
         // If below GIFT_PERCENTAGE, use ship info from sales row instead
-        let stream = self.abstract_generator.get_random_number_stream(&WrReturningCustomerSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WrReturningCustomerSk);
         let random_int = RandomValueGenerator::generate_uniform_random_int(0, 99, stream);
         if random_int < GIFT_PERCENTAGE {
             wr_refunded_customer_sk = sales_row.get_ws_ship_customer_sk();
@@ -129,7 +143,9 @@ impl WebReturnsRowGenerator {
         let wr_returning_hdemo_sk = wr_refunded_hdemo_sk;
         let wr_returning_addr_sk = wr_refunded_addr_sk;
 
-        let stream = self.abstract_generator.get_random_number_stream(&WrReasonSk);
+        let stream = self
+            .abstract_generator
+            .get_random_number_stream(&WrReasonSk);
         let wr_reason_sk = generate_join_key(
             &WrReasonSk,
             stream,
@@ -147,7 +163,8 @@ impl WebReturnsRowGenerator {
         );
 
         let stream = self.abstract_generator.get_random_number_stream(&WrPricing);
-        let wr_pricing = generate_pricing_for_returns_table(stream, quantity, sales_row.get_ws_pricing());
+        let wr_pricing =
+            generate_pricing_for_returns_table(stream, quantity, sales_row.get_ws_pricing());
 
         Ok(Box::new(WebReturnsRow::new(
             null_bit_map,

@@ -31,6 +31,7 @@ pub use file_loader::DistributionFileLoader;
 pub use fips_county_distribution::{FipsCountyDistribution, FipsWeights};
 pub use hours_distribution::{HourInfo, HoursDistribution};
 pub use int_values::IntValuesDistribution;
+pub use items_distributions::*;
 pub use location_types_distribution::{LocationTypeWeights, LocationTypesDistribution};
 pub use names_distributions::{FirstNamesWeights, NamesDistributions, SalutationsWeights};
 pub use return_reasons_distribution::ReturnReasonsDistribution;
@@ -40,6 +41,5 @@ pub use string_values_distribution::StringValuesDistribution as FileBasedStringV
 pub use top_domains_distribution::TopDomainsDistribution;
 pub use utils::{Distribution, DistributionUtils, WeightsBuilder};
 pub use web_page_use_distribution::WebPageUseDistribution;
-pub use items_distributions::*;
 
 // TODO(clflushopt): Include files in the module instead of reading them at runtime ?

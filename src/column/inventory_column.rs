@@ -29,12 +29,8 @@ impl InventoryColumn {
     /// Get all column variants in order
     pub fn values() -> &'static [InventoryColumn] {
         use InventoryColumn::*;
-        static COLUMNS: [InventoryColumn; 4] = [
-            InvDateSk,
-            InvItemSk,
-            InvWarehouseSk,
-            InvQuantityOnHand,
-        ];
+        static COLUMNS: [InventoryColumn; 4] =
+            [InvDateSk, InvItemSk, InvWarehouseSk, InvQuantityOnHand];
         &COLUMNS
     }
 }
