@@ -72,10 +72,31 @@ EOF
     exit 0
 }
 
+# Get generator name for table (handles returns tables)
+get_generator_for_table() {
+    local table=$1
+    case "$table" in
+        catalog_returns)
+            echo "catalog_sales"
+            ;;
+        store_returns)
+            echo "store_sales"
+            ;;
+        web_returns)
+            echo "web_sales"
+            ;;
+        *)
+            echo "$table"
+            ;;
+    esac
+}
+
 # Find Rust binary for table
 find_rust_binary() {
     local table=$1
-    local binary="$PROJECT_ROOT/target/debug/generate_$table"
+    local generator
+    generator=$(get_generator_for_table "$table")
+    local binary="$PROJECT_ROOT/target/debug/generate_$generator"
 
     if [[ -f "$binary" ]]; then
         echo "$binary"
@@ -83,7 +104,7 @@ find_rust_binary() {
     fi
 
     # Try release build
-    binary="$PROJECT_ROOT/target/release/generate_$table"
+    binary="$PROJECT_ROOT/target/release/generate_$generator"
     if [[ -f "$binary" ]]; then
         echo "$binary"
         return 0
@@ -97,10 +118,12 @@ generate_rust_table() {
     local table=$1
     local output_file=$2
     local binary
+    local generator
+    generator=$(get_generator_for_table "$table")
 
     if ! binary=$(find_rust_binary "$table"); then
         log_error "Rust binary not found for table: $table"
-        log_error "Build it with: cargo build --bin generate_$table"
+        log_error "Build it with: cargo build --bin generate_$generator"
         return 1
     fi
 
