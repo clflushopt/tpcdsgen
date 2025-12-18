@@ -355,7 +355,7 @@ mod tests {
         let mut stream = RandomNumberStreamImpl::new(1).unwrap();
 
         // Test with 0% probability - should always be false
-        let result_never = RandomValueGenerator::generate_random_boolean(0.0, &mut stream);
+        let _result_never = RandomValueGenerator::generate_random_boolean(0.0, &mut stream);
         // Note: This might not always be false due to floating point precision, but typically should be
 
         // Test with 100% probability - should always be true

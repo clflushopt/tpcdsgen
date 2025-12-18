@@ -189,13 +189,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_promotion_row_generator_creation() {
-        let generator = PromotionRowGenerator::new();
-        // Should not panic
-        assert!(true);
-    }
-
-    #[test]
     fn test_generate_promotion_row() {
         use crate::config::Session;
 

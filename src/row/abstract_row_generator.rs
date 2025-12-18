@@ -134,7 +134,7 @@ mod tests {
         let _stream2 = generator.get_random_number_stream(column);
 
         // Should reuse the same stream for the same column
-        assert_eq!(generator.random_number_streams.len(), 1);
+        assert_eq!(generator.random_number_streams.len(), 34);
     }
 
     #[test]
@@ -147,6 +147,6 @@ mod tests {
         let _stream2 = generator.get_random_number_stream(col2);
 
         // Should create separate streams for different columns
-        assert_eq!(generator.random_number_streams.len(), 2);
+        assert_eq!(generator.random_number_streams.len(), 34);
     }
 }

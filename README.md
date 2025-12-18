@@ -6,10 +6,8 @@ the [tpchgen](https://github.com/clflushopt/tpchgen-rs) once I am satisfied with
 probably rewrite a lot of it to be more idiomatic Rust instead of the current Java-ism OOP heavy
 mess it is right now.
 
-Currently 12 of 25 tables have been ported with byte-for-byte compatibility verified against the Java
-reference implementation. Each table has a dedicated binary generator and automated conformance testing
-via CI. Progress: 48% complete (call_center, customer_demographics, date_dim, household_demographics,
-income_band, promotion, reason, ship_mode, time_dim, warehouse, web_page, web_site).
+Currently all 25 tables have been ported with byte-for-byte compatibility verified against the Java
+reference implementation.
 
 ## Known Bugs
 
