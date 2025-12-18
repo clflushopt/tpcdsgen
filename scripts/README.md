@@ -26,7 +26,7 @@ tpcdsgen/
 │       └── scale-1/           # Scale factor 1 reference data
 │           ├── call_center.dat
 │           ├── warehouse.dat
-│           └── ... (all 24 tables)
+│           └── ... (all 25 tables)
 └── scripts/
     ├── bootstrap-java.sh      # Setup Java TPC-DS implementation
     ├── generate-fixtures.sh   # Generate Java reference data
@@ -96,7 +96,7 @@ Generates TPC-DS tables using the Java implementation. This creates the "golden 
 
 **Usage:**
 ```bash
-# Generate all 24 tables (recommended first run)
+# Generate all 25 tables (recommended first run)
 ./scripts/generate-fixtures.sh
 
 # Generate specific tables
@@ -120,7 +120,7 @@ Generates TPC-DS tables using the Java implementation. This creates the "golden 
 - Each file contains pipe-delimited rows with trailing pipe: `value1|value2|value3|`
 - Files are gitignored (regenerate as needed)
 
-**Time:** ~2-5 minutes for all 24 tables at scale 1
+**Time:** ~2-5 minutes for all 25 tables at scale 1
 
 ---
 

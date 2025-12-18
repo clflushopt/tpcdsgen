@@ -68,6 +68,8 @@ EOF
 }
 
 # Find all ported Rust table generators
+# Note: Returns tables (catalog_returns, store_returns, web_returns) are generated
+# by their parent sales generators, so we add them if the parent exists
 find_ported_tables() {
     local tables=()
 
@@ -79,8 +81,20 @@ find_ported_tables() {
             local table_name="${basename#generate_}"
 
             # Skip custom variants
+<<<<<<< Updated upstream
             if [[ "$table_name" == *"_custom" ]]; then
                 continue
+=======
+            if [[ "$table_name" != *"_custom" ]]; then
+                tables+=("$table_name")
+
+                # Add returns tables when their parent sales generator exists
+                case $table_name in
+                    catalog_sales) tables+=("catalog_returns") ;;
+                    store_sales)   tables+=("store_returns") ;;
+                    web_sales)     tables+=("web_returns") ;;
+                esac
+>>>>>>> Stashed changes
             fi
 
             # Skip dbgen_version (contains timestamps, will never match)

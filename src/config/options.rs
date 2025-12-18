@@ -50,7 +50,7 @@ pub struct Options {
 
 impl Options {
     // Default constants (matching Java implementation)
-    pub const DEFAULT_SCALE: f64 = 1.0;
+    pub const DEFAULT_SCALE: f64 = 10.0;
     pub const DEFAULT_DIRECTORY: &'static str = ".";
     pub const DEFAULT_SUFFIX: &'static str = ".dat";
     pub const DEFAULT_NULL_STRING: &'static str = "";
