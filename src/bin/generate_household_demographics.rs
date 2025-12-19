@@ -41,10 +41,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let rows = result.get_rows();
 
         for row in rows {
-            let values = row.get_values();
-
-            let csv_line = values.join("|");
-            writeln!(writer, "{}|", csv_line)?;
+            row.write_to(&mut writer, '|')?;
         }
 
         if row_number % 1000 == 0 {

@@ -54,27 +54,31 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 
         // First row is always catalog_sales
         if !rows.is_empty() {
-            let values = rows[0].get_values();
-            let csv_line = format!("{}|", values.join("|"));
-            catalog_sales_writer.write_line(&csv_line)?;
+            // Use streaming write_to instead of allocating Vec<String>
+            rows[0].write_to(&mut catalog_sales_writer, '|')?;
             catalog_sales_count += 1;
 
             if catalog_sales_count <= 3 {
-                println!("Catalog Sales Row {}: {}", catalog_sales_count, csv_line);
+                let values = rows[0].get_values();
+                println!(
+                    "Catalog Sales Row {}: {}|",
+                    catalog_sales_count,
+                    values.join("|")
+                );
             }
         }
 
         // Second row (if present) is catalog_returns
         if rows.len() > 1 {
-            let values = rows[1].get_values();
-            let csv_line = format!("{}|", values.join("|"));
-            catalog_returns_writer.write_line(&csv_line)?;
+            rows[1].write_to(&mut catalog_returns_writer, '|')?;
             catalog_returns_count += 1;
 
             if catalog_returns_count <= 3 {
+                let values = rows[1].get_values();
                 println!(
-                    "Catalog Returns Row {}: {}",
-                    catalog_returns_count, csv_line
+                    "Catalog Returns Row {}: {}|",
+                    catalog_returns_count,
+                    values.join("|")
                 );
             }
         }

@@ -54,25 +54,28 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 
         // First row is always web_sales
         if !rows.is_empty() {
-            let values = rows[0].get_values();
-            let csv_line = format!("{}|", values.join("|"));
-            web_sales_writer.write_line(&csv_line)?;
+            // Use streaming write_to instead of allocating Vec<String>
+            rows[0].write_to(&mut web_sales_writer, '|')?;
             web_sales_count += 1;
 
             if web_sales_count <= 3 {
-                println!("Web Sales Row {}: {}", web_sales_count, csv_line);
+                let values = rows[0].get_values();
+                println!("Web Sales Row {}: {}|", web_sales_count, values.join("|"));
             }
         }
 
         // Second row (if present) is web_returns
         if rows.len() > 1 {
-            let values = rows[1].get_values();
-            let csv_line = format!("{}|", values.join("|"));
-            web_returns_writer.write_line(&csv_line)?;
+            rows[1].write_to(&mut web_returns_writer, '|')?;
             web_returns_count += 1;
 
             if web_returns_count <= 3 {
-                println!("Web Returns Row {}: {}", web_returns_count, csv_line);
+                let values = rows[1].get_values();
+                println!(
+                    "Web Returns Row {}: {}|",
+                    web_returns_count,
+                    values.join("|")
+                );
             }
         }
 

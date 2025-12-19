@@ -25,12 +25,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let rows = result.get_rows();
 
         for row in rows {
-            let values = row.get_values();
-
-            let csv_line = values.join("|");
-            writeln!(writer, "{}|", csv_line)?;
+            // Use streaming write_to instead of allocating Vec<String>
+            row.write_to(&mut writer, '|')?;
 
             if row_number <= 3 {
+                // For debug output only, use get_values()
+                let values = row.get_values();
+                let csv_line = values.join("|");
                 println!("Row {}: {}", row_number, csv_line);
             }
         }

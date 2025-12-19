@@ -54,13 +54,13 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 
         let rows = result.get_rows();
         if !rows.is_empty() {
-            let values = rows[0].get_values();
-            let csv_line = format!("{}|", values.join("|"));
-            inventory_writer.write_line(&csv_line)?;
+            // Use streaming write_to instead of allocating Vec<String>
+            rows[0].write_to(&mut inventory_writer, '|')?;
             row_count += 1;
 
             if row_count <= 3 {
-                println!("Inventory Row {}: {}", row_count, csv_line);
+                let values = rows[0].get_values();
+                println!("Inventory Row {}: {}|", row_count, values.join("|"));
             }
         }
 
