@@ -269,15 +269,17 @@ impl Table {
             Table::Warehouse => {
                 static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
                 SCALING.get_or_init(|| {
-                    let row_counts = [0, 1, 1, 1, 1, 1, 1, 1, 1, 5];
-                    ScalingInfo::new(0, ScalingModel::Static, &row_counts, 0)
+                    // Java: new ScalingInfo(0, LOGARITHMIC, new int[] {0, 5, 10, 15, 17, 20, 22, 25, 27, 30}, 0)
+                    let row_counts = [0, 5, 10, 15, 17, 20, 22, 25, 27, 30];
+                    ScalingInfo::new(0, ScalingModel::Logarithmic, &row_counts, 0)
                         .expect("Warehouse ScalingInfo creation should not fail")
                 })
             }
             Table::ShipMode => {
                 static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
                 SCALING.get_or_init(|| {
-                    let row_counts = [0, 1, 1, 1, 1, 1, 1, 1, 1, 20];
+                    // Java: new ScalingInfo(0, STATIC, new int[] {0, 20, 20, 20, 20, 20, 20, 20, 20, 20}, 0)
+                    let row_counts = [0, 20, 20, 20, 20, 20, 20, 20, 20, 20];
                     ScalingInfo::new(0, ScalingModel::Static, &row_counts, 0)
                         .expect("ShipMode ScalingInfo creation should not fail")
                 })
@@ -285,15 +287,17 @@ impl Table {
             Table::Reason => {
                 static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
                 SCALING.get_or_init(|| {
-                    let row_counts = [0, 1, 1, 1, 1, 1, 1, 1, 1, 35];
-                    ScalingInfo::new(0, ScalingModel::Static, &row_counts, 0)
+                    // Java: new ScalingInfo(0, LOGARITHMIC, new int[] {0, 35, 45, 55, 60, 65, 67, 70, 72, 75}, 0)
+                    let row_counts = [0, 35, 45, 55, 60, 65, 67, 70, 72, 75];
+                    ScalingInfo::new(0, ScalingModel::Logarithmic, &row_counts, 0)
                         .expect("Reason ScalingInfo creation should not fail")
                 })
             }
             Table::IncomeBand => {
                 static SCALING: OnceLock<ScalingInfo> = OnceLock::new();
                 SCALING.get_or_init(|| {
-                    let row_counts = [0, 1, 1, 1, 1, 1, 1, 1, 1, 20];
+                    // Java: new ScalingInfo(0, STATIC, new int[] {0, 20, 20, 20, 20, 20, 20, 20, 20, 20}, 0)
+                    let row_counts = [0, 20, 20, 20, 20, 20, 20, 20, 20, 20];
                     ScalingInfo::new(0, ScalingModel::Static, &row_counts, 0)
                         .expect("IncomeBand ScalingInfo creation should not fail")
                 })
