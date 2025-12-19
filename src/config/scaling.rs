@@ -1,5 +1,6 @@
 use crate::config::Table;
 use crate::distribution::calendar_distribution::{CalendarDistribution, CalendarWeights};
+use crate::table::Table as MetaTable;
 use crate::types::Date;
 
 #[derive(Debug, Clone)]
@@ -7,7 +8,6 @@ pub struct Scaling {
     scale: f64,
 }
 
-// TODO(clflushopt): need to support the other scaling variants.
 impl Scaling {
     pub fn new(scale: f64) -> Self {
         Scaling { scale }
@@ -18,9 +18,92 @@ impl Scaling {
     }
 
     /// Get row count for a table at this scale factor.
+    ///
+    /// Uses the table's ScalingInfo to properly calculate row counts based on
+    /// the scaling model (Static, Linear, or Logarithmic).
+    ///
+    /// Note: Inventory is a special case - its row count is computed dynamically
+    /// as item_id_count × warehouse_count × weeks (matching Java's scaleInventory()).
     pub fn get_row_count(&self, table: Table) -> i64 {
-        let base_row_count = self.get_base_row_count(table);
-        (base_row_count as f64 * self.scale) as i64
+        // Special case for Inventory - computed dynamically like Java's scaleInventory()
+        // See: Java Scaling.java getRowCount() and scaleInventory()
+        if table == Table::Inventory {
+            return self.scale_inventory();
+        }
+
+        // Convert config::Table to table::Table to access ScalingInfo
+        let meta_table = Self::to_meta_table(table);
+
+        // Get base row count from ScalingInfo
+        let scaling_info = meta_table.get_scaling_info();
+        let base_row_count = scaling_info
+            .get_row_count_for_scale(self.scale)
+            .unwrap_or(0);
+
+        // Apply multiplier based on keepsHistory and scalingInfo.multiplier
+        // multiplier = (keepsHistory ? 2 : 1) * 10^scalingInfo.multiplier
+        let mut multiplier: i64 = if meta_table.keeps_history() { 2 } else { 1 };
+        for _ in 0..scaling_info.get_multiplier() {
+            multiplier *= 10;
+        }
+
+        base_row_count * multiplier
+    }
+
+    /// Compute inventory row count dynamically.
+    ///
+    /// Inventory row count = item_id_count × warehouse_count × weeks
+    /// This matches Java's Scaling.scaleInventory() method exactly.
+    ///
+    /// From Java:
+    /// ```java
+    /// private long scaleInventory() {
+    ///     int nDays = JULIAN_DATE_MAXIMUM - JULIAN_DATE_MINIMUM;
+    ///     nDays += 7;  // ndays + 1 + 6
+    ///     nDays /= 7;  // each item's inventory is updated weekly
+    ///     return getIdCount(ITEM) * getRowCount(WAREHOUSE) * nDays;
+    /// }
+    /// ```
+    fn scale_inventory(&self) -> i64 {
+        let n_days = Date::JULIAN_DATE_MAXIMUM - Date::JULIAN_DATE_MINIMUM;
+        let n_weeks = (n_days + 7) / 7; // Round up to weeks
+        self.get_id_count(Table::Item) * self.get_row_count(Table::Warehouse) * n_weeks as i64
+    }
+
+    /// Convert config::Table to table::Table for accessing metadata
+    fn to_meta_table(table: Table) -> MetaTable {
+        match table {
+            Table::CallCenter => MetaTable::CallCenter,
+            Table::CatalogPage => MetaTable::CatalogPage,
+            Table::CatalogReturns => MetaTable::CatalogReturns,
+            Table::CatalogSales => MetaTable::CatalogSales,
+            Table::Customer => MetaTable::Customer,
+            Table::CustomerAddress => MetaTable::CustomerAddress,
+            Table::CustomerDemographics => MetaTable::CustomerDemographics,
+            Table::DateDim => MetaTable::DateDim,
+            Table::HouseholdDemographics => MetaTable::HouseholdDemographics,
+            Table::IncomeBand => MetaTable::IncomeBand,
+            Table::Inventory => MetaTable::Inventory,
+            Table::Item => MetaTable::Item,
+            Table::Promotion => MetaTable::Promotion,
+            Table::Reason => MetaTable::Reason,
+            Table::ShipMode => MetaTable::ShipMode,
+            Table::Store => MetaTable::Store,
+            Table::StoreReturns => MetaTable::StoreReturns,
+            Table::StoreSales => MetaTable::StoreSales,
+            Table::TimeDim => MetaTable::TimeDim,
+            Table::Warehouse => MetaTable::Warehouse,
+            Table::WebPage => MetaTable::WebPage,
+            Table::WebReturns => MetaTable::WebReturns,
+            Table::WebSales => MetaTable::WebSales,
+            Table::WebSite => MetaTable::WebSite,
+            Table::DbgenVersion => MetaTable::DbgenVersion,
+            // Source tables - use a default or panic
+            _ => panic!(
+                "Source tables not supported for row count scaling: {:?}",
+                table
+            ),
+        }
     }
 
     /// Get unique ID count for tables that keep history
@@ -80,6 +163,7 @@ impl Scaling {
     }
 
     /// Basic row counts per table.
+    #[allow(dead_code)]
     fn get_base_row_count(&self, table: Table) -> i64 {
         match table {
             // TODO(clflushopt): Derive from scaling implementation later on.
@@ -141,12 +225,12 @@ mod tests {
     fn test_row_count_calculation() {
         let scaling = Scaling::new(2.0);
 
-        // Row count should scale with scale factor
+        // Row count should scale with scale factor (not linear)
         let customer_rows = scaling.get_row_count(Table::Customer);
-        assert_eq!(customer_rows, 200000); // 100000 * 2.0
+        assert_eq!(customer_rows, 144000);
 
         let store_rows = scaling.get_row_count(Table::Store);
-        assert_eq!(store_rows, 24); // 12 * 2.0
+        assert_eq!(store_rows, 22);
     }
 
     #[test]
@@ -169,5 +253,27 @@ mod tests {
         let scaling = Scaling::new(0.1);
         let customer_rows = scaling.get_row_count(Table::Customer);
         assert_eq!(customer_rows, 10000); // 100000 * 0.1
+    }
+
+    #[test]
+    fn test_inventory_scaling() {
+        // Inventory is computed as: item_id_count × warehouse_count × weeks
+        // weeks = (JULIAN_DATE_MAXIMUM - JULIAN_DATE_MINIMUM + 7) / 7
+
+        // Scale 1: 9000 items × 5 warehouses × 261 weeks = 11,745,000
+        let scaling_1 = Scaling::new(1.0);
+        let inventory_rows_1 = scaling_1.get_row_count(Table::Inventory);
+        assert_eq!(inventory_rows_1, 11_745_000);
+
+        // Scale 10: Should scale with item_id_count and warehouse_count
+        let scaling_10 = Scaling::new(10.0);
+        let inventory_rows_10 = scaling_10.get_row_count(Table::Inventory);
+
+        // At scale 10:
+        // - Items: 102,000 rows → id_count = 51,000 (keeps history)
+        // - Warehouses: 10 rows
+        // - Weeks: 261
+        // Expected: 51,000 × 10 × 261 = 133,110,000
+        assert_eq!(inventory_rows_10, 133_110_000);
     }
 }
