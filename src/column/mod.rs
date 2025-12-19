@@ -20,77 +20,9 @@ pub use inventory_column::InventoryColumn;
 pub use promotion::PromotionColumn;
 pub use web_site::WebSiteColumn;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Table {
-    CallCenter,
-    CatalogPage,
-    CatalogReturns,
-    CatalogSales,
-    Warehouse,
-    ShipMode,
-    Reason,
-    IncomeBand,
-    HouseholdDemographics,
-    CustomerDemographics,
-    CustomerAddress,
-    Customer,
-    DateDim,
-    TimeDim,
-    Item,
-    Promotion,
-    Store,
-    StoreReturns,
-    StoreSales,
-    WebPage,
-    WebReturns,
-    WebSales,
-    WebSite,
-    DbgenVersion,
-    Inventory,
-    // Source tables (for SCD key computation)
-    SStore,
-    // TODO(clflushopt): Add remaining tables
-}
-
-impl Table {
-    /// Returns the name of the table in lowercase as per TPC-DS specification
-    pub fn get_name(&self) -> &'static str {
-        match self {
-            Table::CallCenter => "call_center",
-            Table::CatalogPage => "catalog_page",
-            Table::CatalogReturns => "catalog_returns",
-            Table::CatalogSales => "catalog_sales",
-            Table::Warehouse => "warehouse",
-            Table::ShipMode => "ship_mode",
-            Table::Reason => "reason",
-            Table::IncomeBand => "income_band",
-            Table::HouseholdDemographics => "household_demographics",
-            Table::CustomerDemographics => "customer_demographics",
-            Table::CustomerAddress => "customer_address",
-            Table::Customer => "customer",
-            Table::DateDim => "date_dim",
-            Table::TimeDim => "time_dim",
-            Table::Item => "item",
-            Table::Promotion => "promotion",
-            Table::Store => "store",
-            Table::StoreReturns => "store_returns",
-            Table::StoreSales => "store_sales",
-            Table::WebPage => "web_page",
-            Table::WebReturns => "web_returns",
-            Table::WebSales => "web_sales",
-            Table::WebSite => "web_site",
-            Table::DbgenVersion => "dbgen_version",
-            Table::Inventory => "inventory",
-            Table::SStore => "s_store",
-        }
-    }
-}
-
-impl std::fmt::Display for Table {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.get_name())
-    }
-}
+// Re-export Table from crate::table to provide a single source of truth
+// This eliminates the duplicate Table enum that previously existed here
+pub use crate::table::Table;
 
 /// TODO(clflushopt): We probably don't need this but Java keeps it around.
 pub trait Column: Send + Sync {

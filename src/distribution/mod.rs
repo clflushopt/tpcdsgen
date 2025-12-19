@@ -3,6 +3,7 @@ pub mod calendar_distribution;
 pub mod call_center_distributions;
 pub mod catalog_page_distributions;
 pub mod demographics_distributions;
+pub mod embedded_data;
 pub mod english;
 pub mod english_distributions;
 pub mod file_loader;

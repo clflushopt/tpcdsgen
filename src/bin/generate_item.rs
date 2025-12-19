@@ -43,12 +43,12 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
         let rows = result.get_rows();
 
         for row in rows {
-            let values = row.get_values();
-            let csv_line = format!("{}|", values.join("|"));
-            writer.write_line(&csv_line)?;
+            // Use streaming write_to instead of allocating Vec<String>
+            row.write_to(&mut writer, '|')?;
 
             if row_number <= 3 {
-                println!("Row {}: {}", row_number, csv_line);
+                let values = row.get_values();
+                println!("Row {}: {}|", row_number, values.join("|"));
             }
         }
     }

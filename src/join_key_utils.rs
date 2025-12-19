@@ -58,9 +58,8 @@ pub fn generate_join_key(
     join_count: i64,
     scaling: &Scaling,
 ) -> Result<i64> {
-    // NOTE: from_column.get_table() returns column::Table, not config::Table
-    // For now, we pass the from_column itself and let the helper functions
-    // determine the table type if needed
+    // NOTE: to_table is config::Table (for CLI), from_column.get_table() returns
+    // column::Table (now same as table::Table). Different enums for different purposes.
 
     match to_table {
         Table::CatalogPage => {

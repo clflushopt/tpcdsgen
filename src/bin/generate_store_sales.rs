@@ -54,25 +54,32 @@ fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
 
         // First row is always store_sales
         if !rows.is_empty() {
-            let values = rows[0].get_values();
-            let csv_line = format!("{}|", values.join("|"));
-            store_sales_writer.write_line(&csv_line)?;
+            // Use streaming write_to instead of allocating Vec<String>
+            rows[0].write_to(&mut store_sales_writer, '|')?;
             store_sales_count += 1;
 
             if store_sales_count <= 3 {
-                println!("Store Sales Row {}: {}", store_sales_count, csv_line);
+                let values = rows[0].get_values();
+                println!(
+                    "Store Sales Row {}: {}|",
+                    store_sales_count,
+                    values.join("|")
+                );
             }
         }
 
         // Second row (if present) is store_returns
         if rows.len() > 1 {
-            let values = rows[1].get_values();
-            let csv_line = format!("{}|", values.join("|"));
-            store_returns_writer.write_line(&csv_line)?;
+            rows[1].write_to(&mut store_returns_writer, '|')?;
             store_returns_count += 1;
 
             if store_returns_count <= 3 {
-                println!("Store Returns Row {}: {}", store_returns_count, csv_line);
+                let values = rows[1].get_values();
+                println!(
+                    "Store Returns Row {}: {}|",
+                    store_returns_count,
+                    values.join("|")
+                );
             }
         }
 

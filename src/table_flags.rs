@@ -10,8 +10,8 @@ pub struct TableFlags {
 }
 
 impl TableFlags {
-    /// Create new TableFlags with all flags false
-    pub fn new(keeps_history: bool, is_small: bool, is_date_based: bool) -> Self {
+    /// Create new TableFlags with specified flags (const-compatible)
+    pub const fn new(keeps_history: bool, is_small: bool, is_date_based: bool) -> Self {
         Self {
             keeps_history,
             is_small,
