@@ -126,31 +126,31 @@ impl Table {
         // Const static array indexed by enum variant order (not Java ordinal)
         // Order matches enum definition: CallCenter, CatalogPage, ..., SStore
         static TABLE_FLAGS: [TableFlags; 26] = [
-            TableFlags::new(true, true, false),   // CallCenter: keeps_history, is_small
+            TableFlags::new(true, true, false), // CallCenter: keeps_history, is_small
             TableFlags::new(false, false, false), // CatalogPage: default
             TableFlags::new(false, false, false), // CatalogReturns: default
-            TableFlags::new(false, false, true),  // CatalogSales: is_date_based
-            TableFlags::new(false, true, false),  // Warehouse: is_small
-            TableFlags::new(false, true, false),  // ShipMode: is_small
-            TableFlags::new(false, true, false),  // Reason: is_small
-            TableFlags::new(false, true, false),  // IncomeBand: is_small
+            TableFlags::new(false, false, true), // CatalogSales: is_date_based
+            TableFlags::new(false, true, false), // Warehouse: is_small
+            TableFlags::new(false, true, false), // ShipMode: is_small
+            TableFlags::new(false, true, false), // Reason: is_small
+            TableFlags::new(false, true, false), // IncomeBand: is_small
             TableFlags::new(false, false, false), // HouseholdDemographics: default
             TableFlags::new(false, false, false), // CustomerDemographics: default
             TableFlags::new(false, false, false), // CustomerAddress: default
             TableFlags::new(false, false, false), // Customer: default
             TableFlags::new(false, false, false), // DateDim: default
             TableFlags::new(false, false, false), // TimeDim: default
-            TableFlags::new(true, false, false),  // Item: keeps_history
+            TableFlags::new(true, false, false), // Item: keeps_history
             TableFlags::new(false, false, false), // Promotion: default
-            TableFlags::new(true, true, false),   // Store: keeps_history, is_small
+            TableFlags::new(true, true, false), // Store: keeps_history, is_small
             TableFlags::new(false, false, false), // StoreReturns: default
-            TableFlags::new(false, false, true),  // StoreSales: is_date_based
-            TableFlags::new(true, false, false),  // WebPage: keeps_history
+            TableFlags::new(false, false, true), // StoreSales: is_date_based
+            TableFlags::new(true, false, false), // WebPage: keeps_history
             TableFlags::new(false, false, false), // WebReturns: default
-            TableFlags::new(false, false, true),  // WebSales: is_date_based
-            TableFlags::new(true, true, false),   // WebSite: keeps_history, is_small
+            TableFlags::new(false, false, true), // WebSales: is_date_based
+            TableFlags::new(true, true, false), // WebSite: keeps_history, is_small
             TableFlags::new(false, false, false), // DbgenVersion: default
-            TableFlags::new(false, false, true),  // Inventory: is_date_based
+            TableFlags::new(false, false, true), // Inventory: is_date_based
             TableFlags::new(false, false, false), // SStore: default
         ];
 
