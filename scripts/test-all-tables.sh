@@ -68,6 +68,8 @@ EOF
 }
 
 # Find all ported Rust table generators
+# Note: Returns tables (catalog_returns, store_returns, web_returns) are generated
+# by their parent sales generators, so we add them if the parent exists
 find_ported_tables() {
     local tables=()
 

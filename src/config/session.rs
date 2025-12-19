@@ -15,6 +15,12 @@ pub struct Session {
     overwrite: bool,
 }
 
+impl Default for Session {
+    fn default() -> Self {
+        Session::get_default_session()
+    }
+}
+
 impl Session {
     #[allow(clippy::too_many_arguments)]
     pub fn new(

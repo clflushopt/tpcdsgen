@@ -27,7 +27,7 @@ SCALE_FACTOR=1
 FIXTURE_DIR="$PROJECT_ROOT/tests/fixtures/scale-$SCALE_FACTOR"
 QUIET=0
 
-# All TPC-DS tables (24 base tables)
+# All TPC-DS tables (25 tables)
 ALL_TABLES=(
     "call_center"
     "catalog_page"
@@ -37,6 +37,7 @@ ALL_TABLES=(
     "customer_address"
     "customer_demographics"
     "date_dim"
+    "dbgen_version"
     "household_demographics"
     "income_band"
     "inventory"

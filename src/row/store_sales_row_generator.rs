@@ -362,7 +362,7 @@ mod tests {
     #[test]
     fn test_store_sales_row_generation() {
         let mut generator = StoreSalesRowGenerator::new();
-        let session = Session::get_default_session();
+        let session = Session::default();
 
         let result = generator
             .generate_row_and_child_rows(1, &session, None, None)
@@ -379,7 +379,7 @@ mod tests {
     #[test]
     fn test_store_sales_order_grouping() {
         let mut generator = StoreSalesRowGenerator::new();
-        let session = Session::get_default_session();
+        let session = Session::default();
 
         // Generate first row (starts new order)
         let result1 = generator
