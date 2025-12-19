@@ -15,7 +15,7 @@ use crate::generator::{
     WebSalesGeneratorColumn, WebSiteGeneratorColumn,
 };
 use crate::scaling_info::{ScalingInfo, ScalingModel};
-use crate::table_flags::{TableFlags, TableFlagsBuilder};
+use crate::table_flags::TableFlags;
 use std::sync::OnceLock;
 
 /// Table enum representing all TPC-DS tables with complete metadata (Table)
@@ -120,193 +120,109 @@ impl Table {
         }
     }
 
-    /// Get table flags
+    /// Get table flags using const static array for efficiency.
+    /// Format: TableFlags::new(keeps_history, is_small, is_date_based)
     pub fn get_table_flags(&self) -> &'static TableFlags {
-        match self {
-            Table::CallCenter => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| {
-                    TableFlagsBuilder::new()
-                        .set_is_small()
-                        .set_keeps_history()
-                        .build()
-                })
-            }
-            Table::CatalogPage => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
-            }
-            Table::CatalogReturns => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
-            }
-            Table::CatalogSales => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().set_is_date_based().build())
-            }
-            Table::Warehouse => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().set_is_small().build())
-            }
-            Table::ShipMode => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().set_is_small().build())
-            }
-            Table::Reason => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().set_is_small().build())
-            }
-            Table::IncomeBand => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().set_is_small().build())
-            }
-            Table::HouseholdDemographics => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
-            }
-            Table::CustomerDemographics => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
-            }
-            Table::CustomerAddress => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
-            }
-            Table::Customer => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
-            }
-            Table::DateDim => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
-            }
-            Table::TimeDim => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
-            }
-            Table::Item => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().set_keeps_history().build())
-            }
-            Table::Promotion => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
-            }
-            Table::Store => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| {
-                    TableFlagsBuilder::new()
-                        .set_keeps_history()
-                        .set_is_small()
-                        .build()
-                })
-            }
-            Table::StoreReturns => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
-            }
-            Table::StoreSales => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().set_is_date_based().build())
-            }
-            Table::WebPage => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().set_keeps_history().build())
-            }
-            Table::WebReturns => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
-            }
-            Table::WebSales => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().set_is_date_based().build())
-            }
-            Table::WebSite => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| {
-                    TableFlagsBuilder::new()
-                        .set_keeps_history()
-                        .set_is_small()
-                        .build()
-                })
-            }
-            Table::DbgenVersion => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
-            }
-            Table::Inventory => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().set_is_date_based().build())
-            }
-            Table::SStore => {
-                static FLAGS: OnceLock<TableFlags> = OnceLock::new();
-                FLAGS.get_or_init(|| TableFlagsBuilder::new().build())
-            }
-        }
+        // Const static array indexed by enum variant order (not Java ordinal)
+        // Order matches enum definition: CallCenter, CatalogPage, ..., SStore
+        static TABLE_FLAGS: [TableFlags; 26] = [
+            TableFlags::new(true, true, false),   // CallCenter: keeps_history, is_small
+            TableFlags::new(false, false, false), // CatalogPage: default
+            TableFlags::new(false, false, false), // CatalogReturns: default
+            TableFlags::new(false, false, true),  // CatalogSales: is_date_based
+            TableFlags::new(false, true, false),  // Warehouse: is_small
+            TableFlags::new(false, true, false),  // ShipMode: is_small
+            TableFlags::new(false, true, false),  // Reason: is_small
+            TableFlags::new(false, true, false),  // IncomeBand: is_small
+            TableFlags::new(false, false, false), // HouseholdDemographics: default
+            TableFlags::new(false, false, false), // CustomerDemographics: default
+            TableFlags::new(false, false, false), // CustomerAddress: default
+            TableFlags::new(false, false, false), // Customer: default
+            TableFlags::new(false, false, false), // DateDim: default
+            TableFlags::new(false, false, false), // TimeDim: default
+            TableFlags::new(true, false, false),  // Item: keeps_history
+            TableFlags::new(false, false, false), // Promotion: default
+            TableFlags::new(true, true, false),   // Store: keeps_history, is_small
+            TableFlags::new(false, false, false), // StoreReturns: default
+            TableFlags::new(false, false, true),  // StoreSales: is_date_based
+            TableFlags::new(true, false, false),  // WebPage: keeps_history
+            TableFlags::new(false, false, false), // WebReturns: default
+            TableFlags::new(false, false, true),  // WebSales: is_date_based
+            TableFlags::new(true, true, false),   // WebSite: keeps_history, is_small
+            TableFlags::new(false, false, false), // DbgenVersion: default
+            TableFlags::new(false, false, true),  // Inventory: is_date_based
+            TableFlags::new(false, false, false), // SStore: default
+        ];
+
+        &TABLE_FLAGS[*self as usize]
     }
 
     /// Get null basis points for this table
     pub fn get_null_basis_points(&self) -> i32 {
-        match self {
-            Table::CallCenter => 100,
-            Table::CatalogPage => 200,
-            Table::CatalogReturns => 400,
-            Table::CatalogSales => 100,
-            Table::Warehouse => 100,
-            Table::ShipMode => 100,
-            Table::Reason => 100,
-            Table::IncomeBand => 0,
-            Table::HouseholdDemographics => 0,
-            Table::CustomerDemographics => 0,
-            Table::CustomerAddress => 600,
-            Table::Customer => 700,
-            Table::DateDim => 0,
-            Table::TimeDim => 0,
-            Table::Item => 50,
-            Table::Promotion => 200,
-            Table::Store => 100,
-            Table::StoreReturns => 700,
-            Table::StoreSales => 900,
-            Table::WebPage => 250,
-            Table::WebReturns => 900,
-            Table::WebSales => 5,
-            Table::WebSite => 100,
-            Table::DbgenVersion => 0,
-            Table::Inventory => 1000,
-            Table::SStore => 0,
-        }
+        // Const array indexed by enum variant order
+        const NULL_BASIS_POINTS: [i32; 26] = [
+            100,  // CallCenter
+            200,  // CatalogPage
+            400,  // CatalogReturns
+            100,  // CatalogSales
+            100,  // Warehouse
+            100,  // ShipMode
+            100,  // Reason
+            0,    // IncomeBand
+            0,    // HouseholdDemographics
+            0,    // CustomerDemographics
+            600,  // CustomerAddress
+            700,  // Customer
+            0,    // DateDim
+            0,    // TimeDim
+            50,   // Item
+            200,  // Promotion
+            100,  // Store
+            700,  // StoreReturns
+            900,  // StoreSales
+            250,  // WebPage
+            900,  // WebReturns
+            5,    // WebSales
+            100,  // WebSite
+            0,    // DbgenVersion
+            1000, // Inventory
+            0,    // SStore
+        ];
+        NULL_BASIS_POINTS[*self as usize]
     }
 
     /// Get not-null bitmap for this table
     pub fn get_not_null_bit_map(&self) -> i64 {
-        match self {
-            Table::CallCenter => 0xB,
-            Table::CatalogPage => 0x3,
-            Table::CatalogReturns => 0x10007,
-            Table::CatalogSales => 0x28000,
-            Table::Warehouse => 0x3,
-            Table::ShipMode => 0x3,
-            Table::Reason => 0x3,
-            Table::IncomeBand => 0x1,
-            Table::HouseholdDemographics => 0x1,
-            Table::CustomerDemographics => 0x1,
-            Table::CustomerAddress => 0x3,
-            Table::Customer => 0x13,
-            Table::DateDim => 0x3,
-            Table::TimeDim => 0x3,
-            Table::Item => 0xB,
-            Table::Promotion => 0x3,
-            Table::Store => 0xB,
-            Table::StoreReturns => 0x204,
-            Table::StoreSales => 0x204,
-            Table::WebPage => 0xB,
-            Table::WebReturns => 0x2004,
-            Table::WebSales => 0x20008,
-            Table::WebSite => 0xB,
-            Table::DbgenVersion => 0x0,
-            Table::Inventory => 0x07,
-            Table::SStore => 0x0,
-        }
+        // Const array indexed by enum variant order
+        const NOT_NULL_BIT_MAP: [i64; 26] = [
+            0xB,     // CallCenter
+            0x3,     // CatalogPage
+            0x10007, // CatalogReturns
+            0x28000, // CatalogSales
+            0x3,     // Warehouse
+            0x3,     // ShipMode
+            0x3,     // Reason
+            0x1,     // IncomeBand
+            0x1,     // HouseholdDemographics
+            0x1,     // CustomerDemographics
+            0x3,     // CustomerAddress
+            0x13,    // Customer
+            0x3,     // DateDim
+            0x3,     // TimeDim
+            0xB,     // Item
+            0x3,     // Promotion
+            0xB,     // Store
+            0x204,   // StoreReturns
+            0x204,   // StoreSales
+            0xB,     // WebPage
+            0x2004,  // WebReturns
+            0x20008, // WebSales
+            0xB,     // WebSite
+            0x0,     // DbgenVersion
+            0x07,    // Inventory
+            0x0,     // SStore
+        ];
+        NOT_NULL_BIT_MAP[*self as usize]
     }
 
     /// Get scaling info for this table
