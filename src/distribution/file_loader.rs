@@ -1,23 +1,21 @@
+use crate::distribution::embedded_data::get_embedded_distribution;
 use crate::error::{Result, TpcdsError};
-use std::fs;
-use std::path::Path;
 
 /// Loads and parses distribution files (.dst format)
-/// DistributionUtils functionality
+/// Uses compile-time embedded data for zero runtime file I/O.
 pub struct DistributionFileLoader;
 
 impl DistributionFileLoader {
     /// Load a distribution file and return parsed lines
     /// Each line is split by colon into value and weight parts
+    ///
+    /// Distribution files are embedded at compile time, eliminating runtime file dependencies.
     pub fn load_distribution_file(filename: &str) -> Result<Vec<(Vec<String>, Vec<String>)>> {
-        let data_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("data");
-        let file_path = data_dir.join(filename);
-
-        // Read as bytes first then decode as ISO-8859-1 (Latin-1)
-        let bytes = fs::read(&file_path).map_err(|e| {
+        // Get embedded bytes (compile-time embedded)
+        let bytes = get_embedded_distribution(filename).ok_or_else(|| {
             TpcdsError::new(&format!(
-                "Failed to read distribution file {}: {}",
-                filename, e
+                "Distribution file not found (not embedded): {}",
+                filename
             ))
         })?;
 

@@ -92,23 +92,6 @@ impl AbstractRowGenerator {
             stream.skip_rows(starting_row_number);
         }
     }
-
-    /// Advance all streams to the next row
-    pub fn advance_to_next_row(&mut self, _row_number: i64) {
-        // Get generator columns for this table
-        let generator_column_count = self.table.get_generator_column_count();
-
-        for i in 0..generator_column_count {
-            if let Some(gen_col) = self.table.get_generator_column_by_index(i) {
-                let seeds_per_row = gen_col.get_seeds_per_row();
-                let stream = &mut self.random_number_streams[i];
-                // Advance the stream by the number of seeds this column uses per row
-                for _ in 0..seeds_per_row {
-                    stream.next_random();
-                }
-            }
-        }
-    }
 }
 
 #[cfg(test)]
