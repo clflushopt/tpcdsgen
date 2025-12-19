@@ -213,12 +213,6 @@ impl Session {
     }
 }
 
-impl Default for Session {
-    fn default() -> Self {
-        Self::get_default_session()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
