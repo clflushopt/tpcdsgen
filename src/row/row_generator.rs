@@ -1,23 +1,26 @@
 use crate::config::Session;
-use crate::row::TableRow;
+use crate::row::GeneratedRow;
 
 /// Result of row generation (RowGeneratorResult)
+///
+/// Uses `GeneratedRow` enum instead of `Box<dyn TableRow>` to avoid
+/// heap allocations and enable static dispatch. See ISSUE-004.
 pub struct RowGeneratorResult {
-    rows: Vec<Box<dyn TableRow>>,
+    rows: Vec<GeneratedRow>,
     should_end_row: bool,
 }
 
 impl RowGeneratorResult {
-    /// Create a result with a single row (constructor)
-    pub fn new(row: Box<dyn TableRow>) -> Self {
+    /// Create a result with a single row
+    pub fn new<R: Into<GeneratedRow>>(row: R) -> Self {
         Self {
-            rows: vec![row],
+            rows: vec![row.into()],
             should_end_row: true,
         }
     }
 
     /// Create a result with multiple rows and end flag
-    pub fn new_with_multiple(rows: Vec<Box<dyn TableRow>>, should_end_row: bool) -> Self {
+    pub fn new_with_multiple(rows: Vec<GeneratedRow>, should_end_row: bool) -> Self {
         Self {
             rows,
             should_end_row,
@@ -25,7 +28,7 @@ impl RowGeneratorResult {
     }
 
     /// Get the generated rows
-    pub fn get_rows(&self) -> &[Box<dyn TableRow>] {
+    pub fn get_rows(&self) -> &[GeneratedRow] {
         &self.rows
     }
 
@@ -56,11 +59,11 @@ pub trait RowGenerator: Send + Sync {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::row::call_center_row::CallCenterRow;
+    use crate::row::CallCenterRow;
 
     #[test]
     fn test_row_generator_result_single() {
-        let row = Box::new(CallCenterRow::builder().build());
+        let row = CallCenterRow::builder().build();
         let result = RowGeneratorResult::new(row);
 
         assert_eq!(result.get_rows().len(), 1);
@@ -70,8 +73,8 @@ mod tests {
     #[test]
     fn test_row_generator_result_multiple() {
         let rows = vec![
-            Box::new(CallCenterRow::builder().build()) as Box<dyn TableRow>,
-            Box::new(CallCenterRow::builder().build()) as Box<dyn TableRow>,
+            GeneratedRow::from(CallCenterRow::builder().build()),
+            GeneratedRow::from(CallCenterRow::builder().build()),
         ];
         let result = RowGeneratorResult::new_with_multiple(rows, false);
 

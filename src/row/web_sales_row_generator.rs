@@ -23,7 +23,7 @@ use crate::permutations::{get_permutation_entry, make_permutation};
 use crate::random::RandomValueGenerator;
 use crate::row::web_returns_row_generator::WebReturnsRowGenerator;
 use crate::row::web_sales_row::WebSalesRow;
-use crate::row::{AbstractRowGenerator, RowGenerator, RowGeneratorResult};
+use crate::row::{AbstractRowGenerator, GeneratedRow, RowGenerator, RowGeneratorResult};
 use crate::slowly_changing_dimension_utils::match_surrogate_key;
 use crate::table::Table;
 use crate::types::{generate_pricing_for_sales_table, get_web_sales_pricing_limits};
@@ -401,21 +401,29 @@ impl RowGenerator for WebSalesRowGenerator {
             ws_pricing,
         );
 
-        let mut generated_rows: Vec<Box<dyn crate::row::TableRow>> = Vec::with_capacity(2);
-        generated_rows.push(Box::new(web_sales_row.clone()));
-
         // Check if this sale gets returned (10% return rate)
+        // We check and generate the return BEFORE moving the sales row to avoid cloning
         let stream = self
             .abstract_generator
             .get_random_number_stream(&WrIsReturned);
         let random_int = RandomValueGenerator::generate_uniform_random_int(0, 99, stream);
 
-        // Generate return row if applicable
-        if random_int < RETURN_PERCENTAGE {
-            let return_row = self
-                .web_returns_generator
-                .generate_row(session, &web_sales_row)?;
-            generated_rows.push(return_row);
+        // Generate return row if applicable (using reference before we move sales_row)
+        let return_row = if random_int < RETURN_PERCENTAGE {
+            Some(
+                self.web_returns_generator
+                    .generate_row(session, &web_sales_row)?,
+            )
+        } else {
+            None
+        };
+
+        // Now move (not clone) the sales row into the result
+        let mut generated_rows: Vec<GeneratedRow> = Vec::with_capacity(2);
+        generated_rows.push(web_sales_row.into());
+
+        if let Some(ret_row) = return_row {
+            generated_rows.push(ret_row);
         }
 
         self.remaining_line_items -= 1;

@@ -23,7 +23,7 @@ use crate::generator::InventoryGeneratorColumn;
 use crate::nulls::create_null_bit_map;
 use crate::random::RandomValueGenerator;
 use crate::row::inventory_row::InventoryRow;
-use crate::row::{AbstractRowGenerator, RowGenerator, RowGeneratorResult, TableRow};
+use crate::row::{AbstractRowGenerator, RowGenerator, RowGeneratorResult};
 use crate::slowly_changing_dimension_utils::match_surrogate_key;
 use crate::table::Table;
 use crate::types::Date;
@@ -108,7 +108,7 @@ impl RowGenerator for InventoryRowGenerator {
             inv_quantity_on_hand,
         );
 
-        Ok(RowGeneratorResult::new(Box::new(row) as Box<dyn TableRow>))
+        Ok(RowGeneratorResult::new(row))
     }
 
     fn consume_remaining_seeds_for_row(&mut self) {

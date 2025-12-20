@@ -23,7 +23,7 @@ use crate::permutations::{get_permutation_entry, make_permutation};
 use crate::random::RandomValueGenerator;
 use crate::row::store_returns_row_generator::StoreReturnsRowGenerator;
 use crate::row::store_sales_row::StoreSalesRow;
-use crate::row::{AbstractRowGenerator, RowGenerator, RowGeneratorResult};
+use crate::row::{AbstractRowGenerator, GeneratedRow, RowGenerator, RowGeneratorResult};
 use crate::slowly_changing_dimension_utils::match_surrogate_key;
 use crate::table::Table;
 use crate::types::{generate_pricing_for_sales_table, get_store_sales_pricing_limits};
@@ -309,24 +309,32 @@ impl RowGenerator for StoreSalesRowGenerator {
             ss_pricing,
         );
 
-        let mut generated_rows: Vec<Box<dyn crate::row::TableRow>> = Vec::with_capacity(2);
-        generated_rows.push(Box::new(store_sales_row.clone()));
-
         // Check if this sale gets returned (10% return rate)
+        // We check and generate the return BEFORE moving the sales row to avoid cloning
         let stream = self
             .abstract_generator
             .get_random_number_stream(&SrIsReturned);
         let random_int = RandomValueGenerator::generate_uniform_random_int(0, 99, stream);
 
-        // Generate return row if applicable
+        // Generate return row if applicable (using reference before we move sales_row)
         // Note: In Java's --table store_sales mode, returns are NOT generated.
         // This code generates returns (like Java's --table store_returns mode).
         // The consume_remaining_seeds_for_row() is called separately in the binary.
-        if random_int < SR_RETURN_PCT {
-            let return_row = self
-                .store_returns_generator
-                .generate_row(session, &store_sales_row)?;
-            generated_rows.push(return_row);
+        let return_row = if random_int < SR_RETURN_PCT {
+            Some(
+                self.store_returns_generator
+                    .generate_row(session, &store_sales_row)?,
+            )
+        } else {
+            None
+        };
+
+        // Now move (not clone) the sales row into the result
+        let mut generated_rows: Vec<GeneratedRow> = Vec::with_capacity(2);
+        generated_rows.push(store_sales_row.into());
+
+        if let Some(ret_row) = return_row {
+            generated_rows.push(ret_row);
         }
 
         self.remaining_line_items -= 1;
@@ -351,6 +359,7 @@ impl RowGenerator for StoreSalesRowGenerator {
 mod tests {
     use super::*;
     use crate::config::Session;
+    use crate::row::TableRow;
 
     #[test]
     fn test_store_sales_row_generator_creation() {

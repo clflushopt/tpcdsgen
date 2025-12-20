@@ -192,7 +192,6 @@ impl Scaling {
             Table::WebSales => 60000,   // Number of ORDERS, not line items (60 * 10^3)
             Table::WebSite => 30,
             Table::DbgenVersion => 1,
-
             Table::SBrand => 1000,
             Table::SCustomerAddress => 50000,
             Table::SCallCenter => 6,

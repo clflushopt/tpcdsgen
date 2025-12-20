@@ -104,7 +104,7 @@ impl RowGenerator for HouseholdDemographicsRowGenerator {
         _child_row_generator: Option<&mut dyn RowGenerator>,
     ) -> Result<RowGeneratorResult> {
         let row = self.generate_household_demographics_row(row_number, session)?;
-        Ok(RowGeneratorResult::new(Box::new(row)))
+        Ok(RowGeneratorResult::new(row))
     }
 
     fn consume_remaining_seeds_for_row(&mut self) {
