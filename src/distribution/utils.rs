@@ -35,8 +35,6 @@ impl WeightsBuilder {
 
     /// Compute and add next cumulative weight
     pub fn compute_and_add_next_weight(&mut self, weight: i32) -> Result<&mut Self> {
-        // TODO(clflushopt): we can just use assert! here but since we like nice
-        // errors we have check_argument! macro similar to Java's checkArgument
         check_argument!(weight >= 0, "Weight cannot be negative.");
         let new_weight = self.previous_weight + weight;
         self.weights.push(new_weight);

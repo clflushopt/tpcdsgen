@@ -367,22 +367,6 @@ fn is_replacement(join_key: i64) -> bool {
     (join_key / 2 % 2) != 0
 }
 
-// TODO: Uncomment when SlowlyChangingDimensionUtils::match_surrogate_key is ported
-// /// Helper function to convert config::Table to table::Table for SCD utilities.
-// fn convert_to_metadata_table(table: Table) -> MetadataTable {
-//     match table {
-//         Table::CallCenter => MetadataTable::CallCenter,
-//         Table::Warehouse => MetadataTable::Warehouse,
-//         Table::ShipMode => MetadataTable::ShipMode,
-//         Table::Reason => MetadataTable::Reason,
-//         Table::IncomeBand => MetadataTable::IncomeBand,
-//         Table::CustomerDemographics => MetadataTable::CustomerDemographics,
-//         Table::DateDim => MetadataTable::DateDim,
-//         Table::TimeDim => MetadataTable::TimeDim,
-//         _ => panic!("Table {:?} not yet implemented in metadata table enum", table),
-//     }
-// }
-
 #[cfg(test)]
 mod tests {
     use super::*;

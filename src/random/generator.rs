@@ -8,6 +8,11 @@ impl RandomValueGenerator {
         "abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ0123456789";
     pub const DIGITS: &'static str = "0123456789";
 
+    // Static byte arrays to avoid repeated .chars().collect() allocations
+    const ALPHA_NUMERIC_BYTES: &'static [u8] =
+        b"abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ0123456789";
+    const DIGITS_BYTES: &'static [u8] = b"0123456789";
+
     pub fn generate_uniform_random_int(
         min: i32,
         max: i32,
@@ -62,7 +67,26 @@ impl RandomValueGenerator {
         Ok(Date::from_julian_days(julian_days))
     }
 
+    // Generate random string from a byte slice (optimized for ASCII character sets)
+    fn generate_random_from_bytes(
+        length: usize,
+        bytes: &[u8],
+        random_number_stream: &mut dyn RandomNumberStream,
+    ) -> String {
+        let mut result = Vec::with_capacity(length);
+
+        for _ in 0..length {
+            let index =
+                Self::generate_uniform_random_int(0, bytes.len() as i32 - 1, random_number_stream);
+            result.push(bytes[index as usize]);
+        }
+
+        // Safety: ALPHA_NUMERIC_BYTES and DIGITS_BYTES contain only ASCII bytes
+        unsafe { String::from_utf8_unchecked(result) }
+    }
+
     // Generate random string of specified length from given character set
+    // For non-ASCII character sets that require UTF-8 char handling
     pub fn generate_random_string(
         length: usize,
         character_set: &str,
@@ -80,20 +104,20 @@ impl RandomValueGenerator {
         result
     }
 
-    // Generate random alphanumeric string
+    // Generate random alphanumeric string (optimized with static byte array)
     pub fn generate_random_alphanumeric(
         length: usize,
         random_number_stream: &mut dyn RandomNumberStream,
     ) -> String {
-        Self::generate_random_string(length, Self::ALPHA_NUMERIC, random_number_stream)
+        Self::generate_random_from_bytes(length, Self::ALPHA_NUMERIC_BYTES, random_number_stream)
     }
 
-    // Generate random numeric string
+    // Generate random numeric string (optimized with static byte array)
     pub fn generate_random_digits(
         length: usize,
         random_number_stream: &mut dyn RandomNumberStream,
     ) -> String {
-        Self::generate_random_string(length, Self::DIGITS, random_number_stream)
+        Self::generate_random_from_bytes(length, Self::DIGITS_BYTES, random_number_stream)
     }
 
     // Generate random charset string with variable length (generateRandomCharset)
@@ -104,6 +128,16 @@ impl RandomValueGenerator {
         max: i32,
         random_number_stream: &mut dyn RandomNumberStream,
     ) -> String {
+        // Optimize for ALPHA_NUMERIC which is the common case
+        if character_set == Self::ALPHA_NUMERIC {
+            return Self::generate_random_charset_bytes(
+                Self::ALPHA_NUMERIC_BYTES,
+                min,
+                max,
+                random_number_stream,
+            );
+        }
+
         let length = Self::generate_uniform_random_int(min, max, random_number_stream);
         let chars: Vec<char> = character_set.chars().collect();
         let mut result = String::with_capacity(length as usize);
@@ -118,6 +152,29 @@ impl RandomValueGenerator {
         }
 
         result
+    }
+
+    // Optimized version using byte array for ASCII character sets
+    fn generate_random_charset_bytes(
+        bytes: &[u8],
+        min: i32,
+        max: i32,
+        random_number_stream: &mut dyn RandomNumberStream,
+    ) -> String {
+        let length = Self::generate_uniform_random_int(min, max, random_number_stream);
+        let mut result = Vec::with_capacity(length as usize);
+
+        // Loop to max to consume the same number of random values (behavior)
+        for i in 0..max {
+            let index =
+                Self::generate_uniform_random_int(0, bytes.len() as i32 - 1, random_number_stream);
+            if i < length {
+                result.push(bytes[index as usize]);
+            }
+        }
+
+        // Safety: bytes contain only ASCII
+        unsafe { String::from_utf8_unchecked(result) }
     }
 
     // Generate random boolean with given probability (0.0 to 1.0)

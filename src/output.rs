@@ -51,19 +51,23 @@ impl<'a> Write for StringWriter<'a> {
 /// This is the inverse of the conversion done in file_loader.rs when reading
 /// distribution files. Characters must be in the range U+0000-U+00FF.
 ///
-/// # Panics
-/// Panics if any character is outside the ISO-8859-1 range (U+0000-U+00FF).
-pub fn to_iso_8859_1(s: &str) -> Vec<u8> {
+/// # Errors
+/// Returns an error if any character is outside the ISO-8859-1 range (U+0000-U+00FF).
+pub fn to_iso_8859_1(s: &str) -> io::Result<Vec<u8>> {
     s.chars()
         .map(|c| {
             let code = c as u32;
             if code > 255 {
-                panic!(
-                    "Character '{}' (U+{:04X}) is outside ISO-8859-1 range",
-                    c, code
-                );
+                Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    format!(
+                        "Character '{}' (U+{:04X}) is outside ISO-8859-1 range",
+                        c, code
+                    ),
+                ))
+            } else {
+                Ok(code as u8)
             }
-            code as u8
         })
         .collect()
 }
@@ -83,7 +87,7 @@ impl<W: Write> Iso8859Writer<W> {
 
     /// Write a string as ISO-8859-1 bytes
     pub fn write_str(&mut self, s: &str) -> io::Result<()> {
-        let bytes = to_iso_8859_1(s);
+        let bytes = to_iso_8859_1(s)?;
         self.inner.write_all(&bytes)
     }
 
@@ -109,7 +113,7 @@ impl<W: Write> Write for Iso8859Writer<W> {
         // Interpret input as UTF-8, convert to ISO-8859-1
         let s =
             std::str::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        let iso_bytes = to_iso_8859_1(s);
+        let iso_bytes = to_iso_8859_1(s)?;
         self.inner.write_all(&iso_bytes)?;
         Ok(buf.len())
     }
@@ -125,14 +129,14 @@ mod tests {
 
     #[test]
     fn test_to_iso_8859_1_ascii() {
-        let result = to_iso_8859_1("Hello");
+        let result = to_iso_8859_1("Hello").unwrap();
         assert_eq!(result, b"Hello");
     }
 
     #[test]
     fn test_to_iso_8859_1_latin1() {
         // Ô is U+00D4, which should become byte 0xD4
-        let result = to_iso_8859_1("CÔTE D'IVOIRE");
+        let result = to_iso_8859_1("CÔTE D'IVOIRE").unwrap();
         assert_eq!(result[1], 0xD4); // The Ô character
         assert_eq!(result.len(), 13); // One byte per character
     }
@@ -150,10 +154,13 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "outside ISO-8859-1 range")]
     fn test_to_iso_8859_1_out_of_range() {
         // Euro sign € is U+20AC, outside ISO-8859-1 range
-        to_iso_8859_1("€100");
+        let result = to_iso_8859_1("€100");
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert_eq!(err.kind(), io::ErrorKind::InvalidData);
+        assert!(err.to_string().contains("outside ISO-8859-1 range"));
     }
 
     #[test]

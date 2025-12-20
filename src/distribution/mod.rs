@@ -42,5 +42,3 @@ pub use string_values_distribution::StringValuesDistribution as FileBasedStringV
 pub use top_domains_distribution::TopDomainsDistribution;
 pub use utils::{Distribution, DistributionUtils, WeightsBuilder};
 pub use web_page_use_distribution::WebPageUseDistribution;
-
-// TODO(clflushopt): Include files in the module instead of reading them at runtime ?

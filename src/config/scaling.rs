@@ -162,11 +162,10 @@ impl Scaling {
         result
     }
 
-    /// Basic row counts per table.
+    /// Basic row counts per table at scale factor 1.
     #[allow(dead_code)]
     fn get_base_row_count(&self, table: Table) -> i64 {
         match table {
-            // TODO(clflushopt): Derive from scaling implementation later on.
             Table::CallCenter => 6,
             Table::CatalogPage => 11718,
             Table::CatalogReturns => 160000, // Same as CatalogSales orders (returns are ~10% of sales)

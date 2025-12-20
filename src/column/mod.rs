@@ -24,7 +24,9 @@ pub use web_site::WebSiteColumn;
 // This eliminates the duplicate Table enum that previously existed here
 pub use crate::table::Table;
 
-/// TODO(clflushopt): We probably don't need this but Java keeps it around.
+/// Column trait for TPC-DS table columns.
+/// Used by column enums (CallCenterColumn, CustomerColumn, etc.) to provide
+/// common functionality for column metadata access.
 pub trait Column: Send + Sync {
     /// Get the table this column belongs to
     fn get_table(&self) -> Table;
