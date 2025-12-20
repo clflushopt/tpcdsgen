@@ -239,9 +239,9 @@ main() {
 
     for table in "${tables_to_generate[@]}"; do
         if generate_table "$table"; then
-            success_count=$((success_count++))
+            ((success_count++))
         else
-            fail_count=$((fail_count++))
+            ((fail_count++))
         fi
     done
 
