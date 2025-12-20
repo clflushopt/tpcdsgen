@@ -149,7 +149,7 @@ impl RowGenerator for PromotionRowGenerator {
 
         let p_purpose = "Unknown".to_string();
 
-        Ok(RowGeneratorResult::new(Box::new(PromotionRow::new(
+        Ok(RowGeneratorResult::new(PromotionRow::new(
             null_bit_map,
             p_promo_sk,
             p_promo_id,
@@ -170,7 +170,7 @@ impl RowGenerator for PromotionRowGenerator {
             p_channel_details,
             p_purpose,
             p_discount_active,
-        ))))
+        )))
     }
 
     fn consume_remaining_seeds_for_row(&mut self) {
@@ -186,6 +186,8 @@ impl RowGenerator for PromotionRowGenerator {
 
 #[cfg(test)]
 mod tests {
+    use crate::row::table_row::TableRow;
+
     use super::*;
 
     #[test]

@@ -18,6 +18,7 @@ use crate::generator::{CatalogPageGeneratorColumn, GeneratorColumn};
 use crate::row::TableRow;
 
 /// Catalog page row
+#[derive(Clone)]
 pub struct CatalogPageRow {
     null_bit_map: i64,
     cp_catalog_page_sk: i64,

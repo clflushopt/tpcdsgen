@@ -1,7 +1,7 @@
 use crate::business_key_generator::make_business_key;
 use crate::config::Session;
 use crate::distribution::HoursDistribution;
-use crate::row::{AbstractRowGenerator, RowGenerator, RowGeneratorResult, TableRow, TimeDimRow};
+use crate::row::{AbstractRowGenerator, RowGenerator, RowGeneratorResult, TimeDimRow};
 use crate::table::Table;
 
 pub struct TimeDimRowGenerator {
@@ -68,7 +68,7 @@ impl RowGenerator for TimeDimRowGenerator {
             t_meal_time,
         );
 
-        Ok(RowGeneratorResult::new(Box::new(row) as Box<dyn TableRow>))
+        Ok(RowGeneratorResult::new(row))
     }
 
     fn consume_remaining_seeds_for_row(&mut self) {

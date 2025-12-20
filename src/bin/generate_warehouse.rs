@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 use tpcdsgen::config::Session;
-use tpcdsgen::row::{RowGenerator, WarehouseRowGenerator};
+use tpcdsgen::row::{RowGenerator, TableRow, WarehouseRowGenerator};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let session = Session::get_default_session();

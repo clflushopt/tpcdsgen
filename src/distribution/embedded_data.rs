@@ -3,8 +3,8 @@
 //! This module embeds all .dst files at compile time, eliminating runtime file I/O.
 //! Files are stored as raw bytes (ISO-8859-1 encoded).
 
-/// Get embedded distribution file bytes by filename.
-/// Returns None if the file is not found.
+/// Get embedded distribution file bytes by filename, returns `None` if the filename
+/// is not known.
 pub fn get_embedded_distribution(filename: &str) -> Option<&'static [u8]> {
     match filename {
         "adjectives.dst" => Some(include_bytes!("../../data/adjectives.dst")),

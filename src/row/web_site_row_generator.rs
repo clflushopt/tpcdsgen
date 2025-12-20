@@ -359,7 +359,7 @@ impl RowGenerator for WebSiteRowGenerator {
         );
 
         self.previous_row = Some(row.clone());
-        Ok(RowGeneratorResult::new(Box::new(row)))
+        Ok(RowGeneratorResult::new(row))
     }
 
     fn consume_remaining_seeds_for_row(&mut self) {
@@ -375,6 +375,7 @@ impl RowGenerator for WebSiteRowGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::row::TableRow;
 
     #[test]
     fn test_web_site_row_generator_creation() {

@@ -19,7 +19,7 @@ use std::io::BufWriter;
 use std::path::Path;
 use tpcdsgen::config::Session;
 use tpcdsgen::output::Iso8859Writer;
-use tpcdsgen::row::{CatalogPageRowGenerator, RowGenerator};
+use tpcdsgen::row::{CatalogPageRowGenerator, RowGenerator, TableRow};
 
 fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let session = Session::get_default_session();

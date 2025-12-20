@@ -1,7 +1,7 @@
 use crate::business_key_generator::make_business_key;
 use crate::config::Session;
 use crate::distribution::CalendarDistribution;
-use crate::row::{AbstractRowGenerator, DateDimRow, RowGenerator, RowGeneratorResult, TableRow};
+use crate::row::{AbstractRowGenerator, DateDimRow, RowGenerator, RowGeneratorResult};
 use crate::table::Table;
 use crate::types::Date;
 
@@ -157,7 +157,7 @@ impl RowGenerator for DateDimRowGenerator {
             d_current_year,
         );
 
-        Ok(RowGeneratorResult::new(Box::new(row) as Box<dyn TableRow>))
+        Ok(RowGeneratorResult::new(row))
     }
 
     fn consume_remaining_seeds_for_row(&mut self) {

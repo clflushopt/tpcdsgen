@@ -48,7 +48,6 @@ pub enum Table {
     Inventory,
     // Source tables (for SCD key computation)
     SStore,
-    // TODO: Add other tables as they are implemented
 }
 
 impl Table {

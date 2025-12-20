@@ -352,7 +352,7 @@ impl RowGenerator for ItemRowGenerator {
         let row = self.generate_item_row(row_number, session)?;
         // Store for SCD logic on next row
         self.previous_row = Some(row.clone());
-        Ok(RowGeneratorResult::new(Box::new(row)))
+        Ok(RowGeneratorResult::new(row))
     }
 
     fn consume_remaining_seeds_for_row(&mut self) {

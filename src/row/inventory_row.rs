@@ -18,6 +18,7 @@ use crate::generator::{GeneratorColumn, InventoryGeneratorColumn};
 use crate::row::TableRow;
 
 /// Represents a single row in the inventory table.
+#[derive(Clone)]
 pub struct InventoryRow {
     null_bit_map: i64,
     inv_date_sk: i64,

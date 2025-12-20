@@ -1,7 +1,5 @@
 use clap::Parser;
 use tpcdsgen::config::{Options, Table};
-use tpcdsgen::distribution::EnglishDistributions;
-use tpcdsgen::random::RandomNumberStreamImpl;
 
 fn main() {
     let options = Options::parse();
@@ -18,10 +16,7 @@ fn main() {
             if session.generate_only_one_table() {
                 let table = session.get_only_table_to_generate();
                 println!("Generating table: {} ({})", table.get_name(), table);
-                println!(
-                    "Estimated row count: {}",
-                    session.get_scaling().get_row_count(table)
-                );
+                println!("Row count: {}", session.get_scaling().get_row_count(table));
             } else {
                 println!("Generating all tables");
                 let main_tables = Table::main_tables();
@@ -45,22 +40,6 @@ fn main() {
                     session.get_command_line_arguments()
                 );
             }
-
-            // Demo the distribution system
-            println!("\n--- Distribution System Demo ---");
-            let mut stream = RandomNumberStreamImpl::new(1).unwrap();
-
-            println!("Random English words:");
-            for i in 0..5 {
-                let adjective = EnglishDistributions::pick_random_adjective(&mut stream).unwrap();
-                let noun = EnglishDistributions::pick_random_noun(&mut stream).unwrap();
-                println!("  {}. {} {}", i + 1, adjective, noun);
-            }
-
-            let phrase = EnglishDistributions::generate_random_phrase(&mut stream, 4).unwrap();
-            println!("Random phrase: {}", phrase);
-
-            println!("\nImplementation in progress...");
         }
         Err(e) => {
             eprintln!("Error: {}", e);
