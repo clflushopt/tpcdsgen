@@ -22,9 +22,8 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Configuration
-SCALE_FACTOR=1
-FIXTURE_DIR="$PROJECT_ROOT/tests/fixtures/scale-$SCALE_FACTOR"
+# Configuration (can be overridden by --scale)
+SCALE_FACTOR=${TPCDS_SCALE:-1}
 QUIET=0
 
 # Logging functions
@@ -119,7 +118,7 @@ generate_rust_table() {
     fi
 
     log_info "Generating $table with Rust..."
-    log_info "Using binary: $binary --table $generator"
+    log_info "Using binary: $binary --table $generator --scale $SCALE_FACTOR"
     if [[ "$generator" != "$table" ]]; then
         log_info "Note: $table is generated alongside $generator"
     fi
@@ -128,8 +127,8 @@ generate_rust_table() {
     local temp_dir
     temp_dir=$(mktemp -d)
 
-    # Run Rust generator with --table and --directory flags
-    if ! "$binary" --table "$generator" --directory "$temp_dir" >/dev/null 2>&1; then
+    # Run Rust generator with --table, --scale, and --directory flags
+    if ! "$binary" --table "$generator" --scale "$SCALE_FACTOR" --directory "$temp_dir" >/dev/null 2>&1; then
         log_error "Failed to generate $table with Rust"
         rm -rf "$temp_dir"
         return 1
@@ -145,6 +144,18 @@ generate_rust_table() {
         log_error "Files in temp dir: $(ls -la "$temp_dir")"
         rm -rf "$temp_dir"
         return 1
+    fi
+}
+
+# Compute MD5 hash (works on both macOS and Linux)
+compute_md5() {
+    local file=$1
+    if command -v md5sum >/dev/null 2>&1; then
+        md5sum "$file" | cut -d' ' -f1
+    elif command -v md5 >/dev/null 2>&1; then
+        md5 -q "$file"
+    else
+        echo "NO_MD5"
     fi
 }
 
@@ -178,13 +189,25 @@ compare_files() {
         return 1
     fi
 
-    # Byte-for-byte comparison
-    if diff -q "$java_file" "$rust_file" >/dev/null 2>&1; then
-        log_success "✓ $table: Outputs match exactly ($java_rows rows)"
+    # Compute MD5 hashes
+    log_info "Computing MD5 hashes..."
+    local java_md5
+    local rust_md5
+    java_md5=$(compute_md5 "$java_file")
+    rust_md5=$(compute_md5 "$rust_file")
+
+    log_info "Java MD5: $java_md5"
+    log_info "Rust MD5: $rust_md5"
+
+    # Compare MD5 hashes
+    if [[ "$java_md5" == "$rust_md5" ]]; then
+        log_success "✓ $table: MD5 match ($java_rows rows, $java_md5)"
         return 0
     else
-        log_error "✗ $table: Outputs differ"
-        log_diff "Showing first 10 differences:"
+        log_error "✗ $table: MD5 mismatch!"
+        log_error "  Java: $java_md5"
+        log_error "  Rust: $rust_md5"
+        log_diff "Showing first differences:"
         diff -u "$java_file" "$rust_file" | head -30 || true
         return 1
     fi
@@ -197,6 +220,10 @@ main() {
     # Parse arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
+            --scale)
+                SCALE_FACTOR="$2"
+                shift 2
+                ;;
             --quiet)
                 QUIET=1
                 shift
@@ -215,6 +242,9 @@ main() {
                 ;;
         esac
     done
+
+    # Set fixture directory based on scale factor
+    FIXTURE_DIR="$PROJECT_ROOT/tests/fixtures/scale-$SCALE_FACTOR"
 
     # Validate table argument
     if [[ -z "$table" ]]; then

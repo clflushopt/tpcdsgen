@@ -22,7 +22,8 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Configuration
+# Configuration (can be overridden by --scale)
+SCALE_FACTOR=${TPCDS_SCALE:-1}
 QUIET=0
 
 # Logging functions
@@ -50,14 +51,16 @@ usage() {
 Test all ported Rust tables against Java reference fixtures
 
 Usage:
-    $(basename "$0") [--quiet]
+    $(basename "$0") [--scale N] [--quiet]
 
 Options:
+    --scale N       Scale factor (default: 1)
     --quiet         Quiet mode (show only summary)
 
 Examples:
-    $(basename "$0")           # Test all ported tables (verbose)
-    $(basename "$0") --quiet   # Test all ported tables (quiet)
+    $(basename "$0")              # Test all tables at scale 1
+    $(basename "$0") --scale 10   # Test all tables at scale 10
+    $(basename "$0") --quiet      # Test all tables (quiet)
 
 Exit codes:
     0 - All tables match exactly
@@ -120,9 +123,9 @@ test_table() {
     local compare_script="$SCRIPT_DIR/compare-table.sh"
 
     if [[ $QUIET -eq 1 ]]; then
-        "$compare_script" "$table" --quiet
+        "$compare_script" "$table" --scale "$SCALE_FACTOR" --quiet
     else
-        "$compare_script" "$table"
+        "$compare_script" "$table" --scale "$SCALE_FACTOR"
     fi
 }
 
@@ -136,6 +139,10 @@ main() {
     # Parse arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
+            --scale)
+                SCALE_FACTOR="$2"
+                shift 2
+                ;;
             --quiet)
                 QUIET=1
                 shift
@@ -152,6 +159,7 @@ main() {
 
     log_info "========================================="
     log_info "TPC-DS Table Test Suite"
+    log_info "Scale Factor: $SCALE_FACTOR"
     log_info "========================================="
 
     # Get tables to test

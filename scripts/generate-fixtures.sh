@@ -22,9 +22,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 JAVA_DIR="$PROJECT_ROOT/../tpcds"
 
-# Configuration
-SCALE_FACTOR=1
-FIXTURE_DIR="$PROJECT_ROOT/tests/fixtures/scale-$SCALE_FACTOR"
+# Configuration (can be overridden by --scale)
+SCALE_FACTOR=${TPCDS_SCALE:-1}
 QUIET=0
 
 # All TPC-DS tables (25 tables)
@@ -86,15 +85,17 @@ Usage:
     $(basename "$0") [OPTIONS] [TABLES...]
 
 Options:
+    --scale N       Scale factor (default: 1)
     --quiet         Quiet mode (minimal output)
     --help          Show this help message
 
 Arguments:
     TABLES          Space-separated list of table names to generate
-                    If omitted, generates all 24 tables
+                    If omitted, generates all 25 tables
 
 Examples:
-    $(basename "$0")                          # Generate all tables
+    $(basename "$0")                          # Generate all tables at scale 1
+    $(basename "$0") --scale 10               # Generate all tables at scale 10
     $(basename "$0") --quiet                  # Generate all tables (quiet)
     $(basename "$0") call_center warehouse    # Generate specific tables
 
@@ -200,6 +201,10 @@ main() {
     # Parse arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
+            --scale)
+                SCALE_FACTOR="$2"
+                shift 2
+                ;;
             --quiet)
                 QUIET=1
                 shift
@@ -213,6 +218,9 @@ main() {
                 ;;
         esac
     done
+
+    # Set fixture directory based on scale factor
+    FIXTURE_DIR="$PROJECT_ROOT/tests/fixtures/scale-$SCALE_FACTOR"
 
     # If no tables specified, generate all
     if [[ ${#tables_to_generate[@]} -eq 0 ]]; then
