@@ -22,7 +22,8 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Configuration
+# Configuration (can be overridden by --scale)
+SCALE_FACTOR=${TPCDS_SCALE:-1}
 QUIET=0
 
 # Logging functions
@@ -50,14 +51,16 @@ usage() {
 Test all ported Rust tables against Java reference fixtures
 
 Usage:
-    $(basename "$0") [--quiet]
+    $(basename "$0") [--scale N] [--quiet]
 
 Options:
+    --scale N       Scale factor (default: 1)
     --quiet         Quiet mode (show only summary)
 
 Examples:
-    $(basename "$0")           # Test all ported tables (verbose)
-    $(basename "$0") --quiet   # Test all ported tables (quiet)
+    $(basename "$0")              # Test all tables at scale 1
+    $(basename "$0") --scale 10   # Test all tables at scale 10
+    $(basename "$0") --quiet      # Test all tables (quiet)
 
 Exit codes:
     0 - All tables match exactly
@@ -67,58 +70,49 @@ EOF
     exit 0
 }
 
-# Find all ported Rust table generators
-# Note: Returns tables (catalog_returns, store_returns, web_returns) are generated
-# by their parent sales generators, so we add them if the parent exists
-find_ported_tables() {
-    local tables=()
+# All TPC-DS tables to test (24 tables - excludes dbgen_version which has timestamps)
+# Note: dbgen_version is excluded because it contains timestamps that will never match
+ALL_TABLES=(
+    "call_center"
+    "catalog_page"
+    "catalog_returns"
+    "catalog_sales"
+    "customer"
+    "customer_address"
+    "customer_demographics"
+    "date_dim"
+    "household_demographics"
+    "income_band"
+    "inventory"
+    "item"
+    "promotion"
+    "reason"
+    "ship_mode"
+    "store"
+    "store_returns"
+    "store_sales"
+    "time_dim"
+    "warehouse"
+    "web_page"
+    "web_returns"
+    "web_sales"
+    "web_site"
+)
 
-    for bin_file in "$PROJECT_ROOT"/src/bin/generate_*.rs; do
-        if [[ -f "$bin_file" ]]; then
-            local basename
-            basename=$(basename "$bin_file" .rs)
-            # Extract table name: generate_call_center -> call_center
-            local table_name="${basename#generate_}"
-
-            # Skip custom variants
-            if [[ "$table_name" == *"_custom" ]]; then
-                continue
-            fi
-
-            # Skip dbgen_version (contains timestamps, will never match)
-            if [[ "$table_name" == "dbgen_version" ]]; then
-                continue
-            fi
-
-            tables+=("$table_name")
-
-            # Add returns tables when parent sales generator exists
-            case "$table_name" in
-                catalog_sales)
-                    tables+=("catalog_returns")
-                    ;;
-                store_sales)
-                    tables+=("store_returns")
-                    ;;
-                web_sales)
-                    tables+=("web_returns")
-                    ;;
-            esac
-        fi
-    done
-
-    echo "${tables[@]}"
+# Get list of tables to test
+get_tables_to_test() {
+    echo "${ALL_TABLES[@]}"
 }
 
-# Build all Rust table generators
-build_all_generators() {
-    log_info "Building all Rust table generators..."
+# Build the unified Rust table generator
+build_generator() {
+    log_info "Building Rust TPC-DS generator..."
 
-    if cargo build --bins --quiet 2>&1; then
-        log_success "All generators built successfully"
+    if cargo build --release --quiet 2>&1; then
+        log_success "Generator built successfully"
         return 0
     else
-        log_error "Failed to build Rust generators"
+        log_error "Failed to build Rust generator"
         return 1
     fi
 }
@@ -129,9 +123,9 @@ test_table() {
     local compare_script="$SCRIPT_DIR/compare-table.sh"
 
     if [[ $QUIET -eq 1 ]]; then
-        "$compare_script" "$table" --quiet
+        "$compare_script" "$table" --scale "$SCALE_FACTOR" --quiet
     else
-        "$compare_script" "$table"
+        "$compare_script" "$table" --scale "$SCALE_FACTOR"
     fi
 }
 
@@ -145,6 +139,10 @@ main() {
     # Parse arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
+            --scale)
+                SCALE_FACTOR="$2"
+                shift 2
+                ;;
             --quiet)
                 QUIET=1
                 shift
@@ -161,23 +159,24 @@ main() {
 
     log_info "========================================="
     log_info "TPC-DS Table Test Suite"
+    log_info "Scale Factor: $SCALE_FACTOR"
     log_info "========================================="
 
-    # Find ported tables
-    local ported_tables
-    ported_tables=$(find_ported_tables)
-    local tables_array=($ported_tables)
+    # Get tables to test
+    local tables_to_test
+    tables_to_test=$(get_tables_to_test)
+    local tables_array=($tables_to_test)
     local total_count=${#tables_array[@]}
 
-    log_info "Found $total_count ported tables:"
+    log_info "Testing $total_count tables:"
     for table in "${tables_array[@]}"; do
         log_info "  - $table"
     done
     log_info "========================================="
 
-    # Build all generators
+    # Build generator
     cd "$PROJECT_ROOT"
-    if ! build_all_generators; then
+    if ! build_generator; then
         exit 1
     fi
     log_info "========================================="

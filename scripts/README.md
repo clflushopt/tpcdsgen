@@ -157,7 +157,7 @@ Compares Rust-generated output for a single table against the Java reference fix
 [INFO] =========================================
 [INFO] Java fixture: tests/fixtures/scale-1/call_center.dat
 [INFO] Generating call_center with Rust...
-[INFO] Using binary: target/debug/generate_call_center
+[INFO] Using binary: target/release/tpcdsgen --table call_center
 [INFO] Comparing outputs...
 [INFO] Java fixture: 6 rows, 4.0K
 [INFO] Rust output:  6 rows, 4.0K
@@ -184,9 +184,9 @@ Runs comparison tests for all tables that have been ported to Rust. This is the 
 ```
 
 **What it does:**
-1. Discovers all ported tables by scanning `src/bin/generate_*.rs`
-2. Builds all Rust generators
-3. Compares each table against Java fixture
+1. Tests all 24 TPC-DS tables (dbgen_version excluded - has timestamps)
+2. Builds the unified Rust generator (`tpcdsgen`)
+3. Compares each table against Java fixture using `compare-table.sh`
 4. Prints comprehensive summary
 
 **Exit codes:**
@@ -198,19 +198,14 @@ Runs comparison tests for all tables that have been ported to Rust. This is the 
 [INFO] =========================================
 [INFO] TPC-DS Table Test Suite
 [INFO] =========================================
-[INFO] Found 9 ported tables:
+[INFO] Testing 24 tables:
 [INFO]   - call_center
-[INFO]   - customer_demographics
-[INFO]   - date_dim
-[INFO]   - household_demographics
-[INFO]   - income_band
-[INFO]   - reason
-[INFO]   - ship_mode
-[INFO]   - time_dim
-[INFO]   - warehouse
+[INFO]   - catalog_page
+[INFO]   - catalog_returns
+[INFO]   ... (all 24 tables)
 [INFO] =========================================
-[INFO] Building all Rust table generators...
-[SUCCESS] All generators built successfully
+[INFO] Building Rust TPC-DS generator...
+[SUCCESS] Generator built successfully
 [INFO] =========================================
 
 [INFO] Testing: call_center
@@ -221,21 +216,10 @@ Runs comparison tests for all tables that have been ported to Rust. This is the 
 [INFO] =========================================
 [INFO] Test Summary
 [INFO] =========================================
-[INFO] Total tables tested: 9
-[SUCCESS] Passed: 9
+[INFO] Total tables tested: 24
+[SUCCESS] Passed: 24
 
-[SUCCESS] Passed tables:
-[SUCCESS]   ✓ call_center
-[SUCCESS]   ✓ customer_demographics
-[SUCCESS]   ✓ date_dim
-[SUCCESS]   ✓ household_demographics
-[SUCCESS]   ✓ income_band
-[SUCCESS]   ✓ reason
-[SUCCESS]   ✓ ship_mode
-[SUCCESS]   ✓ time_dim
-[SUCCESS]   ✓ warehouse
-
-[INFO] Total time: 5s
+[INFO] Total time: 45s
 [INFO] =========================================
 ```
 
@@ -294,7 +278,7 @@ Removes all generated fixtures to free up disk space or force regeneration.
 ## Requirements
 
 - **Java:** Maven-built TPC-DS JAR at `../tpcds/target/tpcds-*-jar-with-dependencies.jar`
-- **Rust:** Cargo-built binaries at `target/debug/generate_*` or `target/release/generate_*`
+- **Rust:** Cargo-built `tpcdsgen` binary at `target/debug/tpcdsgen` or `target/release/tpcdsgen`
 - **Disk space:** ~500MB-1GB for scale 1 fixtures
 
 ---
@@ -307,9 +291,9 @@ cd ../tpcds
 mvn clean package
 ```
 
-**Problem:** `Rust binary not found for table: X`
+**Problem:** `Rust binary not found`
 ```bash
-cargo build --bin generate_X
+cargo build --release
 ```
 
 **Problem:** `Fixture not found`
@@ -345,9 +329,6 @@ Exit codes make it easy to fail CI on mismatches.
 ## TODOs
 
 - [ ] Support multiple scale factors (scale-10, scale-100)
-- [ ] Parallel table generation
-- [ ] Performance benchmarking (Rust vs Java speed)
-- [ ] Rust integration tests (`tests/integration/*.rs`)
 - [ ] MD5 hash validation (faster than full diff for large tables)
 
 ---
