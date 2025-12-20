@@ -356,6 +356,9 @@ fn generate_inventory(session: &Session) -> Result<()> {
 
 /// Get output file path for a table
 fn get_output_path(table: Table, session: &Session) -> std::path::PathBuf {
-    Path::new(session.get_target_directory())
-        .join(format!("{}{}", table.get_name(), session.get_suffix()))
+    Path::new(session.get_target_directory()).join(format!(
+        "{}{}",
+        table.get_name(),
+        session.get_suffix()
+    ))
 }
