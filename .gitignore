@@ -6,7 +6,7 @@
 /patches/
 
 # Test fixtures (generated).
-/tests/fixtures/
+#/tests/fixtures/
 
 # Stuff I need to remember
 NEXT_STEPS.md
