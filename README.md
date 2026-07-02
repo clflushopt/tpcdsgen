@@ -1,5 +1,7 @@
 # tpcds but it's Rust instead
 
+> This repo has been effectively archived and the implementation is now merged and provided by [TPCGEN](https://github.com/clflushopt/tpchgen-rs)
+
 This is a WIP port of [Trino's TPCDS](https://github.com/trinodb/tpcds) to Rust that is slowly
 taking shape. It is developed out of tree, for now, but will end up as part of
 the [tpchgen](https://github.com/clflushopt/tpchgen-rs) once I am satisfied with the port and
